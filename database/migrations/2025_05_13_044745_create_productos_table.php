@@ -13,15 +13,18 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('medicamentos', function (Blueprint $table) {
-            $table->bigIncrements('id_medicamento');
+        Schema::create('productos', function (Blueprint $table) {
+            $table->bigIncrements('id_producto');
             $table->string('nombre');
-            $table->string('fabricante')->nullable();
             $table->text('descripcion')->nullable();
-            $table->string('dosis_recomendada')->nullable();
+            $table->text('codigo');
             $table->decimal('precio', 10, 2);
-            $table->integer('stock')->default(0);
+            $table->integer('stock');
+            $table->integer('min_stock')->default(5);
+            $table->string('imagen')->nullable();
             $table->boolean('activo')->default(true);
+            $table->foreignId('id_categoria')->constrained();
+            $table->foreignId('id_proveedor')->constrained();
             $table->timestamps();
         });
     }
@@ -33,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('medicamentos');
+        Schema::dropIfExists('productos');
     }
 };

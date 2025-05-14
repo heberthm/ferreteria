@@ -13,12 +13,13 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('tratamientos', function (Blueprint $table) {
-            $table->bigIncrements('id_tratamiento');
-            $table->string('nombre');
-            $table->text('descripcion')->nullable();
-            $table->decimal('precio', 10, 2);
-            $table->boolean('activo')->default(true);
+        Schema::create('detalle_ventas', function (Blueprint $table) {
+            $table->bigIncrements('id_detalle_venta');
+            $table->foreignId('id_venta')->constrained();
+            $table->foreignId('id_producto')->constrained();
+            $table->integer('cantidad');
+            $table->decimal('precio_unitario', 10, 2);
+            $table->decimal('subtotal', 10, 2);
             $table->timestamps();
         });
     }
@@ -30,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('tratamientos');
+        Schema::dropIfExists('detalle_ventas');
     }
 };

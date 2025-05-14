@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class producto extends Model
+{
+    use HasFactory;
+
+       protected $fillable = [
+        'codigo', 'nombre', 'descripcion', 'precio', 'stock', 
+        'stock_minimo', 'imagen', 'activo', 'id_categoria', 'id_proveedor'
+    ];
+
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class);
+    }
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Proveedor::class);
+    }
+
+    public function detalleVenta()
+    {
+        return $this->hasMany(DetalleVenta::class);
+    }
+
+    public function getStockStatusAttribute()
+    {
+        if ($this->stock <= 0) {
+            return 'Agotado';
+        } elseif ($this->stock < $this->min_stock) {
+            return 'Bajo stock';
+        }
+        return 'Disponible';
+    }
+
+}

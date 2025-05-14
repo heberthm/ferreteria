@@ -356,7 +356,7 @@ return [
          [
                     'text' => 'Caja registradora',
                     'icon' => 'fas fa-dollar-sign nav-icon',
-                    'url' => '#',
+                    'url' => 'caja',
         ],
         [
             'text' => 'Ventas',
@@ -366,7 +366,7 @@ return [
                 [
                     'text' => 'Nueva venta',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'crear_venta',
                 ],
                 [
                     'text' => 'gastos',
@@ -490,7 +490,7 @@ return [
         [
             'text' => 'Salir',
             'icon' => 'nav-icon fas fa-power-off color:red',
-            'url' => '/login',
+            'url' => 'login',
             'icon_color' => 'danger',
         ],
 
