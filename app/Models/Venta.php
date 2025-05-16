@@ -10,9 +10,16 @@ class Venta extends Model
     use HasFactory;
 
  protected $fillable = [
-        'numero_factura', 'fecha_venta', 'total', 'iva', 
-        'descuento', 'gran_total', 'metodo_pago', 
-        'observaciones', 'id_cliente', 'user_id'
+        'numero_factura',
+        'fecha_venta',
+        'total',
+        'iva', 
+        'descuento',
+        'gran_total',
+        'metodo_pago', 
+        'observaciones',
+        'id_cliente',
+        'user_id',
     ];
 
     protected $dates = ['fecha_venta'];
@@ -37,7 +44,7 @@ class Venta extends Model
     {
         $lastSale = static::latest()->first();
         $number = $lastSale ? (int) substr($lastSale->numero_factura, 3) + 1 : 1;
-        return 'FAC' . str_pad($number, 6, '0', STR_PAD_LEFT);
+        return  str_pad($number, 6, '0', STR_PAD_LEFT);
     }
 
 

@@ -366,7 +366,7 @@ return [
                 [
                     'text' => 'Nueva venta',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => 'crear_venta',
+                    'url' => 'venta',
                 ],
                 [
                     'text' => 'gastos',
@@ -418,13 +418,13 @@ return [
                 [
                     'text' => 'Productos',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'productos',
                 ],
                           
                 [
                     'text' => 'Categorías',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'categorias',
                 ],
                 
             ]

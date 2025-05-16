@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\CajaController;
-
+use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\Controller;
 
 
@@ -30,9 +31,16 @@ Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->na
 
 
 
+// ======================================================
+
+//  RUTAS PARA VENTAS
+
+// ======================================================
 
 
-Route::get('crear_venta', [App\Http\Controllers\VentasController::class, 'index'])->name('crear_venta');
+
+Route::get('venta', [App\Http\Controllers\VentaController::class, 'index'])->name('venta');
+Route::get('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
 
 /*
 
@@ -42,6 +50,28 @@ Route::post('categorias', CategoriaController::class);
 Route::post('proveedores', ProveedorController::class);
 
 */
+
+
+
+
+// ======================================================
+
+//  RUTAS PARA CATEGORIAS
+
+// ======================================================
+
+Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
+
+
+
+
+// ======================================================
+
+//  RUTAS PARA CATEGORIAS
+
+// ======================================================
+
+Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
 
 
 

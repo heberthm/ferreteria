@@ -19,7 +19,7 @@ class Cliente extends Model
         'direccion',
         'telefono',
         'email',
-        'cedula'
+        'cedula',
     ];
 
     public function mascotas()

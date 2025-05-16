@@ -14,12 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::create('detalle_ventas', function (Blueprint $table) {
-            $table->bigIncrements('id_detalle_venta');
-            $table->foreignId('id_venta')->constrained();
-            $table->foreignId('id_producto')->constrained();
+           
+            $table->id();
+            $table->foreignId('venta_id')->constrained('ventas')->onDelete('cascade');
+            $table->foreignId('producto_id')->constrained('productos');
             $table->integer('cantidad');
-            $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('subtotal', 10, 2);
+            $table->decimal('precio_unitario', 10);
+            $table->decimal('subtotal', 10);
             $table->timestamps();
         });
     }

@@ -17,7 +17,7 @@ class caja extends Model
         'total_egresos',
         'estado_caja',
         'user_id',
-        'observaciones'
+        'observaciones',
  ];
 
  // Relación con el usuario

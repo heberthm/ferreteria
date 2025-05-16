@@ -1,19 +1,28 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Venta;
-use App\Models\Producto;
 use App\Models\Cliente;
+use App\Models\Producto;
+use App\Models\DetalleVenta;
+use App\Models\Inventario;
 use Illuminate\Http\Request;
 
-class VentasController extends Controller
+class VentaController extends Controller
 {
     public function index()
     {
-        $sales = Venta::with(['id_cliente', 'user'])->latest()->paginate(10);
-        return view('crear_venta');
+        $venta = Venta::with(['id_cliente', 'user'])->latest()->paginate(10);
+        return view('venta');
     }
+
+  public  function generateInvoiceNumber() {
+
+      // Generar número de factura automático
+        $ultimaVenta = Venta::latest()->first();
+        $numeroFactura = $ultimaVenta ? 'FAC-' . str_pad((intval(substr($ultimaVenta->numero_factura, 4)) + 1), 6, '0', STR_PAD_LEFT) : 'FAC-000001';
+
+  }
 
     public function create()
     {
@@ -21,12 +30,12 @@ class VentasController extends Controller
         $products = Producto::where('stock', '>', 0)->get();
         $invoiceNumber = Venta::generateInvoiceNumber();
         
-        return view('sales.create', compact('clientes', 'productos', 'numero_factura'));
+        return view('venta');
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+         $validated = $request->validate([
             'id_cliente' => 'required|exists:customers,id',
             'fecha_venta' => 'required|date',
             'metodo_pago' => 'required|in:efectivo,credito,tarjeta_credito,transferencia',
@@ -34,6 +43,14 @@ class VentasController extends Controller
             'productos.*.id_producto' => 'required|exists:producto,id_producto',
             'productos.*.cantidad' => 'required|integer|min:1',
         ]);
+
+ /*
+
+  try {
+        DB::beginTransaction();
+
+*/
+            
 
         // Calcular totales
         $total = 0;
@@ -60,6 +77,13 @@ class VentasController extends Controller
             
             // Reducir stock
             $dbProduct->decrement('stock', $product['cantidad']);
+
+           
+               // Verificar stock
+                $inventario = $producto->inventario;
+                if ($inventario->cantidad < $item['cantidad']) {
+                    throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
+                }
         }
         
         // Calcular impuestos y total general (ejemplo con 16% de IVA)
@@ -67,12 +91,12 @@ class VentasController extends Controller
         $grandTotal = $total + $tax;
         
         // Crear la venta
-        $sale = Venta::create([
+        $venta = Venta::create([
             'numero_factura' => Venta::generateInvoiceNumber(),
             'fecha_venta' => $request->sale_date,
             'total' => $total,
             'iva' => $tax,
-            'descuenta' => 0,
+            'descuento' => 0,
             'gran_total' => $grandTotal,
             'metodo_pago' => $request->payment_method,
             'observaciones' => $request->notes,
@@ -81,17 +105,24 @@ class VentasController extends Controller
         ]);
         
         // Agregar detalles de venta
-        $sale->details()->createMany($productsData);
+        $venta->details()->createMany($productsData);
         
-        return redirect()->route('ventas.show', $sale)
+        return redirect()->route('ventas.show', $venta)
             ->with('success', 'Venta registrada exitosamente');
+   
+
+     DB::commit();
+
+        return redirect()->route('venta', $venta)
+                ->with('success', 'Venta realizada exitosamente.');
+  
     }
 
-    public function show(Venta $sale)
+    public function show(Venta $venta)
     {
         /*
-        $sale->load(['cliente', 'user', 'detalle_venta.producto]);
-        return view('crear_venta', compact('cliente'));
+        $venta->load(['cliente', 'user', 'detalle_venta.producto]);
+        return view('venta', compact('cliente'));
 
         */
     }

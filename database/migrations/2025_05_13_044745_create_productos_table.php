@@ -18,9 +18,12 @@ return new class extends Migration
             $table->string('nombre');
             $table->text('descripcion')->nullable();
             $table->text('codigo');
-            $table->decimal('precio', 10, 2);
+            $table->integer('precio_compra', 10);
+            $table->integer('precio_venta', 10);
             $table->integer('stock');
-            $table->integer('min_stock')->default(5);
+            $table->integer('stock_minimo')->default(5);
+            $table->string('unidad_medida');
+            $table->string('ubicacion')->nullable();
             $table->string('imagen')->nullable();
             $table->boolean('activo')->default(true);
             $table->foreignId('id_categoria')->constrained();
