@@ -42,17 +42,6 @@ Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->na
 Route::get('venta', [App\Http\Controllers\VentaController::class, 'index'])->name('venta');
 Route::get('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
 
-/*
-
-Route::post('productos', ProductoController::class);
-Route::post('clientes', ClienteController::class);
-Route::post('categorias', CategoriaController::class);
-Route::post('proveedores', ProveedorController::class);
-
-*/
-
-
-
 
 // ======================================================
 
@@ -63,16 +52,14 @@ Route::post('proveedores', ProveedorController::class);
 Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
 
 
-
-
 // ======================================================
 
-//  RUTAS PARA CATEGORIAS
+//  RUTAS PARA PRODUCTOS
 
 // ======================================================
 
 Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
-
+Route::post('crear_producto', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_producto');
 
 
 

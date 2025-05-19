@@ -8,6 +8,7 @@ use App\Models\Proveedor;
 use App\Models\Inventario;
 use Illuminate\Http\Request;
 
+
 class ProductoController extends Controller
 {
     public function index()
