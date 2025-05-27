@@ -40,7 +40,7 @@ Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->na
 
 
 Route::get('venta', [App\Http\Controllers\VentaController::class, 'index'])->name('venta');
-Route::get('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
+Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
 
 
 // ======================================================
@@ -59,7 +59,7 @@ Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'inde
 // ======================================================
 
 Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
-Route::post('crear_producto', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_producto');
+Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store']);
 
 
 
@@ -79,4 +79,4 @@ Route::post('crear_producto', [App\Http\Controllers\ProductoController::class, '
         Route::post('cerrar', [CajaController::class, 'cerrar'])->name('caja_cerrar');
         Route::get('historial', [CajaController::class, 'historial'])->name('caja_historial');
         Route::get('{id}/detalles', [CajaController::class, 'detalles'])->name('caja_detalles');
-    
+ 

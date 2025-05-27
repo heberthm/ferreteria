@@ -10,7 +10,7 @@
 
         <h5 class="mb-0"><i class="fas fa-umbrella"></i> Gestión de productos</h5>
 
-        <button class="btn btn-primary float-right" id="createproductoBtn" data-toggle="modal" data-target="#productoModal">Nuevo productoo</button>
+        <button class="btn btn-primary float-right" id="createproductoBtn" data-toggle="modal" data-target="#productoModal">Nuevo producto</button>
   
     </div>
   
@@ -53,138 +53,163 @@
 </div>
 
 <!-- Modal para crear productos -->
-
 <div class="modal fade" id="productoModal" tabindex="-1" aria-hidden="true">
- 
-    <div class="modal-dialog">
-
+    <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
-
             <div class="modal-header bg-light">
-
-                <h5 class="modal-title" id="productoModalTitle"><i class="fas fa-umbrella"></i> Nuevo productoo</h5>
-
-                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-
-                  <span aria-hidden="true">&times;</span>
-
-                 </button>
-
+                <h5 class="modal-title" id="productoModalTitle"><i class="fas fa-umbrella"></i> Nuevo producto</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
-
-             <form method="POST" id="form_productos" action="{{ url('productos') }}">
-              
+            <form action="{{ url('productos') }}" method="POST" id="form_productos">
+                @csrf 
                 <div class="modal-body">
-
-                    <input type="hidden" id="productoId">
-
-                    <div class="mb-3">
-
-                        <label for="productoName" class="form-label">Nombre</label>
-
-                        <input type="text" class="form-control" id="productoName" name="name" required>
-
-                        <div class="invalid-feedback"></div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label for="productoDescription" class="form-label">Descripción</label>
-
-                        <textarea class="form-control" id="productoDescription" name="description" rows="3"></textarea>
-
-                        <div class="invalid-feedback"></div>
-
-                    </div>
-
-                      <div class="mb-3">
-
-                        <label for="unidaMedida" class="form-label">Unidad de medida</label>
-
-                        <input type="text"  class="form-control" id="unidaMedida" name="unidaMedida" required>
-
-                       <div class="invalid-feedback"></div>
-
-                     </div>  
-
-
-                    <div class="mb-3">
-
-                        <label for="precioCompra" class="form-label">Precio de compra</label>
-
-                        <input type="number"  class="form-control" id="precioCompra" name="precioCompra" required>
-
-                        <div class="invalid-feedback"></div>
-                    </div>
-
-                     <div class="mb-3">
-                         <label for="precioVenta" class="form-label">Precio de venta</label>
-
-                        <input type="number"  class="form-control" id="precioVenta" name="precioVenta" required>
-
-                        <div class="invalid-feedback"></div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label for="Stock" class="form-label">Stock</label>
-
-                        <input type="number" class="form-control" id="stock" name="stock" required>
-
-                        <div class="invalid-feedback"></div>
-
-                         <label for="stock_minimo" class="form-label">Stock minimo</label>
-
-                        <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" required>
-
-                        <div class="invalid-feedback"></div>
-
-                    </div>
-
-                    <div class="mb-3">
-
-                        <label for="productoCategory" class="form-label">Categoría</label>
-
-                        <select class="form-select" id="productoCategory" name="category_id" required>
-
-                            <option value="">Seleccione una categoría</option>
-
-                            <!-- Las opciones se cargarán via AJAX -->
-
-                           <option value="Carlos Martinez Rojas">Carlos Martinez Rojas</option>
-                            <option value="Luisa Hernández Solis">Luisa Hernandez Solis</option>
-                            <option value="Adelaida Forero Cardona">Adelaida Forero Cardona</option>
-                            <option value="Rosario Jaramillo Torres">Rosario jaramillo Torres</option>
-                         
-
+                    <input type="hidden" id="id_producto">
+                    
+                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
+                        <!-- Columna 1 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="productoName" class="col-sm-4 col-form-label">Nombre</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="productoName" name="name" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
                             
-                        </select>
+                            <div class="form-group row mb-3">
+                                <label for="productoDescription" class="col-sm-4 col-form-label">Descripción</label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="productoDescription" name="description" rows="2"></textarea>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="unidaMedida" class="col-sm-4 col-form-label">Unidad de medida</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="unidaMedida" name="unidaMedida" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
 
-                        <div class="invalid-feedback"></div>
+                            <div class="form-group row mb-3">
+                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="marca" name="marca" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
 
+                             <div class="form-group row mb-3">
+                                <label for="Peso" class="col-sm-4 col-form-label">Peso</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="peso" name="peso" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <!-- Columna 2 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="cantidad" name="cantidad" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="precioCompra" class="col-sm-4 col-form-label">Precio compra</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="precio_compra" name="precio_compra" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="precioVenta" class="col-sm-4 col-form-label">Precio venta</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="precio_venta" name="precio_venta" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="codigo" name="codigo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                              <div class="form-group row mb-3">
+                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock" name="stock" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                             <div class="form-group row mb-3">
+                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="categoria" name="categoria" required>
+                                    <option value="">Seleccione una categoría</option>
+                                    <option value="Herramientas">Herramientas</option>
+                                    <option value="Fijación y sujeción">Fijación y sujeción</option>
+                                    <option value="Materiales de construcción">Materiales de construcción</option>
+                                    <option value="Electricidad">Electricidad</option>
+                                    <option value="Seguridad y protección">Seguridad y protección</option>
+                                    <option value="Pinturas y acabados">Pintura y acabados</option>
+                                        <option value="Almacenamiento y organización">Almacenamiento y organización</option>
+
+                                </select>
+                                <div class="invalid-feedback"></div>
+                             </div>
+                         </div>
+                        
                     </div>
-
+                    
+                    <!-- Imagem (ocupa todo el ancho) -->
+                       <div class="col-md-12">
+                            <div class="form-group row mb-3">
+                                <label for="imagen" class="col-sm-2 col-form-label">Imagen</label>
+                                <div class="col-sm-10">
+                                      <input class="form-control" type="file" id="imagen" name="imagen">
+                                  <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
                 <div class="modal-footer">
-
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-
-
                     <button type="submit" id="crear_producto" name="crear_producto" class="btn btn-primary">Guardar</button>
-
                 </div>
-
             </form>
-
         </div>
-
     </div>
-
 </div>
-
 <!-- Modal de confirmación para eliminar productoo -->
 
 <div class="modal fade" id="confirmproductoDeleteModal" tabindex="-1" aria-hidden="true">
@@ -229,6 +254,7 @@ $(document).ready(function() {
 
 // Variables
 
+/*
 let editingproductoId = null;
 
 let deleteproductoId = null;
@@ -271,6 +297,7 @@ let deleteproductoId = null;
             $('#productoCategory').html(options);
         });
     }
+*/
 
 /*
     // Mostrar modal para crear/editar productoo
@@ -338,7 +365,7 @@ let deleteproductoId = null;
       try {
 
         $.ajax({
-          url: "crear_producto",
+          url: "/productos",
           method: "POST",
           data: $(this).serialize(),
           dataType: "json",

@@ -21,12 +21,14 @@ class ProductoController extends Controller
     {
         $categorias = Categoria::all();
         $proveedores = Proveedor::all();
-        return view('crear_productos', compact('categorias', 'proveedores'));
+        return view('productos', compact('categorias', 'proveedores'));
     }
 
-    public function store(Request $request)
+
+  public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validatedData = $request->validate([
+          
             'codigo'        => 'required|string|max:50|unique:productos',
             'nombre'        => 'required|string|max:255',
             'descripcion'   => 'nullable|string',
@@ -40,34 +42,39 @@ class ProductoController extends Controller
             'cantidad'      => 'required|integer|min:0',
             'stock_minimo'  => 'required|integer|min:0',
             'stock_maximo'  => 'nullable|integer|min:0',
-        ]);
-
-        $producto = Producto::create([
-            'codigo'          => $validated['codigo'],
-            'nombre'          => $validated['nombre'],
-            'descripcion'     => $validated['descripcion'],
-            'precio_compra'   => $validated['precio_compra'],
-            'precio_venta'    => $validated['precio_venta'],
-            'stock_minimo'    => $validated['stock_minimo'],
-            'stock_maximo'    => $validated['stock_maximo'],
-            'unidad_medida'   => $validated['unida_medida'],
-            'imagen'          => $validated['imagen'],
-            'ubicacion'       => $validated['ubicacion'],
-            'id_categoria'    => $validated['id_categoria'],
-            'id_proveedor'    => $validated['id_proveedor'],
-        ]);
-
-        Inventario::create([
-            'producto_id'  => $producto->id,
-            'descripcion'  => $validated['descripcion'],
-            'cantidad'     => $validated['cantidad'],
-            'stock_minimo' => $validated['stock_minimo'],
-            'stock_maximo' => $validated['stock_maximo'],
-        ]);
-
-        return redirect()->route('productos.index')
-            ->with('success', 'Producto creado exitosamente.');
+           ]);
+   
+          try {
+          $data = new Producto();
+   
+       //   $data ->user_id           = $request->userId;
+          $data->codigo               = $request->codigo;
+          $data->nombre               = $request->nombre;
+          $data->descripcion          = $request->descripcion;
+          $data->precio_compra        = $request->precio_compra;
+          $data->precio_venta         = $request->precio_venta;    
+          $data->unidad_medica        = $request->unidad_medida; 
+          $data->ubicacion            = $request->ubicacion; 
+          $data->id_categoria         = $request->id_categoria; 
+          $data->id_proveedor         = $request->id_proveedor;   
+          $data->cantidad             = $request->cantida; 
+          $data->stock                = $request->stock; 
+         $data->min_stock             = $request->min_stock; 
+              
+          } catch (\Exception  $exception) {
+              return back()->withError($exception->getMessage())->withInput();
+          }
+         
+   
+          $data->save();
+  
+         // $id =$data->id;
+       
+         return response()->json(['success'=>'Successfully']);
+            
+  
     }
+
 
     public function show(Producto $producto)
     {

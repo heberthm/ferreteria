@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => '<b>Ferreteria</b>',
-   'logo_img' => 'vendor/adminlte/dist/img/logo-ferreteria-1.png',
+    'logo_img' => 'vendor/adminlte/dist/img/logo_ferreteria_2.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
@@ -86,7 +86,7 @@ return [
     'auth_logo' => [
         'enabled' => false,
         'img' => [
-            'path' => 'vendor/adminlte/dist/img/logo-ferreteria-1.png',
+            'path' => 'vendor/adminlte/dist/img/logo_ferreteria_2.png',
             'alt' => 'Auth Logo',
             'class' => '',
             'width' => 50,
