@@ -14,6 +14,7 @@ class producto extends Model
         'codigo',
         'nombre',
         'descripcion',
+        'cantidad',
         'precio_compra',
         'precio_venta',
         'stock',
@@ -22,6 +23,7 @@ class producto extends Model
         'activo',
         'unidad_medida',
         'ubicacion',
+        'marca',
         'id_categoria',
         'id_proveedor',
     ];

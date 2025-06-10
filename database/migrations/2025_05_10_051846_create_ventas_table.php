@@ -14,8 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('ventas', function (Blueprint $table) {
-            $table->id(); // Clave primaria autoincremental
+            $table->bigIncrements('id_venta'); // Clave primaria autoincremental
             $table->foreignId('id_cliente')->nullable()->constrained('clientes'); // Clave foránea a la tabla clientes (opcional)
+            $table->string('userId')->required();
             $table->dateTime('fecha_venta');
             $table->string('numero_factura')->unique();
             $table->decimal('subtotal', 10, 2)->default(0.00); // Subtotal antes de impuestos y descuentos

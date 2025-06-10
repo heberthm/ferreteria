@@ -15,8 +15,8 @@ return new class extends Migration
     {
         Schema::create('clientes', function (Blueprint $table) {
                 $table->bigIncrements('id_cliente');
-                $table->string('cedula',18)->unique()->required();
-                $table->string('user_id')->required();
+                $table->string('userId')->required();
+                $table->string('cedula',18)->unique()->required();                
                 $table->date('fecha_nacimiento',18)->required();
                 $table->string('edad',14)->required();
                 $table->string('nombre',60)->required();

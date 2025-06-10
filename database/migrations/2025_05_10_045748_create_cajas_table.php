@@ -14,8 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::create('cajas', function (Blueprint $table) {
-            $table->id();
-             $table->dateTime('fecha_caja')->unique(); // Fecha de la caja diaria
+            $table->bigIncrements('id_caja');
+            $table->string('userId')->required();
+            $table->dateTime('fecha_caja')->unique(); // Fecha de la caja diaria
             $table->decimal('saldo_inicial', 12, 2); // Saldo inicial
             $table->decimal('saldo_final', 12, 2)->nullable(); // Saldo final (se calcula al cerrar)
             $table->decimal('total_ingresos', 12, 2)->default(0); // Total de ingresos

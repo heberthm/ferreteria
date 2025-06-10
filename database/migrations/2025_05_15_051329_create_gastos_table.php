@@ -14,8 +14,8 @@ return new class extends Migration
     public function up()
     {
         Schema::create('gastos', function (Blueprint $table) {
-            $table->id();
-
+            $table->bigIncrements('id_gasto');
+            $table->string('userId')->required();
             $table->string('concepto');
             $table->decimal('monto', 10, 2);
             $table->date('fecha');

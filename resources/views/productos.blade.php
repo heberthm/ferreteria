@@ -4,13 +4,14 @@
 
 <br>
 
+
 <div class="card">
 
     <div class="card-header d-flex bg-light justify-content-between align-items-right">
 
         <h5 class="mb-0"><i class="fas fa-umbrella"></i> Gestión de productos</h5>
 
-        <button class="btn btn-primary float-right" id="createproductoBtn" data-toggle="modal" data-target="#productoModal">Nuevo producto</button>
+        <button class="btn btn-primary float-right" id="createproductoBtn" data-toggle="modal" data-target="#modalproductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button>
   
     </div>
   
@@ -53,43 +54,45 @@
 </div>
 
 <!-- Modal para crear productos -->
-<div class="modal fade" id="productoModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalproductos" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title" id="productoModalTitle"><i class="fas fa-umbrella"></i> Nuevo producto</h5>
+                <h5 class="modal-title" id="modalproductosTitle"><i class="fas fa-umbrella"></i> Nuevo producto</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <form action="{{ url('productos') }}" method="POST" id="form_productos">
-                @csrf 
+            
+            <form method="POST" id="form_guardar_productos" action="{{ url('productos') }}" >
+            @csrf
                 <div class="modal-body">
-                    <input type="hidden" id="id_producto">
+                    <input type="hidden" id="id_categoria" name="id_categoria" value="1">
+                     <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
                     
                     <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
                         <!-- Columna 1 -->
                         <div class="col-md-6">
                             <div class="form-group row mb-3">
-                                <label for="productoName" class="col-sm-4 col-form-label">Nombre</label>
+                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="productoName" name="name" required>
+                                    <input type="text" class="form-control" id="nombre" name="nombre" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="productoDescription" class="col-sm-4 col-form-label">Descripción</label>
+                                <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
                                 <div class="col-sm-8">
-                                    <textarea class="form-control" id="productoDescription" name="description" rows="2"></textarea>
+                                    <textarea class="form-control" id="descripcion" name="descripcion" rows="2"></textarea>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="unidaMedida" class="col-sm-4 col-form-label">Unidad de medida</label>
+                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="unidaMedida" name="unidaMedida" required>
+                                    <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -110,10 +113,11 @@
                                 </div>
                             </div>
 
+                           
                              <div class="form-group row mb-3">
-                                <label for="Peso" class="col-sm-4 col-form-label">Peso</label>
+                                <label for="imagen" class="col-sm-4 col-form-label">Imagen</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="peso" name="peso" required>
+                                    <input type="file" class="form-control" id="imagen" name="imagen" >
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -131,7 +135,7 @@
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="precioCompra" class="col-sm-4 col-form-label">Precio compra</label>
+                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
                                 <div class="col-sm-8">
                                     <input type="number" class="form-control" id="precio_compra" name="precio_compra" required>
                                     <div class="invalid-feedback"></div>
@@ -139,7 +143,7 @@
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="precioVenta" class="col-sm-4 col-form-label">Precio venta</label>
+                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
                                 <div class="col-sm-8">
                                     <input type="number" class="form-control" id="precio_venta" name="precio_venta" required>
                                     <div class="invalid-feedback"></div>
@@ -149,7 +153,7 @@
                             <div class="form-group row mb-3">
                                 <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
                                 <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="codigo" name="codigo" required>
+                                    <input type="text" class="form-control" id="codigo" name="codigo" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -170,10 +174,10 @@
                                 </div>
                             </div>
 
-                             <div class="form-group row mb-3">
+                            <div class="form-group row mb-3">
                                <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
-                            <div class="col-sm-8">
-                                <select class="form-control" id="categoria" name="categoria" required>
+                               <div class="col-sm-8">
+                                  <select class="form-control" id="categoria" name="categoria" required>
                                     <option value="">Seleccione una categoría</option>
                                     <option value="Herramientas">Herramientas</option>
                                     <option value="Fijación y sujeción">Fijación y sujeción</option>
@@ -181,36 +185,41 @@
                                     <option value="Electricidad">Electricidad</option>
                                     <option value="Seguridad y protección">Seguridad y protección</option>
                                     <option value="Pinturas y acabados">Pintura y acabados</option>
-                                        <option value="Almacenamiento y organización">Almacenamiento y organización</option>
-
-                                </select>
-                                <div class="invalid-feedback"></div>
+                                    <option value="Almacenamiento y organización">Almacenamiento y organización</option>
+                                   </select>
+                                     <div class="invalid-feedback"></div>
+                                </div>                             
                              </div>
+
+                               <div class="form-group row mb-3">
+                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="proveedor" name="proveedor" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                               </div>
                          </div>
-                        
-                    </div>
-                    
-                    <!-- Imagem (ocupa todo el ancho) -->
-                       <div class="col-md-12">
-                            <div class="form-group row mb-3">
-                                <label for="imagen" class="col-sm-2 col-form-label">Imagen</label>
-                                <div class="col-sm-10">
-                                      <input class="form-control" type="file" id="imagen" name="imagen">
-                                  <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    </div>                    
+                  
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" id="crear_producto" name="crear_producto" class="btn btn-primary">Guardar</button>
+                    <button type="submit" id="crear_producto" name="crear_producto" class="btn btn-primary loader">
+
+                         <span id="btnText">Guardar</span>
+              <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
+
+                    </button>
+                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
+              
                 </div>
             </form>
         </div>
     </div>
 </div>
 <!-- Modal de confirmación para eliminar productoo -->
+
 
 <div class="modal fade" id="confirmproductoDeleteModal" tabindex="-1" aria-hidden="true">
 
@@ -246,201 +255,55 @@
 
 </div>
 
-@section('scripts')
+
 
 <script>
 
+
 $(document).ready(function() {
-
-// Variables
-
-/*
-let editingproductoId = null;
-
-let deleteproductoId = null;
-
-    // Cargar productos
-
-    function loadproductos() {
+    $('#form_guardar_productos').on('submit', function(event) {
+        // 1. Prevenir el comportamiento por defecto del formulario
+        event.preventDefault();
+        
+    const btnSubmit = document.getElementById('btnSubmit');
+    const btnText = document.getElementById('btnText');
+    const btnSpinner = document.getElementById('btnSpinner');
     
-        $.get(' ', function(data) {
-        
-            let rows = '';
-            data.forEach(producto => {
-                rows += `
-                    <tr>
-                        <td>${producto.id}</td>
-                        <td>${producto.nombre}</td>
-                        <td>${producto.description || ''}</td>
-                        <td>${producto.precio_compra}</td>
-                         <td>${producto.precio_venta}</td>
-                        <td>${producto.stock}</td>
-                        <td>${producto.category ? producto.category.name : 'Sin categoría'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-warning edit-producto" data-id="${producto.id}">Editar</button>
-                            <button class="btn btn-sm btn-danger delete-producto" data-id="${producto.id}">Eliminar</button>
-                        </td>
-                    </tr>
-                `;
-            });
-            $('#productosTable tbody').html(rows);
-        });
-    }
+    // Deshabilitar botón y mostrar spinner
+    btnSubmit.disabled = true;
+    btnText.textContent = 'Procesando...';
+    btnSpinner.classList.remove('d-none');
 
-    // Cargar categorías para el select
-    function loadCategories() {
-        $.get(' ', function(data) {
-            let options = '<option value="">Seleccione una categoría</option>';
-            data.forEach(category => {
-                options += `<option value="${category.id}">${category.name}</option>`;
-            });
-            $('#productoCategory').html(options);
-        });
-    }
-*/
-
-/*
-    // Mostrar modal para crear/editar productoo
-    $('#createproductoBtn').click(function() {
-        editingproductoId = null;
-        $('#productoModalTitle').text('Nuevo productoo');
-        $('#productoForm')[0].reset();
-        $('#productoId').val('');
-        $('.invalid-feedback').text('').parent().removeClass('has-error');
-        loadCategories();
-        $('#productoModal').modal('show');
-    });
-
-    // Editar productoo
-    $(document).on('click', '.edit-producto', function() {
-        editingproductoId = $(this).data('id');
-        $('#productoModalTitle').text('Editar productoo');
-        $('.invalid-feedback').text('').parent().removeClass('has-error');
-        
-        $.get(`/productos/${editingproductoId}`, function(data) {
-            $('#productoId').val(data.id);
-            $('#productoName').val(data.name);
-            $('#productoDescription').val(data.description);
-            $('#productoPrice').val(data.price);
-            $('#productoStock').val(data.stock);
-            
-            // Cargar categorías y seleccionar la correcta
-            loadCategories();
-            setTimeout(() => {
-                $('#productoCategory').val(data.category_id);
-            }, 200);
-            
-            $('#productoModal').modal('show');
-        });
-    });
-
-*/
-
-
-    // =========================================
-
-    /// GUARDAR REGISTROS DE DATOS DE PROFESIONALES
-
-    // =========================================
-
-    $('#form_productos').off('submit').on('submit', function(event) {
-
-      $.ajaxSetup({
-        headers: {
-          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-      });
-      /* Configurar botón submit con spinner */
-      let btn = $('#crear_producto')
-      let existingHTML = btn.html() //store exiting button HTML
-      //Add loading message and spinner
-      $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
-      setTimeout(function() {
-        $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
-      }, 5000) //5 seconds
-      $('#crear_producto').attr('disabled', true);
-
-      event.preventDefault();
-
-      try {
-
+        // 3. Configurar AJAX
         $.ajax({
-          url: "/productos",
-          method: "POST",
-          data: $(this).serialize(),
-          dataType: "json",
-          success: function(data) {
-            table.ajax.reload();
-            $('#crear_producto').prop("required", true);
-            // $('#selectBuscarCliente').html("");
-
-            $('#form_productos')[0].reset();
-            $('#form_productos').modal('hide');
-
-            //   table.ajax.reload();
-            //   location.reload(true);
-            toastr["success"]("registro creado correctamente.");
-
-          }
-        });
-      } catch (e) {
-        toastr["danger"]("Se ha presentado un error.", "Información");
-      }
-    });
-
-
-/*
-    // Enviar formulario de productoo
-    $('#productoForm').submit(function(e) {
-        e.preventDefault();
-        
-        let url = editingproductoId ? `/productos/${editingproductoId}` : '/productos';
-        let method = editingproductoId ? 'PUT' : 'POST';
-        
-        $.ajax({
-            url: url,
-            method: method,
+            url: "/productos",
+            method: 'POST',
             data: $(this).serialize(),
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
             success: function(response) {
-                $('#productoModal').modal('hide');
-                loadproductos();
-                toastr.success('productoo guardado correctamente');
+                // Restaurar botón
+                btn.html(originalText).prop('disabled', false);
+                
+                // Resetear formulario y cerrar modal
+                $('#form_guardar_productos')[0].reset();
+                $('#modalproductos').modal('hide');
+                
+                // Mostrar notificación
+                toastr.success("Registro creado correctamente");
             },
             error: function(xhr) {
-                let errors = xhr.responseJSON.errors;
-                for (let field in errors) {
-                    let input = $(`#producto${field.charAt(0).toUpperCase() + field.slice(1)}`);
-                    input.addClass('is-invalid');
-                    input.next('.invalid-feedback').text(errors[field][0]);
-                }
+                // Restaurar botón
+                btn.html(originalText).prop('disabled', false);
+                
+                // Mostrar error
+                toastr.error(xhr.responseJSON.message || "Error al guardar los datos");
             }
         });
     });
-
-*/
-
-    // Mostrar modal de confirmación para eliminar productoo
-    $(document).on('click', '.delete-producto', function() {
-        deleteproductoId = $(this).data('id');
-        $('#confirmproductoDeleteModal').modal('show');
-    });
-
-    // Confirmar eliminación de productoo
-    $('#confirmproductoDeleteBtn').click(function() {
-        $.ajax({
-            url: `/productos/${deleteproductoId}`,
-            method: 'DELETE',
-            success: function(response) {
-                $('#confirmproductoDeleteModal').modal('hide');
-                loadproductos();
-                toastr.success('productoo eliminado correctamente');
-            }
-        });
-    });
-
-    // Cargar productos al inicio
-    loadproductos();
 });
+
 </script>
-@endsection
+
 @endsection

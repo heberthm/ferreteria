@@ -26,4 +26,4 @@ class inventario extends Model
     }
 }
 
-}
+

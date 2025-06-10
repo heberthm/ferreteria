@@ -15,19 +15,21 @@ return new class extends Migration
     {
         Schema::create('productos', function (Blueprint $table) {
             $table->bigIncrements('id_producto');
+            $table->string('userId')->required();
+            $table->string('codigo')->unique();;
             $table->string('nombre');
-            $table->text('descripcion')->nullable();
-            $table->text('codigo');
-            $table->integer('precio_compra', 10);
-            $table->integer('precio_venta', 10);
+            $table->string('descripcion')->nullable();          
+            $table->integer('cantidad');
+            $table->integer('precio_compra');
+            $table->integer('precio_venta');
             $table->integer('stock');
             $table->integer('stock_minimo')->default(5);
             $table->string('unidad_medida');
             $table->string('ubicacion')->nullable();
             $table->string('imagen')->nullable();
             $table->boolean('activo')->default(true);
-            $table->foreignId('id_categoria')->constrained();
-            $table->foreignId('id_proveedor')->constrained();
+            $table->foreignId('id_categoria')->constrained('clientes');
+            $table->foreignId('id_proveedor')->constrained('proveedores');
             $table->timestamps();
         });
     }

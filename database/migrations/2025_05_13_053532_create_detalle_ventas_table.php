@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('detalle_ventas', function (Blueprint $table) {
            
-            $table->id();
+            $table->bigIncrements('id_detalleProducto');
+            $table->string('userId')->required();
             $table->foreignId('venta_id')->constrained('ventas')->onDelete('cascade');
             $table->foreignId('producto_id')->constrained('productos');
             $table->integer('cantidad');

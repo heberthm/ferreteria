@@ -18,8 +18,8 @@ return new class extends Migration
     {
         Schema::create('events', function (Blueprint $table) {
           
-            $table->increments('id');
-            $table->string('userId'); 
+           $table->increments('id');
+           $table->string('userId')->required();
             $table->string('title');
             $table->dateTime('start');
             $table->dateTime('end');

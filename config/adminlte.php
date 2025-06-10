@@ -354,7 +354,7 @@ return [
                   
         ],
          [
-                    'text' => 'Caja registradora',
+                    'text' => 'Apertura / cierra de caja',
                     'icon' => 'fas fa-dollar-sign nav-icon',
                     'url' => 'caja',
         ],
@@ -534,6 +534,24 @@ return [
     */
 
     'plugins' => [
+
+         'jquery-ui' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => '//https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css',
+                ],
+            ],
+        ],
+
+
         'Datatables' => [
             'active' => true,
             'files' => [

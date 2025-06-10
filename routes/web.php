@@ -50,7 +50,7 @@ Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create
 // ======================================================
 
 Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
-
+Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('crear_categorias');
 
 // ======================================================
 
@@ -59,7 +59,7 @@ Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'inde
 // ======================================================
 
 Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
-Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store']);
+Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_productos');
 
 
 

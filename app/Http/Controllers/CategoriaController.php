@@ -18,22 +18,40 @@ class CategoriaController extends Controller
         return view('crear_categoria');
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
     {
-        $validated = $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string',
-        ]);
-
-        Categoria::create($validated);
-
-        return redirect()->route('categoria')
-            ->with('success', 'Categoría creada exitosamente.');
+        $validatedData = $request->validate([
+          
+            'nombre'              =>    'required|max:25',
+            'descripcion'         =>    'required|max:150',
+            ]);
+   
+          try {
+          $data = new Categoria;
+   
+          $data->userId   = $request->userId;
+          $data->nombre    = $request->nombre; 
+          $data->descripcion  = $request->descripcion;     
+         
+              
+          } catch (\Exception  $exception) {
+              return back()->withError($exception->getMessage())->withInput();
+          }
+          
+   
+          $data->save();
+  
+         // $id =$data->id;
+       
+      //  return response()->json(['success'=>'Successfully']);
+          return redirect()->route('categorias');
+              
     }
+
 
     public function show(Categoria $categoria)
     {
-        return view('ver_categorias', compact('categoria'));
+        return view('categorias', compact('categoria'));
     }
 
     public function edit(Categoria $categoria)
@@ -58,7 +76,7 @@ class CategoriaController extends Controller
     {
         $categoria->delete();
 
-        return redirect()->route('categoria')
+        return redirect()->route('categorias')
             ->with('success', 'Categoría eliminada exitosamente.');
     }
 }

@@ -15,6 +15,7 @@ return new class extends Migration
     {
         Schema::create('detalles_facturas', function (Blueprint $table) {
             $table->bigIncrements('id_detalle_factura');
+            $table->string('userId')->required();
             $table->foreignId('id_factura')->constrained()->onDelete('cascade');
             $table->string('descripcion');
             $table->integer('cantidad');
