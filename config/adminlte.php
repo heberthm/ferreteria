@@ -374,7 +374,7 @@ return [
                     'url' => '#',
                 ],  
                 [
-                    'text' => 'Historial',
+                    'text' => 'Historial ventas',
                     'icon' => 'far fa-circle nav-icon',
                     'url' => '#',
                 ],
@@ -398,12 +398,12 @@ return [
                     'url' => '#',
                 ],
                 [
-                    'text' => 'proveedores',
+                    'text' => 'Proveedores',
                     'icon' => 'far fa-circle nav-icon',
                     'url' => '#',
                 ],
                    [
-                    'text' => 'Historial',
+                    'text' => 'Historial compras',
                     'icon' => 'far fa-circle nav-icon',
                     'url' => '#',
                 ],
@@ -535,40 +535,26 @@ return [
 
     'plugins' => [
 
-         'jquery-ui' => [
+        'Jquery' => [
             'active' => true,
             'files' => [
+               
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => '//https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js',
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js',
                 ],
-                [
-                    'type' => 'css',
-                    'asset' => true,
-                    'location' => '//https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/themes/base/jquery-ui.min.css',
-                ],
+               
             ],
         ],
 
-
-        'Datatables' => [
+        'Moment' => [
             'active' => true,
             'files' => [
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
-                ],
-                [
-                    'type' => 'js',
-                    'asset' => true,
-                    'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => true,
-                    'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
+                    'location' => '//cdn.jsdelivr.net/npm/moment@2.24.0/min/moment.min.js',
                 ],
             ],
         ],
@@ -594,19 +580,7 @@ return [
             ],
         ],
 
-
-        'Moment' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => true,
-                    'location' => '//cdn.jsdelivr.net/npm/moment@2.24.0/min/moment.min.js',
-                ],
-            ],
-        ],
-
-        'Select2' => [
+       'Select2' => [
             'active' => true,
             'files' => [
                 [
@@ -618,6 +592,28 @@ return [
                     'type' => 'css',
                     'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
+                ],
+            ],
+        ],
+
+        
+        'Datatables' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
                 ],
             ],
         ],
@@ -639,21 +635,21 @@ return [
         ],
 
         'Chartjs' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => false,
+                    'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
                 ],
             ],
         ],
         'Sweetalert2' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => false,
+                    'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/7.2.0/sweetalert2.all.min.js',
                 ],
 

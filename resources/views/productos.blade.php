@@ -1,9 +1,7 @@
 @extends('layouts.app')
-
 @section('content')
 
 <br>
-
 
 <div class="card">
 
@@ -15,42 +13,24 @@
   
     </div>
   
-    <div class="card-body">
-  
-        <table class="table table-striped table-hover" id="productosTable">
-   
-            <thead>
-  
-                <tr>
-   
-                    <th>ID</th>
-   
-                    <th>Nombre</th>
-   
-                    <th>Descripción</th>
-   
-                    <th>Precio</th>
-   
-                    <th>Stock</th>
-   
-                    <th>Categoría</th>
-   
-                    <th>Acciones</th>
-   
-                </tr>
-   
-            </thead>
-   
-            <tbody>
-   
-                <!-- Datos se cargarán via AJAX -->
-   
-            </tbody>
-   
-        </table>
-   
+    <div class="card-body">  
+        <table class="table table-hover" id="tablaProductos">   
+            <thead>  
+                <tr>   
+                    <th>Código</th>
+                    <th>Nombre</th>   
+                    <th>Descripción</th>   
+                    <th>Precio</th>   
+                    <th>Stock</th>   
+                    <th>Ubicación</th>   
+                    <th>Acciones</th>   
+                </tr>   
+            </thead>   
+            <tbody>   
+                <!-- Datos se cargarán via AJAX -->   
+            </tbody>   
+        </table>   
     </div>
-
 </div>
 
 <!-- Modal para crear productos -->
@@ -64,7 +44,7 @@
                 </button>
             </div>
             
-            <form method="POST" id="form_guardar_productos" action="{{ url('productos') }}" >
+            <form method="POST" id="form_guardar_productos" enctype="multipart/form-data" action="{{ url('productos') }}" >
             @csrf
                 <div class="modal-body">
                     <input type="hidden" id="id_categoria" name="id_categoria" value="1">
@@ -205,16 +185,14 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" id="crear_producto" name="crear_producto" class="btn btn-primary loader">
-
-                         <span id="btnText">Guardar</span>
-              <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status"></span>
-
+                    <button type="submit" id="guardar_producto" name="guardar_producto" class="btn btn-primary ">
+                        <span class="button-text">Guardar</span>
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                     </button>
                     <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
               
                 </div>
-            </form>
+            </form>loader
         </div>
     </div>
 </div>
@@ -256,54 +234,154 @@
 </div>
 
 
+<!-- ===================================================
 
-<script>
+ DATATABLE PROFESIONALES
+
+======================================================= --->
+
+@push('js')
+<script type="text/javascript">
+
+  $(document).ready(function() {
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+    });
+
+    let table = $('#tablaProductos').DataTable({
+      processing: true,
+      serverSide: true,
+      paging: true,
+      info: true,
+      filter: true,
+      responsive: true,
+      type: "GET",
+      ajax: 'productos',
+      columns: [
+        {
+          data: 'codigo',
+          name: 'codigo'
+        },
+        {
+          data: 'nombre',
+          name: 'nombre'
+        },
+        {
+          data: 'descripcion',
+          name: 'descripcion'
+        },
+        {
+          data: 'precio_compra',
+          name: 'precio_compra'
+        },
+        {
+          data: 'stock',
+          name: 'stock'
+        },
+        {
+          data: 'ubicacion',
+          name: 'ubicacion'
+        },
+
+        {
+          data: 'action',
+          name: 'action',
+          orderable: false,
+          searchable: false
+        },
+      ],
+
+      order: [
+        [0, 'desc']
+      ],
 
 
-$(document).ready(function() {
-    $('#form_guardar_productos').on('submit', function(event) {
-        // 1. Prevenir el comportamiento por defecto del formulario
-        event.preventDefault();
-        
-    const btnSubmit = document.getElementById('btnSubmit');
-    const btnText = document.getElementById('btnText');
-    const btnSpinner = document.getElementById('btnSpinner');
-    
-    // Deshabilitar botón y mostrar spinner
-    btnSubmit.disabled = true;
-    btnText.textContent = 'Procesando...';
-    btnSpinner.classList.remove('d-none');
+       columnDefs: [{
+                "orderable": false,
+                "render": $.fn.dataTable.render.number('.'),
+                "targets": [3],
+                "className": "dt-body-right",
+            }],
 
-        // 3. Configurar AJAX
+      "language": {
+
+
+        "emptyTable": "No hay productos registrados.",
+        "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+        "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
+        "infoFiltered": "(Filtrado de _MAX_ total entradas)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_ Entradas",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "Sin resultados encontrados",
+        "paginate": {
+          "first": "Primero",
+          "last": "Ultimo",
+          "next": "Siguiente",
+          "previous": "Anterior"
+        }
+
+      },
+
+    });
+ 
+
+ 
+$('#form_guardar_producto').off('submit').on('submit', function (event) {
+
+  event.preventDefault();
+
+$.ajaxSetup({
+  headers: {
+    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+  }
+});
+/* Configurar botón submit con spinner */
+let btn = $('#guardar_producto') 
+    let existingHTML =btn.html() //store exiting button HTML
+    //Add loading message and spinner
+    $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
+    setTimeout(function() {
+      $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
+    },5000) //5 seconds
+        $('#guardar_producto').attr('disabled', true);
+
+      
+
+        try {
+
         $.ajax({
             url: "/productos",
-            method: 'POST',
+            method: "POST",
             data: $(this).serialize(),
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                // Restaurar botón
-                btn.html(originalText).prop('disabled', false);
-                
-                // Resetear formulario y cerrar modal
-                $('#form_guardar_productos')[0].reset();
+            dataType: "json",
+            success: function(data) {
+                  table.ajax.reload();
+                $('#guardar_producto').prop("required", true);
+               // $('#selectBuscarCliente').html("");
+               
+                $('#form_guardar_producto')[0].reset();
                 $('#modalproductos').modal('hide');
-                
-                // Mostrar notificación
-                toastr.success("Registro creado correctamente");
-            },
-            error: function(xhr) {
-                // Restaurar botón
-                btn.html(originalText).prop('disabled', false);
-                
-                // Mostrar error
-                toastr.error(xhr.responseJSON.message || "Error al guardar los datos");
+                  
+             //   table.ajax.reload();
+             //   location.reload(true);
+                toastr["success"]("registro creado correctamente.");
+         
             }
-        });
+         });
+        } catch(e) {
+          toastr["danger"]("Se ha presentado un error.", "Información");
+          }
     });
+
 });
 
 </script>
+@endpush
 
 @endsection

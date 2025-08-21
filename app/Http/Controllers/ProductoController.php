@@ -13,8 +13,40 @@ class ProductoController extends Controller
 {
     public function index()
     {
-        $productos = Producto::with(['categoria'])->get();
-        return view('productos', compact('productos'));
+                     
+        if(request()->ajax()) {
+                  
+            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'ubicacion')->get();
+       
+  
+             return datatables()->of($id)
+                       
+                                                                                                         
+              ->addColumn('action', 'atencion')
+              ->rawColumns(['action'])
+              ->addColumn('action', function($data) {
+  
+  
+                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalMostrarProductos"  title="Ver datos del producto" class="fa fa-eye verProfesional"></a> 
+                 
+                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalEditarProductos"  title="Editar datos del producto" class="fa fa-edit editarProfesional"></a>
+  
+
+                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.' title="Eliminar datos del producto" class="fa fa-trash eliminarProfesional" style="color: #c47215ff;"></a>';
+                  
+                   
+                  return $actionBtn;
+                 
+              })
+             
+             
+              ->make(true);
+          } 
+  
+          $productos = Producto::select('id_producto','nombre')->get(); 
+
+         
+          return view('productos');
     }
 
     public function create()
@@ -28,7 +60,7 @@ class ProductoController extends Controller
   public function store(Request $request)
     {
       //  dd($request->all());
-     
+    
         $validatedData = $request->validate([
         'codigo'        => 'required|string|max:50|unique:productos',
         'nombre'        => 'required|string|max:255',
@@ -73,25 +105,29 @@ class ProductoController extends Controller
         $data->stock = $request->cantidad; // Asumiendo que stock es igual a cantidad inicial
         $data->stock_minimo = $request->stock_minimo; 
         $data->stock = $request->stock;
-       
+          
+        
+          $data->save();
 
-        $data->save();
+            // Respuesta de éxito con el mensaje deseado
+            return response()->json([
+                'success' => true,
+              //  'message' => 'Producto guardado correctamente.'
+            ], 200);
+                  
+          } catch (\Exception  $exception) {
+              return back()->withError($exception->getMessage())->withInput();
+         
 
-         return redirect()->route('productos');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Producto creado exitosamente',
-            'data' => $data
-        ], 201);
-
-    } catch (\Exception $exception) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Error al crear el producto: ' . $exception->getMessage()
-        ], 500);
-    }
-   
+          } catch (\Exception $exception) {
+            // Manejo de cualquier excepción que ocurra durante el guardado
+            return response()->json([
+                'success' => false,
+                'message' => 'Hubo un error al guardar el producto: ' . $e->getMessage()
+            ], 500); // Retorna un código de estado 500 para errores del servidor
+        }
+        
+           
 }
 
     public function show(Producto $producto)

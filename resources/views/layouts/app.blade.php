@@ -52,6 +52,8 @@
 
 
 @push('js')
+
+
     <script>
         $(document).ready(function() {
             // Add your common script logic here...
@@ -62,6 +64,9 @@
 {{-- Add common CSS customizations --}}
 
 @push('css')
+
+
+
     <style type="text/css">
         {{-- You can add AdminLTE customizations here --}}
         /*
