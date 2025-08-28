@@ -3,11 +3,35 @@
 @section('content')
 
 <br>
+
+ <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+ <style>
+        .category-icon {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+        .accordion-button:not(.collapsed) {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .subcategory-item {
+            padding: 5px 0;
+            border-bottom: 1px dotted #eee;
+        }
+    </style>
+
 <div class="card">
     <div class="card-header bg-light d-flex justify-content-between float-right">
         <h5 class="mb-0"><i class="fas fa-th-list"></i> Gestión de Categorías</h5>
-        <button class="btn btn-primary float-right" id="BtnCrearCategoria" data-toggle="modal" data-target="#modalCategoria"><i class="fa fa-plus" aria-hidden="true"></i> Nueva Categoría</button>
-    </div>
+           <button type="button" class="btn btn-default float-right" data-bs-toggle="modal" data-bs-target="#categoriasModal">
+                <i class="fa fa-eye"></i> Ver ejemplos de categorías
+            </button>
+           <button class="btn btn-primary float-right" id="BtnCrearCategoria" data-toggle="modal" data-target="#modalCategoria"><i class="fa fa-plus" aria-hidden="true"></i> Crear nueva categoría</button>
+
+      </div>
     <div class="card-body">
         <table class="table table-hover" id="TablaCategorias" style="width:100%;font-size:12.5px;">
             <thead>
@@ -35,7 +59,7 @@
             <div class="modal-header  bg-light" >
 
                 <h5 class="modal-title" id="modalTitle"><i class="fa fa-plus" aria-hidden="true"></i> Nueva Categoría</h5>
-
+                
                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
 
                  <span aria-hidden="true">&times;</span>
@@ -81,9 +105,182 @@
             </form>
       
         </div>
-  
-    </div>
+      </div> 
 </div>
+
+<!-- Modal ejemplo de categorias -->
+
+    <div class="modal fade" id="categoriasModal" tabindex="-1" aria-labelledby="categoriasModalLabel" aria-hidden="true">
+        <div class="modal-dialog ">
+            <div class="modal-content">
+                <div class="modal-header bg-default">
+                    <h5 class="modal-title" id="categoriasModalLabel">
+                        <i class="bi bi-tags-fill"></i> Categorías de Productos
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="accordion" id="categoriasAccordion">
+                        <!-- Ferretería General -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingOne">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                    <i class="bi bi-tools category-icon"></i> Ferretería General 
+                                </button>
+                            </h2>
+                            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Herramientas manuales:</strong> Martillos, destornilladores, alicates, llaves (fijas, de expansión), sierras, cinceles, limas, niveles.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Herramientas eléctricas:</strong> Taladros, pulidoras, sierras circulares, esmeriles, lijadoras, martillos percutores, pistolas de calor.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Medición y marcado:</strong> Cintas métricas, flexómetros, escuadras, calibres, tiralíneas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Elementos de fijación:</strong> Clavos, tornillos, tuercas, arandelas, chazos, remaches.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Adhesivos y selladores:</strong> Siliconas, colbón, pegamentos de contacto, masillas, cintas adhesivas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Plomería y Tubería -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingTwo">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                    <i class="bi bi-droplet-half category-icon"></i> Plomería y Tubería 
+                                </button>
+                            </h2>
+                            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Tuberías:</strong> Tuberías de PVC (agua fría, sanitaria), tuberías de CPVC (agua caliente), tuberías de cobre, tuberías de polipropileno (PPR).</li>
+                                        <li class="list-group-item subcategory-item"><strong>Conexiones y accesorios:</strong> Codos, T-es, uniones, reducciones, adaptadores, tapones, niples, válvulas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Grifería y sanitarios:</strong> Grifos para lavamanos y cocina, duchas, sifones, mangueras de abasto, herrajes para sanitarios.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Bombas y tanques:</strong> Bombas de agua, motobombas, tanques de almacenamiento de agua.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Electricidad -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingThree">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                    <i class="bi bi-lightning-charge category-icon"></i> Electricidad 
+                                </button>
+                            </h2>
+                            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Cables y conductores:</strong> Cables eléctricos (unifilares, multifilares), alambres, cordones.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Interruptores y tomas:</strong> Interruptores sencillos, dobles, conmutables, tomas eléctricas (polarizadas, con polo a tierra), cajas de paso.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Iluminación:</strong> Bombillos LED, fluorescentes, halógenos, luminarias, reflectores.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Protección eléctrica:</strong> Breakers (interruptores automáticos), fusibles, cajas de breakers, cintas aislantes.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Conductos y canaletas:</strong> Tubería conduit, canaletas plásticas, abrazaderas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pinturas y Acabados -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFour">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+                                    <i class="bi bi-brush category-icon"></i> Pinturas y Acabados 
+                                </button>
+                            </h2>
+                            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Pinturas:</strong> Vinilos (interiores y exteriores), esmaltes (brillantes, mate), anticorrosivos, selladores, bases.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Disolventes y aditivos:</strong> Thinner, aguarrás, varsol, removedores de pintura.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Accesorios para pintar:</strong> Brochas, rodillos, bandejas, espátulas, lijas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Impermeabilizantes:</strong> Impermeabilizantes para techos y paredes, selladores de grietas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Materiales de Construcción -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingFive">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+                                    <i class="bi bi-house-gear category-icon"></i> Materiales de Construcción 
+                                </button>
+                            </h2>
+                            <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Agregados:</strong> Cemento, arena, gravilla, triturado, estuco.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Ladrillos y bloques:</strong> Ladrillo común, bloque de cemento.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Hierro y acero:</strong> Varillas de refuerzo, mallas electrosoldadas, perfiles, láminas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Mallas y cercas:</strong> Malla eslabonada, alambre de púas, concertinas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Productos químicos para construcción:</strong> Aditivos para morteros, pegantes para baldosas, selladores de juntas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Seguridad Industrial -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSix">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+                                    <i class="bi bi-shield-check category-icon"></i> Seguridad Industrial 
+                                </button>
+                            </h2>
+                            <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Elementos de protección personal (EPP):</strong> Guantes, gafas de seguridad, cascos, botas con puntera de acero, tapabocas, arneses de seguridad.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Señalización:</strong> Cintas de precaución, conos, señales de seguridad.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Extintores:</strong> Extintores de polvo químico, de CO2, de agua.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Jardinería y Agro -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingSeven">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+                                    <i class="bi bi-flower1 category-icon"></i> Jardinería y Agro 
+                                </button>
+                            </h2>
+                            <div id="collapseSeven" class="accordion-collapse collapse" aria-labelledby="headingSeven" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Herramientas de jardinería:</strong> Palas, picos, rastrillos, machetes, mangueras.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Equipos de fumigación:</strong> Fumigadoras de espalda, atomizadores.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Materiales:</strong> Alambre de amarre, bolsas de basura, lonas plásticas.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Misceláneos -->
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingEight">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+                                    <i class="bi bi-grid category-icon"></i> Misceláneos 
+                                </button>
+                            </h2>
+                            <div id="collapseEight" class="accordion-collapse collapse" aria-labelledby="headingEight" data-bs-parent="#categoriasAccordion">
+                                <div class="accordion-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item subcategory-item"><strong>Cerraduras y candados:</strong> Candados de seguridad, cerraduras para puertas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Carretillas y escaleras:</strong> Carretillas de obra, escaleras de tijera, escaleras de extensión.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Lubricantes y aceites:</strong> WD-40, aceites para motores, grasas.</li>
+                                        <li class="list-group-item subcategory-item"><strong>Artículos de ferretería para el hogar:</strong> Ganchos para cuadros, topes para puertas, bisagras.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!-- Modal de confirmación para eliminar -->
 
@@ -126,6 +323,7 @@
  DATATABLE CATEGORIAS
 
 ======================================================= --->
+
 
 @push('js')
 

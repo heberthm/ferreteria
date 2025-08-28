@@ -427,16 +427,16 @@ return [
             'url' => 'admin/settings',
             'icon' => 'nav-icon fas fa-boxes',
             'submenu' => [
-                [
-                    'text' => 'Productos',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => 'productos',
-                ],
-                          
+                                        
                 [
                     'text' => 'Categorías',
                     'icon' => 'far fa-circle nav-icon',
                     'url' => 'categorias',
+                ],
+                 [
+                    'text' => 'Productos',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'productos',
                 ],
                 
             ]
@@ -572,7 +572,7 @@ return [
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => '//cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js',
+                    'location' => '//cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js',
                 ],
               
                
