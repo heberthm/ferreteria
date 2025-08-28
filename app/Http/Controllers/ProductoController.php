@@ -1,52 +1,39 @@
 <?php
 
 namespace App\Http\Controllers;
-
 use App\Models\Producto;
-
-use App\Models\proveedores;
-
+use App\Models\Proveedor;
+use App\Models\Categoria;
 use Illuminate\Http\Request;
-
-
 class ProductoController extends Controller
 {
     public function index()
     {
-                     
+                  
         if(request()->ajax()) {
                   
             $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'ubicacion')->get();
-       
-  
-             return datatables()->of($id)
-                       
+             return datatables()->of($id)        
                                                                                                          
               ->addColumn('action', 'atencion')
               ->rawColumns(['action'])
-              ->addColumn('action', function($data) {
+              ->addColumn('action', function($data) {  
   
-  
-                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalMostrarProductos"  title="Ver datos del producto" class="fa fa-eye verProfesional"></a> 
-                 
+                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalMostrarProductos"  title="Ver datos del producto" class="fa fa-eye verProfesional"></a>                  
                   <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalEditarProductos"  title="Editar datos del producto" class="fa fa-edit editarProfesional"></a>
-  
-
-                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.' title="Eliminar datos del producto" class="fa fa-trash eliminarProfesional" style="color: #c47215ff;"></a>';
-                  
+                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.' title="Eliminar datos del producto" class="fa fa-trash eliminarProfesional" style="color: #c47215ff;"></a>';                
                    
                   return $actionBtn;
                  
               })
-             
-             
+                        
               ->make(true);
           } 
   
           $productos = Producto::select('id_producto','nombre')->get(); 
+          $categorias = Categoria::select('nombre')->get();
 
-         
-          return view('productos');
+          return view('productos', compact('categorias'));
     }
 
     public function create()
@@ -80,7 +67,6 @@ class ProductoController extends Controller
 // Calcular margen de ganancia
       $margenGanancia = (($request->precio_venta - $request->precio_compra) / $request->precio_compra) * 100;
 
-
     try {
         $data = new Producto;
         
@@ -89,6 +75,7 @@ class ProductoController extends Controller
             $imagePath = $request->file('imagen')->store('productos', 'public');
             $data->imagen = $imagePath;
         }
+
 
         // Asignar campos correctamente
         $data->userId = $request->userId;
@@ -106,29 +93,18 @@ class ProductoController extends Controller
         $data->stock_minimo = $request->stock_minimo; 
         $data->stock = $request->stock;
           
+               
+          } catch (\Exception  $exception) {
+              return back()->withError($exception->getMessage())->withInput();
+          }
+          
         
           $data->save();
 
             // Respuesta de éxito con el mensaje deseado
-            return response()->json([
-                'success' => true,
-              //  'message' => 'Producto guardado correctamente.'
-            ], 200);
-                  
-          } catch (\Exception  $exception) {
-              return back()->withError($exception->getMessage())->withInput();
-         
-
-          } catch (\Exception $exception) {
-            // Manejo de cualquier excepción que ocurra durante el guardado
-            return response()->json([
-                'success' => false,
-                'message' => 'Hubo un error al guardar el producto: ' . $e->getMessage()
-            ], 500); // Retorna un código de estado 500 para errores del servidor
-        }
-        
-           
-}
+           return redirect()->route('productos'); 
+          
+   }
 
     public function show(Producto $producto)
     {

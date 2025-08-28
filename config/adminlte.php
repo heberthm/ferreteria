@@ -354,9 +354,21 @@ return [
                   
         ],
          [
-                    'text' => 'Apertura / cierra de caja',
+                    'text' => 'Caja',
                     'icon' => 'fas fa-dollar-sign nav-icon',
                     'url' => 'caja',
+                     'submenu' => [
+                        [
+                            'text' => 'Abrir caja',
+                            'icon' => 'far fa-circle nav-icon',
+                            'url' => '/caja',
+                        ],
+                        [
+                            'text' => 'historial caja',
+                            'icon' => 'far fa-circle nav-icon',
+                            'url' => 'caja.historial',
+                        ],
+                   ],
         ],
         [
             'text' => 'Ventas',
@@ -544,6 +556,25 @@ return [
                     'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js',
                 ],
+               
+            ],
+        ],
+
+         'Bootstrap' => [
+            'active' => true,
+            'files' => [
+               
+                  [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js',
+                ],
+              
                
             ],
         ],

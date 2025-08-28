@@ -9,8 +9,33 @@ class CategoriaController extends Controller
 {
     public function index()
     {
-        $categorias = Categoria::all();
-        return view('categorias', compact('categorias'));
+      
+
+
+    if(request()->ajax()) {
+                  
+            $id = Categoria::select('id_categoria', 'nombre', 'descripcion')->get();
+             return datatables()->of($id)        
+                                                                                                         
+              ->addColumn('action', 'atencion')
+              ->rawColumns(['action'])
+              ->addColumn('action', function($data) {  
+  
+                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalMostrarCategoria"  title="Ver datos de categoria" class="fa fa-eye verProfesional"></a>                  
+                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalEditarCategoria"  title="Editar datos de categoria" class="fa fa-edit editarProfesional"></a>
+                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.' title="Eliminar datos del Categoria" class="fa fa-trash eliminarCategoria" style="color: #c47215ff;"></a>';                
+                   
+                  return $actionBtn;
+                 
+              })
+                        
+              ->make(true);
+          } 
+  
+          $categoria = Categoria::select('id_categoria','nombre')->get(); 
+         
+          return view('categorias');
+
     }
 
     public function create()
@@ -22,8 +47,8 @@ class CategoriaController extends Controller
     {
         $validatedData = $request->validate([
           
-            'nombre'              =>    'required|max:25',
-            'descripcion'         =>    'required|max:150',
+            'nombre'              =>    'required|max:90',
+            'descripcion'         =>    'required|max:250',
             ]);
    
           try {

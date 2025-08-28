@@ -2,10 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 use App\Http\Controllers\CajaController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CategoriaController;
-use App\Http\Controllers\Controller;
 
 
 
@@ -70,8 +70,19 @@ Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'stor
 // ======================================================
 
 
+// Rutas para la gestión de caja
+Route::prefix('caja')->group(function () {
+    Route::get('/', [CajaController::class, 'index'])->name('caja.index');
+    Route::post('/abrir', [CajaController::class, 'abrirCaja'])->name('caja.abrir');
+    Route::post('/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
+    Route::post('/movimiento', [CajaController::class, 'registrarMovimiento'])->name('caja.movimiento');
+    Route::get('/movimientos', [CajaController::class, 'obtenerMovimientos'])->name('caja.movimientos');
+    Route::post('/{caja}/cambiar-estado', [CajaController::class, 'cambiarEstado'])->name('caja.cambiar-estado');
+    Route::get('/historial', [CajaController::class, 'historial'])->name('caja.historial');
+});
 
 
+     /*
  
         Route::get('caja', [CajaController::class, 'index'])->name('caja');
         Route::get('estado', [CajaController::class, 'estado'])->name('caja_estado');
@@ -79,4 +90,6 @@ Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'stor
         Route::post('cerrar', [CajaController::class, 'cerrar'])->name('caja_cerrar');
         Route::get('historial', [CajaController::class, 'historial'])->name('caja_historial');
         Route::get('{id}/detalles', [CajaController::class, 'detalles'])->name('caja_detalles');
- 
+
+        
+     */

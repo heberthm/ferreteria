@@ -1,20 +1,26 @@
 @extends('layouts.app')
 @section('content')
 
+
 <br>
-
 <div class="card">
-
     <div class="card-header d-flex bg-light justify-content-between align-items-right">
-
         <h5 class="mb-0"><i class="fas fa-umbrella"></i> Gestión de productos</h5>
+      <!--  <button class="btn btn-primary float-right" id="BtnCrearProducto" data-toggle="modal" data-target="#modalproductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button> -->
+     
+            <div class="pull-right">
+                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalproductos">
+                        <span class="fa fa-plus" ></span>  
+                        Registrar producto
+                 </button>  &nbsp;
+            </div> 
+                    
 
-        <button class="btn btn-primary float-right" id="createproductoBtn" data-toggle="modal" data-target="#modalproductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button>
-  
+
     </div>
   
     <div class="card-body">  
-        <table class="table table-hover" id="tablaProductos">   
+        <table class="table table-hover" id="tablaProductos" style="width:100%;font-size:12.5px;">   
             <thead>  
                 <tr>   
                     <th>Código</th>
@@ -34,7 +40,7 @@
 </div>
 
 <!-- Modal para crear productos -->
-<div class="modal fade" id="modalproductos" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="modalproductos"  role="dialog" tabindex="-1">
     <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -44,7 +50,7 @@
                 </button>
             </div>
             
-            <form method="POST" id="form_guardar_productos" enctype="multipart/form-data" action="{{ url('productos') }}" >
+            <form method="POST" id="form_guardar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
             @csrf
                 <div class="modal-body">
                     <input type="hidden" id="id_categoria" name="id_categoria" value="1">
@@ -157,17 +163,17 @@
                             <div class="form-group row mb-3">
                                <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
                                <div class="col-sm-8">
-                                  <select class="form-control" id="categoria" name="categoria" required>
-                                    <option value="">Seleccione una categoría</option>
-                                    <option value="Herramientas">Herramientas</option>
-                                    <option value="Fijación y sujeción">Fijación y sujeción</option>
-                                    <option value="Materiales de construcción">Materiales de construcción</option>
-                                    <option value="Electricidad">Electricidad</option>
-                                    <option value="Seguridad y protección">Seguridad y protección</option>
-                                    <option value="Pinturas y acabados">Pintura y acabados</option>
-                                    <option value="Almacenamiento y organización">Almacenamiento y organización</option>
-                                   </select>
-                                     <div class="invalid-feedback"></div>
+                                     <select id="categorias" name="categorias" class="form-control" placeholder="Filtrar eventos">
+
+                                            <option value="todos">Mostrar todos</option>
+
+                                            @foreach($categorias as $categ)
+
+                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
+
+                                            @endforeach
+
+                                     </select>
                                 </div>                             
                              </div>
 
@@ -184,22 +190,19 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" id="guardar_producto" name="guardar_producto" class="btn btn-primary ">
-                        <span class="button-text">Guardar</span>
-                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                    </button>
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                   <button type="submit" class="btn btn-primary" id="BtnGuardar_producto" name="BtnGuardar_producto">Guardar</button>                              
                     <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
               
                 </div>
-            </form>loader
+            </form>
         </div>
     </div>
 </div>
 <!-- Modal de confirmación para eliminar productoo -->
 
 
-<div class="modal fade" id="confirmproductoDeleteModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="ModalEliminarCategoria" tabindex="-1" aria-hidden="true">
 
     <div class="modal-dialog">
 
@@ -236,12 +239,13 @@
 
 <!-- ===================================================
 
- DATATABLE PROFESIONALES
+ DATATABLE PRODUCTOS
 
 ======================================================= --->
 
 @push('js')
-<script type="text/javascript">
+
+<script>
 
   $(document).ready(function() {
     $.ajaxSetup({
@@ -329,9 +333,8 @@
       },
 
     });
- 
 
- 
+
 $('#form_guardar_producto').off('submit').on('submit', function (event) {
 
   event.preventDefault();
@@ -342,16 +345,15 @@ $.ajaxSetup({
   }
 });
 /* Configurar botón submit con spinner */
-let btn = $('#guardar_producto') 
+let btn = $('#BtnGuardar_producto') 
     let existingHTML =btn.html() //store exiting button HTML
     //Add loading message and spinner
     $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
     setTimeout(function() {
       $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
     },5000) //5 seconds
-        $('#guardar_producto').attr('disabled', true);
-
-      
+        $('#BtnGuardar_producto').attr('disabled', true);
+   
 
         try {
 
@@ -361,15 +363,14 @@ let btn = $('#guardar_producto')
             data: $(this).serialize(),
             dataType: "json",
             success: function(data) {
-                  table.ajax.reload();
-                $('#guardar_producto').prop("required", true);
+                 $('#modalProductos').modal('hide');       
+                $('#form_guardar_categoria')[0].reset();              
+
+              
+                $('#BtnGuardar_producto').prop("required", true);
                // $('#selectBuscarCliente').html("");
-               
-                $('#form_guardar_producto')[0].reset();
-                $('#modalproductos').modal('hide');
-                  
-             //   table.ajax.reload();
-             //   location.reload(true);
+                   table.ajax.reload();
+              
                 toastr["success"]("registro creado correctamente.");
          
             }
@@ -378,10 +379,13 @@ let btn = $('#guardar_producto')
           toastr["danger"]("Se ha presentado un error.", "Información");
           }
     });
-
+   
 });
 
-</script>
-@endpush
+ 
 
+
+</script>
+
+@endpush
 @endsection

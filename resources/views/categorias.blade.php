@@ -1,7 +1,6 @@
+
 @extends('layouts.app')
-
 @section('content')
-
 
 <br>
 <div class="card">
@@ -10,7 +9,7 @@
         <button class="btn btn-primary float-right" id="BtnCrearCategoria" data-toggle="modal" data-target="#modalCategoria"><i class="fa fa-plus" aria-hidden="true"></i> Nueva Categoría</button>
     </div>
     <div class="card-body">
-        <table class="table table-striped table-hover" id="categoriesTable">
+        <table class="table table-hover" id="TablaCategorias" style="width:100%;font-size:12.5px;">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -26,8 +25,8 @@
     </div>
 </div>
 
-<!-- Modal para crear/editar categorías -->
-<div class="modal fade" id="modalCategoria" role="dialog" tabindex="-1" aria-hidden="true">
+<!-- Modal para crear categorías -->
+<div class="modal fade" id="modalCategoria" role="dialog" tabindex="-1">
 
     <div class="modal-dialog">
 
@@ -73,8 +72,8 @@
 
                 <div class="modal-footer">
                 
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                   <button type="submit" class="btn btn-primary" id="BtnGuardar_categoria" name="BtnGuardar_categoria loader">Guardar</button>
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                   <button type="submit" class="btn btn-primary" id="BtnGuardar_categoria" name="BtnGuardar_categoria">Guardar</button>
                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
 
                 </div>
@@ -122,51 +121,151 @@
 </div>
 
 
+<!-- ===================================================
+
+ DATATABLE CATEGORIAS
+
+======================================================= --->
+
+@push('js')
+
 <script>
 
-$(document).ready(function() {
-    $('#form_guardar_categoria').on('submit', function(event) {
-        // 1. Prevenir el comportamiento por defecto del formulario
-        event.preventDefault();
-        
-        // 2. Configurar el botón (spinner y texto)
-        const btn = $('#BtnGuardar_categoria');
-        const originalText = btn.html();
-        btn.html(`
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Procesando...
-        `).prop('disabled', true);
+  $(document).ready(function() {
+        $("#modalCategoria input:first").focus();
+   });
+</script>
 
-        // 3. Configurar AJAX
+<script type="text/javascript">
+
+
+  $(document).ready(function() {
+
+    $.ajaxSetup({
+      headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+      }
+    });
+
+    let table = $('#TablaCategorias').DataTable({
+      processing: true,
+      serverSide: true,
+      paging: true,
+      info: true,
+      filter: true,
+      responsive: true,
+      type: "GET",
+      ajax: 'categorias',
+      columns: [
+        {
+          data: 'id_categoria',
+          name: 'id_categoria'
+        },
+        {
+          data: 'nombre',
+          name: 'nombre'
+        },
+        {
+          data: 'descripcion',
+          name: 'descripcion'
+        },
+      
+        {
+          data: 'action',
+          name: 'action',
+          orderable: false,
+          searchable: false
+        },
+      ],
+
+      order: [
+        [0, 'asc']
+      ],
+
+
+      "language": {
+
+
+        "emptyTable": "No hay categorías registrados.",
+        "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+        "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
+        "infoFiltered": "(Filtrado de _MAX_ total entradas)",
+        "infoPostFix": "",
+        "thousands": ",",
+        "lengthMenu": "Mostrar _MENU_ Entradas",
+        "loadingRecords": "Cargando...",
+        "processing": "Procesando...",
+        "search": "Buscar:",
+        "zeroRecords": "Sin resultados encontrados",
+        "paginate": {
+          "first": "Primero",
+          "last": "Ultimo",
+          "next": "Siguiente",
+          "previous": "Anterior"
+        }
+
+      },
+
+    });
+
+
+
+ 
+$('#form_guardar_categoria').off('submit').on('submit', function (event) {
+
+  event.preventDefault();
+
+$.ajaxSetup({
+  headers: {
+    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+  }
+});
+/* Configurar botón submit con spinner */
+let btn = $('#BtnGuardar_categoria') 
+    let existingHTML =btn.html() //store exiting button HTML
+    //Add loading message and spinner
+    $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
+    setTimeout(function() {
+      $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
+    },5000) //5 seconds
+        $('#BtnGuardar_categoria').attr('disabled', true);
+
+      
+
+        try {
+
         $.ajax({
             url: "/categorias",
-            method: 'POST',
+            method: "POST",
             data: $(this).serialize(),
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            },
-            success: function(response) {
-                // Restaurar botón
-                btn.html(originalText).prop('disabled', false);
-                
-                // Resetear formulario y cerrar modal
-                $('#form_guardar_categoria')[0].reset();
-                $('#modalCategoria').modal('hide');
-                
-                // Mostrar notificación
-                toastr.success("Registro creado correctamente");
-            },
-            error: function(xhr) {
-                // Restaurar botón
-                btn.html(originalText).prop('disabled', false);
-                
-                // Mostrar error
-                toastr.error(xhr.responseJSON.message || "Error al guardar los datos");
+            dataType: "json",
+            success: function(data) {
+              
+                $('#modalCategoria').modal('hide');       
+                $('#form_guardar_categoria')[0].reset();              
+
+                  table.ajax.reload();
+                $('#BtnGuardar_categoria').prop("required", true);
+               // $('#selectBuscarCliente').html("");
+               
+               toastr["success"]("registro creado correctamente.");
+         
             }
-        });
+         });
+        } catch(e) {
+          toastr["danger"]("Se ha presentado un error.", "Información");
+          }
     });
+
+    
 });
 
+
+
+   
+
+
 </script>
+@endpush
 
 @endsection

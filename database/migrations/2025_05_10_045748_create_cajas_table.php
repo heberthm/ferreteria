@@ -13,16 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
+
+        
         Schema::create('cajas', function (Blueprint $table) {
             $table->bigIncrements('id_caja');
-            $table->string('userId')->required();
-            $table->dateTime('fecha_caja')->unique(); // Fecha de la caja diaria
+              $table->foreignId('userId')->constrained(); // Usuario responsable
+            $table->timestamp('fecha_apertura');
+            $table->timestamp('fecha_cierre')->nullable();
             $table->decimal('saldo_inicial', 12, 2); // Saldo inicial
             $table->decimal('saldo_final', 12, 2)->nullable(); // Saldo final (se calcula al cerrar)
-            $table->decimal('total_ingresos', 12, 2)->default(0); // Total de ingresos
-            $table->decimal('total_egresos', 12, 2)->default(0); // Total de egresos
-            $table->enum('estado_caja', ['open', 'closed'])->default('open'); // Estado de la caja
-            $table->foreignId('user_id')->constrained(); // Usuario responsable
+            $table->enum('estado', ['abierta', 'cerrada', 'en_revision'])->default('cerrada');         
             $table->text('observaciones')->nullable(); // Observaciones  
 
 

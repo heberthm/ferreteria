@@ -16,33 +16,63 @@ class caja extends Model
         'total_ingresos',
         'total_egresos',
         'estado_caja',
-        'user_id',
+        'userId',
         'observaciones',
  ];
 
- // Relación con el usuario
-    public function user()
+ protected $casts = [
+        'fecha_apertura' => 'datetime',
+        'fecha_cierre' => 'datetime',
+    ];
+    
+    // Constantes para estados
+    const ABIERTA = 'abierta';
+    const CERRADA = 'cerrada';
+    const EN_REVISION = 'en_revision';
+    
+    public function usuario()
     {
         return $this->belongsTo(User::class);
     }
-
-    // Relación con transacciones (si las tienes)
-  //  public function transactions()
-  //  {
-  //      return $this->hasMany(Transaction::class);
-  //  }
-
+    
+    public function movimientos()
+    {
+        return $this->hasMany(MovimientoCaja::class);
+    }
+    
+    // Scope para cajas abiertas
+    public function scopeAbierta($query)
+    {
+        return $query->where('estado', self::ABIERTA);
+    }
+    
+    // Scope para cajas cerradas
+    public function scopeCerrada($query)
+    {
+        return $query->where('estado', self::CERRADA);
+    }
+    
+    // Scope para cajas en revisión
+    public function scopeEnRevision($query)
+    {
+        return $query->where('estado', self::EN_REVISION);
+    }
+    
     // Método para verificar si la caja está abierta
-    public function isOpen()
+    public function estaAbierta()
     {
-        return $this->status === 'open';
+        return $this->estado === self::ABIERTA;
     }
-
-    // Método para calcular el saldo actual
-    public function currentBalance()
+    
+    // Método para verificar si la caja está cerrada
+    public function estaCerrada()
     {
-        return $this->saldo_inicial + $this->total_ingresos - $this->total_egresos;
+        return $this->estado === self::CERRADA;
     }
-
-
+    
+    // Método para verificar si la caja está en revisión
+    public function estaEnRevision()
+    {
+        return $this->estado === self::EN_REVISION;
+    }
 }

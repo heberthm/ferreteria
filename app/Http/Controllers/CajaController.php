@@ -1,10 +1,8 @@
-<?php
-
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Caja;
-use App\Models\Venta;
+use App\Models\MovimientoCaja;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -12,120 +10,183 @@ class CajaController extends Controller
 {
     public function index()
     {
-        return view('caja');
-    }
-
-    public function estado()
-    {
-        $caja = Caja::where('usuario_id', Auth::id())
-                    ->where('estado', 'abierta')
-                    ->first();
-
+        $hoy = Carbon::today();
+        $caja = Caja::whereDate('fecha_apertura', $hoy)->first();
+        
+        $totalVentas = 0;
+        $totalIngresos = 0;
+        $totalEgresos = 0;
+        $saldoActual = 0;
+        
         if ($caja) {
-            $totalVentas = Venta::where('caja_id', $caja->id)
-                              ->where('estado', 'completada')
-                              ->sum('total');
+            $movimientos = MovimientoCaja::where('caja_id', $caja->id)->get();
             
-            $totalEfectivo = Venta::where('caja_id', $caja->id)
-                                 ->where('estado', 'completada')
-                                 ->where('metodo_pago', 'efectivo')
-                                 ->sum('total') + $caja->monto_inicial;
-
-            return response()->json([
-                'caja_abierta' => true,
-                'fecha_apertura' => $caja->created_at->format('d/m/Y'),
-                'hora_apertura' => $caja->created_at->format('H:i:s'),
-                'monto_inicial' => number_format($caja->monto_inicial, 2),
-                'total_ventas' => number_format($totalVentas, 2),
-                'total_caja' => number_format($totalEfectivo, 2)
-            ]);
+            foreach ($movimientos as $movimiento) {
+                if ($movimiento->tipo === 'venta') {
+                    $totalVentas += $movimiento->monto;
+                } elseif ($movimiento->tipo === 'ingreso') {
+                    $totalIngresos += $movimiento->monto;
+                } elseif ($movimiento->tipo === 'egreso') {
+                    $totalEgresos += $movimiento->monto;
+                }
+            }
+            
+            // Calcular saldo actual
+            $saldoActual = $caja->monto_inicial + $totalVentas + $totalIngresos - $totalEgresos;
         }
-
-        return response()->json(['caja_abierta' => false]);
+        
+        return view('caja.index', compact('caja', 'totalVentas', 'totalIngresos', 'totalEgresos', 'saldoActual'));
     }
-
-    public function abrir(Request $request)
+    
+    public function abrirCaja(Request $request)
     {
         $request->validate([
-            'monto_inicial' => 'required|numeric|min:0',
-            'observaciones' => 'nullable|string|max:255'
+            'monto_inicial' => 'required|numeric|min:0'
         ]);
-
-        // Verificar si ya hay una caja abierta
-        $cajaAbierta = Caja::where('usuario_id', Auth::id())
-                          ->where('estado', 'abierta')
-                          ->exists();
-
-        if ($cajaAbierta) {
-            return response()->json(['message' => 'Ya tienes una caja abierta'], 422);
+        
+        $hoy = Carbon::today();
+        $cajaExistente = Caja::whereDate('fecha_apertura', $hoy)->first();
+        
+        if ($cajaExistente) {
+            return redirect()->back()->with('error', 'Ya existe una caja abierta para hoy.');
         }
-
-        $caja = Caja::create([
-            'usuario_id' => Auth::id(),
-            'monto_inicial' => $request->monto_inicial,
-            'observaciones' => $request->observaciones,
-            'estado' => 'abierta',
-            'fecha_apertura' => Carbon::now(),
-        ]);
-
-        return response()->json(['message' => 'Caja abierta correctamente']);
+        
+        $caja = new Caja();
+        $caja->monto_inicial = $request->monto_inicial;
+        $caja->fecha_apertura = Carbon::now();
+        $caja->estado = Caja::ABIERTA;
+        $caja->usuario_id = Auth::id();
+        $caja->save();
+        
+        return redirect()->route('caja.index')->with('success', 'Caja abierta correctamente.');
     }
-
-    public function cerrar(Request $request)
+    
+    public function cerrarCaja(Request $request)
     {
         $request->validate([
             'monto_cierre' => 'required|numeric|min:0',
-            'observaciones_cierre' => 'nullable|string|max:255'
+            'observaciones' => 'nullable|string'
         ]);
-
-        $caja = Caja::where('usuario_id', Auth::id())
-                   ->where('estado', 'abierta')
-                   ->first();
-
+        
+        $hoy = Carbon::today();
+        $caja = Caja::whereDate('fecha_apertura', $hoy)->first();
+        
         if (!$caja) {
-            return response()->json(['message' => 'No tienes una caja abierta'], 422);
+            return redirect()->back()->with('error', 'No hay caja abierta para cerrar.');
         }
-
-        $totalVentas = Venta::where('caja_id', $caja->id)
-                          ->where('estado', 'completada')
-                          ->sum('total');
-
-        $caja->update([
-            'monto_final' => $request->monto_cierre,
-            'observaciones_cierre' => $request->observaciones_cierre,
-            'estado' => 'cerrada',
-            'fecha_cierre' => Carbon::now(),
-            'total_ventas' => $totalVentas
-        ]);
-
-        return response()->json(['message' => 'Caja cerrada correctamente']);
+        
+        // Calcular el saldo esperado
+        $totalVentas = 0;
+        $totalIngresos = 0;
+        $totalEgresos = 0;
+        
+        $movimientos = MovimientoCaja::where('caja_id', $caja->id)->get();
+        
+        foreach ($movimientos as $movimiento) {
+            if ($movimiento->tipo === 'venta') {
+                $totalVentas += $movimiento->monto;
+            } elseif ($movimiento->tipo === 'ingreso') {
+                $totalIngresos += $movimiento->monto;
+            } elseif ($movimiento->tipo === 'egreso') {
+                $totalEgresos += $movimiento->monto;
+            }
+        }
+        
+        $saldoEsperado = $caja->monto_inicial + $totalVentas + $totalIngresos - $totalEgresos;
+        $diferencia = $request->monto_cierre - $saldoEsperado;
+        
+        // Determinar el estado basado en la diferencia
+        if (abs($diferencia) <= 0.05) { // Tolerancia de 5 céntimos
+            $estado = Caja::CERRADA;
+        } else {
+            $estado = Caja::EN_REVISION;
+        }
+        
+        $caja->monto_cierre = $request->monto_cierre;
+        $caja->fecha_cierre = Carbon::now();
+        $caja->observaciones = $request->observaciones;
+        $caja->estado = $estado;
+        $caja->save();
+        
+        $mensaje = $estado === Caja::CERRADA 
+            ? 'Caja cerrada correctamente.' 
+            : 'Caja cerrada con diferencias. Requiere revisión.';
+        
+        return redirect()->route('caja.index')->with(
+            $estado === Caja::CERRADA ? 'success' : 'warning', 
+            $mensaje
+        );
     }
-
+    
+    public function registrarMovimiento(Request $request)
+    {
+        $request->validate([
+            'tipo_movimiento' => 'required|in:ingreso,egreso',
+            'monto_movimiento' => 'required|numeric|min:0.01',
+            'descripcion_movimiento' => 'required|string'
+        ]);
+        
+        $hoy = Carbon::today();
+        $caja = Caja::whereDate('fecha_apertura', $hoy)->first();
+        
+        if (!$caja) {
+            return redirect()->back()->with('error', 'No hay caja abierta para registrar movimientos.');
+        }
+        
+        if (!$caja->estaAbierta()) {
+            return redirect()->back()->with('error', 'La caja no está abierta. No se pueden registrar movimientos.');
+        }
+        
+        $movimiento = new MovimientoCaja();
+        $movimiento->caja_id = $caja->id;
+        $movimiento->tipo = $request->tipo_movimiento;
+        $movimiento->monto = $request->monto_movimiento;
+        $movimiento->descripcion = $request->descripcion_movimiento;
+        $movimiento->fecha = Carbon::now();
+        $movimiento->save();
+        
+        return redirect()->route('caja.index')->with('success', 'Movimiento registrado correctamente.');
+    }
+    
+    public function obtenerMovimientos()
+    {
+        $hoy = Carbon::today();
+        $caja = Caja::whereDate('fecha_apertura', $hoy)->first();
+        
+        if (!$caja) {
+            return response()->json([]);
+        }
+        
+        $movimientos = MovimientoCaja::where('caja_id', $caja->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+            
+        return response()->json($movimientos);
+    }
+    
+    public function cambiarEstado(Request $request, Caja $caja)
+    {
+        $request->validate([
+            'estado' => 'required|in:abierta,cerrada,en_revision'
+        ]);
+        
+        // Solo permitir cambiar estado si el usuario es administrador
+        if (!Auth::user()->hasRole('admin')) {
+            return redirect()->back()->with('error', 'No tiene permisos para cambiar el estado de la caja.');
+        }
+        
+        $caja->estado = $request->estado;
+        $caja->save();
+        
+        return redirect()->back()->with('success', 'Estado de caja actualizado correctamente.');
+    }
+    
     public function historial()
     {
         $cajas = Caja::with('usuario')
-                    ->where('usuario_id', Auth::id())
-                    ->orderBy('created_at', 'desc')
-                    ->paginate(10);
-
-        return response()->json([
-            'data' => $cajas->items(),
-            'total' => $cajas->total()
-        ]);
-    }
-
-    public function detalles($id)
-    {
-        $caja = Caja::with(['usuario', 'ventas' => function($query) {
-            $query->where('estado', 'completada');
-        }])->findOrFail($id);
-
-        if ($caja->usuario_id != Auth::id()) {
-            abort(403);
-        }
-
-        $html = view('caja.partials.detalles', compact('caja'))->render();
-        
-        return $html;
+            ->orderBy('fecha_apertura', 'desc')
+            ->paginate(10);
+            
+        return view('caja.historial', compact('cajas'));
     }
 }
