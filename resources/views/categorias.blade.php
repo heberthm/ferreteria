@@ -2,12 +2,17 @@
 @extends('layouts.app')
 @section('content')
 
-<br>
 
- <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<head>
+  <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
+
+
+<br>
+
  <style>
         .category-icon {
             font-size: 1.2rem;
@@ -26,9 +31,13 @@
 <div class="card">
     <div class="card-header bg-light d-flex justify-content-between float-right">
         <h5 class="mb-0"><i class="fas fa-th-list"></i> Gestión de Categorías</h5>
+
+       
            <button type="button" class="btn btn-default float-right" data-bs-toggle="modal" data-bs-target="#categoriasModal">
                 <i class="fa fa-eye"></i> Ver ejemplos de categorías
             </button>
+        
+
            <button class="btn btn-primary float-right" id="BtnCrearCategoria" data-toggle="modal" data-target="#modalCategoria"><i class="fa fa-plus" aria-hidden="true"></i> Crear nueva categoría</button>
 
       </div>

@@ -1,6 +1,12 @@
 @extends('layouts.app')
 @section('content')
 
+<head>
+  <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+</head>
 
 <br>
 <div class="card">
@@ -27,7 +33,8 @@
                     <th>Nombre</th>   
                     <th>Descripción</th>   
                     <th>Precio</th>   
-                    <th>Stock</th>   
+                    <th>Stock</th>
+                    <th>Stock min</th>
                     <th>Ubicación</th>   
                     <th>Acciones</th>   
                 </tr>   
@@ -98,15 +105,36 @@
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
-
-                           
+                          
+                            
                              <div class="form-group row mb-3">
+                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
+                               <div class="col-sm-8">
+                                     <select id="categorias" name="categorias" class="form-control" placeholder="Filtrar eventos" required>
+
+                                            <option value="todos">Mostrar todos</option>
+
+                                            @foreach($categorias as $categ)
+
+                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
+
+                                            @endforeach
+
+                                     </select>
+                                </div>                             
+                             </div>
+
+                              <div class="form-group row mb-3">
                                 <label for="imagen" class="col-sm-4 col-form-label">Imagen</label>
-                                <div class="col-sm-8">
-                                    <input type="file" class="form-control" id="imagen" name="imagen" >
+                              
+                                    <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" >
+                                     <small class="form-text text-muted">
+                                                    Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
+                                                </small>
                                     <div class="invalid-feedback"></div>
-                                </div>
+                               
                             </div>
+
 
                         </div>
                         
@@ -160,22 +188,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row mb-3">
-                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
-                               <div class="col-sm-8">
-                                     <select id="categorias" name="categorias" class="form-control" placeholder="Filtrar eventos">
-
-                                            <option value="todos">Mostrar todos</option>
-
-                                            @foreach($categorias as $categ)
-
-                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
-
-                                            @endforeach
-
-                                     </select>
-                                </div>                             
-                             </div>
+                         
 
                                <div class="form-group row mb-3">
                                     <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
@@ -284,6 +297,10 @@
           data: 'stock',
           name: 'stock'
         },
+         {
+          data: 'stock_minimo',
+          name: 'stock_minimo'
+        },
         {
           data: 'ubicacion',
           name: 'ubicacion'
@@ -363,7 +380,7 @@ let btn = $('#BtnGuardar_producto')
             data: $(this).serialize(),
             dataType: "json",
             success: function(data) {
-                 $('#modalProductos').modal('hide');       
+                 $('#modalProductos').hide();       
                 $('#form_guardar_categoria')[0].reset();              
 
               

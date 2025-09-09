@@ -5,6 +5,7 @@ use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 class ProductoController extends Controller
 {
     public function index()
@@ -12,7 +13,7 @@ class ProductoController extends Controller
                   
         if(request()->ajax()) {
                   
-            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'ubicacion')->get();
+            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'stock_minimo', 'ubicacion')->get();
              return datatables()->of($id)        
                                                                                                          
               ->addColumn('action', 'atencion')
@@ -68,13 +69,44 @@ class ProductoController extends Controller
       $margenGanancia = (($request->precio_venta - $request->precio_compra) / $request->precio_compra) * 100;
 
     try {
-        $data = new Producto;
-        
-        // Procesar imagen si existe
-        if ($request->hasFile('imagen')) {
-            $imagePath = $request->file('imagen')->store('productos', 'public');
-            $data->imagen = $imagePath;
-        }
+
+         $data = new Producto;
+
+         
+            // Validar la imagen
+            $request->validate([
+                'imagen' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'producto_id' => 'nullable|integer'
+            ]);
+
+            if ($request->hasFile('imagen')) {
+                $imagen = $request->file('imagen');
+                
+                // Generar nombre único para la imagen
+                $nombreImagen = Str::random(20) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
+                
+                // Guardar imagen en storage/app/public/images
+                $ruta = $imagen->storeAs('public/images', $nombreImagen);
+                
+                // Ruta pública para la base de datos
+                $rutaPublica = 'storage/images/' . $nombreImagen;
+                
+                // Aquí guardarías en la base de datos (ejemplo con Eloquent)
+                // $producto = Producto::find($request->producto_id);
+                // $producto->imagen = $rutaPublica;
+                // $producto->save();
+              /*  
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Imagen guardada correctamente',
+                    'ruta_imagen' => $rutaPublica,
+                    'nombre_imagen' => $nombreImagen
+                ]);
+                */
+            }
+
+   
+
 
 
         // Asignar campos correctamente
@@ -92,6 +124,7 @@ class ProductoController extends Controller
         $data->stock = $request->cantidad; // Asumiendo que stock es igual a cantidad inicial
         $data->stock_minimo = $request->stock_minimo; 
         $data->stock = $request->stock;
+        $data->imagen = $rutaPublica;
           
                
           } catch (\Exception  $exception) {

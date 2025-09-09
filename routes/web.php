@@ -60,6 +60,7 @@ Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'st
 
 Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
 Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_productos');
+Route::post('guardar-imagen', [ProductoController::class, 'guardarImagen'])->name('guardarImagen');
 
 
 
@@ -71,16 +72,14 @@ Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'stor
 
 
 // Rutas para la gestión de caja
-Route::prefix('caja')->group(function () {
-    Route::get('/', [CajaController::class, 'index'])->name('caja.index');
+Route::prefix('caja')->name('caja.')->group(function () {
+    Route::get('/caja', [CajaController::class, 'index'])->name('caja');
     Route::post('/abrir', [CajaController::class, 'abrirCaja'])->name('caja.abrir');
     Route::post('/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
     Route::post('/movimiento', [CajaController::class, 'registrarMovimiento'])->name('caja.movimiento');
     Route::get('/movimientos', [CajaController::class, 'obtenerMovimientos'])->name('caja.movimientos');
-    Route::post('/{caja}/cambiar-estado', [CajaController::class, 'cambiarEstado'])->name('caja.cambiar-estado');
-    Route::get('/historial', [CajaController::class, 'historial'])->name('caja.historial');
+     Route::get('historial', [CajaController::class, 'historial'])->name('caja_historial');
 });
-
 
      /*
  
