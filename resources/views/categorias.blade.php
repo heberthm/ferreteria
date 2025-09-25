@@ -1,19 +1,11 @@
-
 @extends('layouts.app')
 @section('content')
-
-
-<head>
-  <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-</head>
 
 
 <br>
 
  <style>
+
         .category-icon {
             font-size: 1.2rem;
             margin-right: 10px;
@@ -59,7 +51,7 @@
 </div>
 
 <!-- Modal para crear categorías -->
-<div class="modal fade" id="modalCategoria" role="dialog" tabindex="-1">
+<div class="modal fade" id="modalCategoria" name="modalCategoria" role="dialog" tabindex="-1">
 
     <div class="modal-dialog">
 
@@ -336,6 +328,8 @@
 
 @push('js')
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
 <script>
 
   $(document).ready(function() {
@@ -420,7 +414,7 @@
  
 $('#form_guardar_categoria').off('submit').on('submit', function (event) {
 
-  event.preventDefault();
+   event.preventDefault();
 
 $.ajaxSetup({
   headers: {
@@ -434,10 +428,10 @@ let btn = $('#BtnGuardar_categoria')
     $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
     setTimeout(function() {
       $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
-    },5000) //5 seconds
+    },5000) 
         $('#BtnGuardar_categoria').attr('disabled', true);
 
-      
+     
 
         try {
 
@@ -448,14 +442,20 @@ let btn = $('#BtnGuardar_categoria')
             dataType: "json",
             success: function(data) {
               
-                $('#modalCategoria').modal('hide');       
-                $('#form_guardar_categoria')[0].reset();              
-
                   table.ajax.reload();
-                $('#BtnGuardar_categoria').prop("required", true);
-               // $('#selectBuscarCliente').html("");
-               
-               toastr["success"]("registro creado correctamente.");
+              //  $('#modalCategoria').modal('hide');
+
+                $('#modalCategoria').removeClass('show');
+                $('#modalCategoria').css('display', 'none');
+                $('.modal-backdrop').remove();
+
+
+                $('#form_guardar_categoria')[0].reset();
+             
+                  
+              
+             //   location.reload(true);
+                toastr["success"]("registro creado correctamente.");
          
             }
          });
@@ -463,13 +463,7 @@ let btn = $('#BtnGuardar_categoria')
           toastr["danger"]("Se ha presentado un error.", "Información");
           }
     });
-
-    
-});
-
-
-
-   
+ });
 
 
 </script>

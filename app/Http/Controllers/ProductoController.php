@@ -57,7 +57,7 @@ class ProductoController extends Controller
         'precio_venta'  => 'required|numeric|min:0',
         'unidad_medida' => 'required|string|max:50',
         'ubicacion'     => 'nullable|string|max:100',
-        'imagen'        => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',   
+        'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',   
         'cantidad'      => 'required|integer|min:0',
         'stock_minimo'  => 'required|integer|min:0',
         'stock'         => 'nullable|integer|min:0',
@@ -75,7 +75,7 @@ class ProductoController extends Controller
          
             // Validar la imagen
             $request->validate([
-                'imagen' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'imagen' => 'required|image|mimes:webp,jpeg,png,jpg,gif,svg|max:2048',
                 'producto_id' => 'nullable|integer'
             ]);
 
@@ -103,9 +103,7 @@ class ProductoController extends Controller
                     'nombre_imagen' => $nombreImagen
                 ]);
                 */
-            }
-
-   
+            } 
 
 
 
@@ -118,6 +116,7 @@ class ProductoController extends Controller
         $data->precio_venta = $request->precio_venta;
         $data->unidad_medida = $request->unidad_medida; 
         $data->ubicacion = $request->ubicacion;
+        $data->categoria = $request->categoria ;
         $data->id_categoria = $request->id_categoria;
         $data->id_proveedor = $request->id_proveedor;
         $data->cantidad = $request->cantidad; 

@@ -20,7 +20,7 @@ class CajaController extends Controller
         $saldoActual = 0;
         
         if ($caja) {
-            $movimientos = MovimientoCaja::where('caja_id', $caja->id)->get();
+            $movimientos = MovimientoCaja::where('id_caja', $caja->id)->get();
             
             foreach ($movimientos as $movimiento) {
                 if ($movimiento->tipo === 'venta') {
@@ -36,7 +36,7 @@ class CajaController extends Controller
             $saldoActual = $caja->monto_inicial + $totalVentas + $totalIngresos - $totalEgresos;
         }
         
-        return view('caja.index', compact('caja', 'totalVentas', 'totalIngresos', 'totalEgresos', 'saldoActual'));
+        return view('caja', compact('caja', 'totalVentas', 'totalIngresos', 'totalEgresos', 'saldoActual'));
     }
     
     public function abrirCaja(Request $request)
@@ -59,7 +59,7 @@ class CajaController extends Controller
         $caja->usuario_id = Auth::id();
         $caja->save();
         
-        return redirect()->route('caja.index')->with('success', 'Caja abierta correctamente.');
+        return redirect()->route('caja')->with('success', 'Caja abierta correctamente.');
     }
     
     public function cerrarCaja(Request $request)
@@ -113,7 +113,7 @@ class CajaController extends Controller
             ? 'Caja cerrada correctamente.' 
             : 'Caja cerrada con diferencias. Requiere revisión.';
         
-        return redirect()->route('caja.index')->with(
+        return redirect()->route('caja')->with(
             $estado === Caja::CERRADA ? 'success' : 'warning', 
             $mensaje
         );
@@ -146,7 +146,7 @@ class CajaController extends Controller
         $movimiento->fecha = Carbon::now();
         $movimiento->save();
         
-        return redirect()->route('caja.index')->with('success', 'Movimiento registrado correctamente.');
+        return redirect()->route('caja')->with('success', 'Movimiento registrado correctamente.');
     }
     
     public function obtenerMovimientos()
@@ -188,6 +188,6 @@ class CajaController extends Controller
             ->orderBy('fecha_apertura', 'desc')
             ->paginate(10);
             
-        return view('caja.historial', compact('cajas'));
+        return view('caja', compact('cajas'));
     }
 }

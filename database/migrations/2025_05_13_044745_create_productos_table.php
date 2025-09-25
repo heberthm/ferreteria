@@ -18,7 +18,9 @@ return new class extends Migration
             $table->string('userId')->required();
             $table->string('codigo')->unique();;
             $table->string('nombre');
-            $table->string('descripcion')->nullable();          
+            $table->string('descripcion')->nullable(); 
+            $table->string('marca')->nullable(); 
+            $table->string('categoria')->nullable(); 
             $table->integer('cantidad');
             $table->integer('precio_compra');
             $table->integer('precio_venta');

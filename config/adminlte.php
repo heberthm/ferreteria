@@ -361,12 +361,12 @@ return [
                         [
                             'text' => 'Abrir / cerrar caja',
                             'icon' => 'far fa-circle nav-icon',
-                            'url' => '/caja.index'
+                            'url' => 'caja'
                         ],
                         [
                             'text' => 'historial caja',
                             'icon' => 'far fa-circle nav-icon',
-                            'url' => 'caja.historial',
+                            'url' => 'caja',
                         ],
                    ],
         ],
@@ -556,114 +556,58 @@ return [
                 ],
             ],
         ],
-        
-            'Datatables' => [
-                'active' => true,
-                'files' => [
-                    [
-                        'type' => 'js',
-                        'asset' => true,
-                        'location' => 'vendor/datatables/js/jquery.dataTables.min.js',
-                    ],
-                    [
-                        'type' => 'js',
-                        'asset' => true,
-                        'location' => 'vendor/datatables/js/dataTables.bootstrap4.min.js',
-                    ],
-                    [
-                        'type' => 'css',
-                        'asset' => true,
-                        'location' => 'vendor/datatables/css/dataTables.bootstrap4.min.css',
-                    ],
-                ],
-            ],
-      'DatatablesPlugins' => [
-        'active' => false,
-        'files' => [
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/buttons/js/dataTables.buttons.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/buttons/js/buttons.bootstrap4.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/buttons/js/buttons.html5.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/buttons/js/buttons.print.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/jszip/jszip.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/pdfmake/pdfmake.min.js',
-            ],
-            [
-                'type' => 'js',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/pdfmake/vfs_fonts.js',
-            ],
-            [
-                'type' => 'css',
-                'asset' => true,
-                'location' => 'vendor/datatables-plugins/buttons/css/buttons.bootstrap4.min.css',
-            ],
-        ],
-    ],
-        'Select2' => [
+         'Datatables' => [
             'active' => true,
             'files' => [
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => 'vendor/select2/js/select2.min.js',
+                    'location' => '//cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js',
                 ],
                 [
                     'type' => 'css',
                     'asset' => true,
-                    'location' => 'vendor/select2/css/select2.min.css',
+                    'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
+                ],
+            ],
+        ],
+        'Select2' => [
+            'active' => false,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
                 ],
                 [
                     'type' => 'css',
-                    'asset' => true,
-                    'location' => 'vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
                 ],
             ],
         ],
         'Chartjs' => [
-            'active' => true,
+            'active' => false,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => true,
-                    'location' => 'vendor/chart.js/Chart.bundle.min.js',
+                    'asset' => false,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
                 ],
             ],
         ],
         'Sweetalert2' => [
-            'active' => true,
+            'active' => false,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => true,
-                    'location' => 'vendor/sweetalert2/sweetalert2.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => true,
-                    'location' => 'vendor/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css',
+                    'asset' => false,
+                    'location' => '//cdn.jsdelivr.net/npm/sweetalert2@8',
                 ],
             ],
         ],
@@ -679,163 +623,6 @@ return [
                     'type' => 'js',
                     'asset' => false,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js',
-                ],
-            ],
-        ],
-       
-     
-        'FontAwesome' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css',
-                ],
-            ],
-        ],
-       'Toastr' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css',
-                ],
-            ],
-        ],
-        'Moment' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js',
-                ],
-            ],
-        ],
-        'DateRangePicker' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css',
-                ],
-            ],
-        ],
-        'TempusDominus' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.2.10/dist/js/tempus-dominus.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/@eonasdan/tempus-dominus@6.2.10/dist/css/tempus-dominus.min.css',
-                ],
-            ],
-        ],
-        'Summernote' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.css',
-                ],
-            ],
-        ],
-        'BootstrapSwitch' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/bootstrap-switch@3.3.4/dist/js/bootstrap-switch.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/bootstrap-switch@3.3.4/dist/css/bootstrap3/bootstrap-switch.min.css',
-                ],
-            ],
-        ],
-        'BootstrapColorpicker' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/3.4.0/js/bootstrap-colorpicker.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootstrap-colorpicker/3.4.0/css/bootstrap-colorpicker.min.css',
-                ],
-            ],
-        ],
-        'InputMask' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.6/jquery.inputmask.min.js',
-                ],
-            ],
-        ],
-        'Dropzone' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js',
-                ],
-                [
-                    'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css',
-                ],
-            ],
-        ],
-        'Popper' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js',
-                ],
-            ],
-        ],
-        'BootboxJS' => [
-            'active' => true,
-            'files' => [
-                [
-                    'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/bootbox.js/5.5.2/bootbox.min.js',
                 ],
             ],
         ],

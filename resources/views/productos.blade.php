@@ -1,21 +1,14 @@
 @extends('layouts.app')
 @section('content')
 
-<head>
-  <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-</head>
-
 <br>
 <div class="card">
     <div class="card-header d-flex bg-light justify-content-between align-items-right">
         <h5 class="mb-0"><i class="fas fa-umbrella"></i> Gestión de productos</h5>
-      <!--  <button class="btn btn-primary float-right" id="BtnCrearProducto" data-toggle="modal" data-target="#modalproductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button> -->
+      <!--  <button class="btn btn-primary float-right" id="BtnCrearProducto" data-toggle="modal" data-target="#modalProductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button> -->
      
             <div class="pull-right">
-                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalproductos">
+                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalProductos">
                         <span class="fa fa-plus" ></span>  
                         Registrar producto
                  </button>  &nbsp;
@@ -47,7 +40,7 @@
 </div>
 
 <!-- Modal para crear productos -->
-<div class="modal fade" id="modalproductos"  role="dialog" tabindex="-1">
+<div class="modal fade" id="modalProductos"  role="dialog" tabindex="-1">
     <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
             <div class="modal-header bg-light">
@@ -110,7 +103,7 @@
                              <div class="form-group row mb-3">
                                <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
                                <div class="col-sm-8">
-                                     <select id="categorias" name="categorias" class="form-control" placeholder="Filtrar eventos" required>
+                                     <select id="categoria" name="categoria" class="form-control" placeholder="Filtrar eventos" required>
 
                                             <option value="todos">Mostrar todos</option>
 
@@ -261,12 +254,14 @@
 <script>
 
   $(document).ready(function() {
-    $.ajaxSetup({
-      headers: {
-        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-      }
-    });
 
+    
+$.ajaxSetup({
+  headers: {
+    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+  }
+});
+  
     let table = $('#tablaProductos').DataTable({
       processing: true,
       serverSide: true,
@@ -351,10 +346,10 @@
 
     });
 
+ 
+$('#form_guardar_productos').off('submit').on('submit', function (event) {
 
-$('#form_guardar_producto').off('submit').on('submit', function (event) {
-
-  event.preventDefault();
+   event.preventDefault();
 
 $.ajaxSetup({
   headers: {
@@ -368,27 +363,42 @@ let btn = $('#BtnGuardar_producto')
     $(btn).html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true)
     setTimeout(function() {
       $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
-    },5000) //5 seconds
+    },5000) 
         $('#BtnGuardar_producto').attr('disabled', true);
-   
+
+      var form = document.getElementById('form_guardar_productos');
+      var formData = new FormData(form);
+           
 
         try {
 
         $.ajax({
             url: "/productos",
             method: "POST",
-            data: $(this).serialize(),
+            data: formData,
+            processData: false, 
+            contentType: false,  
             dataType: "json",
             success: function(data) {
-                 $('#modalProductos').hide();       
-                $('#form_guardar_categoria')[0].reset();              
-
               
-                $('#BtnGuardar_producto').prop("required", true);
-               // $('#selectBuscarCliente').html("");
                    table.ajax.reload();
+              //  $('#modalCategoria').modal('hide');
+
+                $('#modalProductos').removeClass('show');
+                $('#modalProductos').css('display', 'none');
+                $('.modal-backdrop').remove();
+
+
+                $('#form_guardar_productos')[0].reset();
+             
+                
+                 toastr["success"]("registro creado correctamente.");
+
+             
+             
+                  
               
-                toastr["success"]("registro creado correctamente.");
+            
          
             }
          });
@@ -396,8 +406,8 @@ let btn = $('#BtnGuardar_producto')
           toastr["danger"]("Se ha presentado un error.", "Información");
           }
     });
-   
-});
+ });
+
 
  
 

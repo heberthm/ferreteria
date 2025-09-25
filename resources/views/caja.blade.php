@@ -1,4 +1,4 @@
-extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Gestión de Caja Diaria')
 
@@ -29,7 +29,7 @@ extends('layouts.app')
                         </button>
                         @endif
                         
-                        <a href="{{ route('caja.historial') }}" class="btn btn-info">
+                        <a href="{{ route('caja') }}" class="btn btn-info">
                             <span class="fa fa-history"></span> Historial
                         </a>
                     </div>
@@ -302,20 +302,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
-5. Actualización de Rutas (web.php)
-php
-<?php
-
-use App\Http\Controllers\CajaController;
-use Illuminate\Support\Facades\Route;
-
-// Rutas para la gestión de caja
-Route::prefix('caja')->group(function () {
-    Route::get('/', [CajaController::class, 'index'])->name('caja.index');
-    Route::post('/abrir', [CajaController::class, 'abrirCaja'])->name('caja.abrir');
-    Route::post('/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
-    Route::post('/movimiento', [CajaController::class, 'registrarMovimiento'])->name('caja.movimiento');
-    Route::get('/movimientos', [CajaController::class, 'obtenerMovimientos'])->name('caja.movimientos');
-    Route::post('/{caja}/cambiar-estado', [CajaController::class, 'cambiarEstado'])->name('caja.cambiar-estado');
-    Route::get('/historial', [CajaController::class, 'historial'])->name('caja.historial');
-});

@@ -24,6 +24,7 @@ class producto extends Model
         'unidad_medida',
         'ubicacion',
         'marca',
+        'categoria',
         'id_categoria',
         'id_proveedor',
     ];
