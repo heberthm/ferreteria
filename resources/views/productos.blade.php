@@ -392,7 +392,7 @@ let btn = $('#BtnGuardar_producto')
                 $('#form_guardar_productos')[0].reset();
              
                 
-                 toastr["success"]("registro creado correctamente.");
+                toastr["success"]("registro creado correctamente.");
 
              
              
