@@ -815,13 +815,13 @@ let btn = $('#BtnGuardar_producto')
 
 
   
-$(document).on('click', '.eliminarTerapia', function (event) {
+$(document).on('click', '.eliminarProducto', function (event) {
      
   event.preventDefault();
-     let id = $(this).data('id');
+     let id_producto = $('#id_producto_producto').val();
    Swal.fire({
         title: '¿Estás seguro?',
-        html: `Estás a punto de eliminar el producto: <strong>"${productName}"</strong><br><br>Esta acción no se puede deshacer.`,
+        html: `Estás a punto de eliminar el producto: <strong>""</strong><br><br>Esta acción no se puede deshacer.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -837,7 +837,7 @@ $(document).on('click', '.eliminarTerapia', function (event) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            eliminarProducto(productId);
+            eliminarProducto(id_producto);
         }
     });
    });
@@ -845,12 +845,12 @@ $(document).on('click', '.eliminarTerapia', function (event) {
 
  
 // ✅ FUNCIÓN SEGURA PARA CONFIRMAR ELIMINACIÓN
-function confirmarEliminacion(productId, productName) {
+function confirmarEliminacion(id_producto, productName) {
     // Verificar que SweetAlert2 esté cargado
     if (typeof Swal === 'undefined') {
         console.error('SweetAlert2 no está disponible. Usando confirm nativo.');
         if (confirm(`¿Estás seguro de eliminar el producto "${productName}"?`)) {
-            eliminarProducto(productId);
+            eliminarProducto(id_producto);
         }
         return;
     }
@@ -858,7 +858,7 @@ function confirmarEliminacion(productId, productName) {
     // Usar SweetAlert2
     Swal.fire({
         title: '¿Estás seguro?',
-        html: `Estás a punto de eliminar el producto: <strong>"${productName}"</strong><br><br>Esta acción no se puede deshacer.`,
+        html: `Estás a punto de eliminar el producto: <strong></strong><br><br>Esta acción no se puede deshacer.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -874,14 +874,14 @@ function confirmarEliminacion(productId, productName) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            eliminarProducto(productId);
+            eliminarProducto(id_producto);
         }
     });
 }
 
 // ✅ FUNCIÓN PARA ELIMINAR EL PRODUCTO
-function eliminarProducto(id) {
-    console.log('Eliminando producto ID:', id);
+function eliminarProducto(id_producto) {
+    console.log('Eliminando producto ID:', id_producto);
     
     // Mostrar loading
     if (typeof Swal !== 'undefined') {
@@ -896,7 +896,7 @@ function eliminarProducto(id) {
     }
 
     $.ajax({
-        url: "{{ url('eliminar_producto') }}/" + id,
+        url: "{{ url('eliminar_producto') }}/" + id_producto,
         method: 'DELETE',
         data: {
             _token: "{{ csrf_token() }}"

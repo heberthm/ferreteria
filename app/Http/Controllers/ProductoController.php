@@ -293,11 +293,11 @@ public function edit($id)
     }
 }
 
-    public function destroy(Producto $producto)
+      public function destroy($id)
     {
-        $producto->delete();
-
-        return redirect()->route('productos');
+        terapias::find($id)->delete();
+     
+        return response()->json(['success'=>'deleted successfully.']);
     }
 
 }
