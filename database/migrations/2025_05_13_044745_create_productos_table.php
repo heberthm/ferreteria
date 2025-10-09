@@ -28,6 +28,7 @@ return new class extends Migration
             $table->integer('stock_minimo')->default(5);
             $table->string('unidad_medida');
             $table->string('ubicacion')->nullable();
+            $table->string('proveedor')->nullable();
             $table->string('imagen')->nullable();
             $table->boolean('activo')->default(true);
             $table->foreignId('id_categoria')->constrained('clientes');

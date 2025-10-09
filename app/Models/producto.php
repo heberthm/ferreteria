@@ -9,8 +9,11 @@ class producto extends Model
 {
     use HasFactory;
 
+     protected $table = 'productos';
+    protected $primaryKey = 'id_producto'; // Especificar la clave primaria
+
        protected $fillable = [
-      
+        
         'codigo',
         'nombre',
         'descripcion',
@@ -25,6 +28,7 @@ class producto extends Model
         'ubicacion',
         'marca',
         'categoria',
+        'proveedor',
         'id_categoria',
         'id_proveedor',
     ];

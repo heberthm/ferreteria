@@ -60,7 +60,11 @@ Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'st
 
 Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
 Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_productos');
-//  Route::post('guardar-imagen', [ProductoController::class, 'guardarImagen'])->name('guardarImagen');
+Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'show'])->name('productos.show');
+Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
+Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
+Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');;
+
 
 
 

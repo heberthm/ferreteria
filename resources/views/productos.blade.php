@@ -1,6 +1,19 @@
 @extends('layouts.app')
 @section('content')
 
+
+
+  <style>
+        .text-success { color: green; }
+        .text-danger { color: red; }
+        #preview {
+            max-width: 120px;
+            max-height: 120px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+
 <br>
 <div class="card">
     <div class="card-header d-flex bg-light justify-content-between align-items-right">
@@ -8,7 +21,7 @@
       <!--  <button class="btn btn-primary float-right" id="BtnCrearProducto" data-toggle="modal" data-target="#modalProductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button> -->
      
             <div class="pull-right">
-                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#modalProductos">
+                 <button type="button" id="registrar_producto" class="btn btn-primary" data-toggle="modal" data-target="#modalProductos">
                         <span class="fa fa-plus" ></span>  
                         Registrar producto
                  </button>  &nbsp;
@@ -39,7 +52,10 @@
     </div>
 </div>
 
-<!-- Modal para crear productos -->
+<!-- ================================= 
+ Modal para crear productos 
+======================================  -->
+
 <div class="modal fade" id="modalProductos"  role="dialog" tabindex="-1">
     <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
@@ -105,7 +121,7 @@
                                <div class="col-sm-8">
                                      <select id="categoria" name="categoria" class="form-control" placeholder="Filtrar eventos" required>
 
-                                            <option value="todos">Mostrar todos</option>
+                                            <option value="todos">Mostrar todas</option>
 
                                             @foreach($categorias as $categ)
 
@@ -120,11 +136,14 @@
                               <div class="form-group row mb-3">
                                 <label for="imagen" class="col-sm-4 col-form-label">Imagen</label>
                               
-                                    <input type="file" class="form-control" id="imagen" name="imagen" accept="image/*" >
-                                     <small class="form-text text-muted">
+                                    <input type="file" id="imagen" name="imagen"class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif" 
+                                        onchange="manejarSeleccionArchivo(this, document.getElementById('preview'), document.getElementById('mensaje-archivo'))">
+                                    
+                                         <small class="form-text text-muted">
                                                     Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
-                                                </small>
-                                    <div class="invalid-feedback"></div>
+                                                      <div id="mensaje-archivo"></div> 
+                                          </small>                                           
+                                   
                                
                             </div>
 
@@ -190,6 +209,15 @@
                                         <div class="invalid-feedback"></div>
                                     </div>
                                </div>
+
+                                 <div class="form-group row mb-3">
+                                     <div class="col-sm-8">
+                                       <img id="preview">                     
+                                         
+                                    </div>
+                               </div>
+ 
+
                          </div>
                     </div>                    
                   
@@ -205,42 +233,354 @@
         </div>
     </div>
 </div>
-<!-- Modal de confirmación para eliminar productoo -->
 
 
-<div class="modal fade" id="ModalEliminarCategoria" tabindex="-1" aria-hidden="true">
 
-    <div class="modal-dialog">
+<!-- ================================= 
+ Modal para editar productos 
+======================================  -->
 
+<div class="modal fade" id="modalEditarProducto"  role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
-
-            <div class="modal-header">
-
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="modalEditarProducto"><i class="fas fa-umbrella"></i> Editar producto</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
+            
+            <form method="POST" id="form_editar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
+            @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="id_categoria" name="id_categoria" value="1">
+                     <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
+                     <input type="hidden" id="id_producto_producto" name="id_producto" value="">
+                    
+                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
+                        <!-- Columna 1 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="nombre_producto" name="nombre" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="descripcion_producto" name="descripcion" rows="2"></textarea>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="unidad_medida_producto" name="unidad_medida" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="ubicacion_producto" name="ubicacion" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
 
-            <div class="modal-body">
+                            <div class="form-group row mb-3">
+                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="marca_producto" name="marca" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                          
+                            
+                             <div class="form-group row mb-3">
+                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
+                               <div class="col-sm-8">
+                                     <select id="categoria_producto" name="categoria" class="form-control" placeholder="Filtrar eventos" required>
 
-                ¿Estás seguro de que deseas eliminar este productoo?
+                                            <option value="todos">Mostrar todas</option>
 
-            </div>
+                                            @foreach($categorias as $categ)
 
-            <div class="modal-footer">
+                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
 
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            @endforeach
 
-                <button type="button" class="btn btn-danger" id="confirmproductoDeleteBtn">Eliminar</button>
+                                     </select>
+                                </div>                             
+                             </div>
 
-            </div>
+                              <div class="form-group row mb-3">
+                                <label for="imagen_editar" class="col-sm-4 col-form-label">Imagen</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="imagen_editar" name="imagen" class="form-control" 
+                                           accept=".webp,.jpeg,.jpg,.png,.gif" 
+                                          onchange="previewImage(this, 'preview_editar')">
+                                    <small class="form-text text-muted">
+                                        Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
+                                        <div id="mensaje-archivo-editar"></div> 
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 2 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="cantidad_producto" name="cantidad" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="precio_compra_producto" name="precio_compra" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="precio_venta_producto" name="precio_venta" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="codigo_producto" name="codigo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
 
+                              <div class="form-group row mb-3">
+                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock_producto" name="stock" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock_minimo_producto" name="stock_minimo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                         
+
+                               <div class="form-group row mb-3">
+                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="proveedor_producto" name="proveedor" required>
+                                        <div class="invalid-feedback"></div>
+                                    </div>
+                               </div>
+
+                                <div class="form-group row mb-3">
+                                <div class="col-sm-8 offset-sm-4">
+                                    <img id="preview_editar" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
+                                    <!-- Preview de la imagen actual -->
+                                    <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
+                                </div>
+                            </div>
+ 
+
+                         </div>
+                    </div>                    
+                  
+                </div>
+
+                <div class="modal-footer">
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                   <button type="submit" class="btn btn-primary" id="BtnEditar_producto" name="BtnEditar_producto">Guardar</button>                              
+                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
+              
+                </div>
+            </form>
         </div>
-
     </div>
-
 </div>
+
+
+
+
+<!--=====================================
+
+    MODAL VER DATOS DEL PRODUCTO
+
+======================================-->
+
+
+<div class="modal fade" id="modalVerProducto" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
+
+    <div class="modal-dialog modal-lg"> 
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="modalVerProductos"><i class="fas fa-umbrella"></i> Ver datos del producto</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <form method="GET" id="form_ver_producto" enctype="multipart/form-data"  action="{{ url('productos') }}" >
+            @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="id_categoria" name="id_categoria" >
+                     <input type="hidden" id="id_proveedor" name="id_proveedor" >
+                                       
+                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
+                        <!-- Columna 1 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" autocomplete="off" id="nombre" name="nombre" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control border-0" autocomplete="off" id="descripcion" name="descripcion" >
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" autocomplete="off" id="unidad_medida" name="unidad_medida" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" autocomplete="off" id="ubicacion" name="ubicacion" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group row mb-3">
+                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" autocomplete="off" id="marca" name="marca" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                          
+                            
+                             <div class="form-group row mb-3">
+                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
+                               <div class="col-sm-8">
+                                   <input type="text" class="form-control  border-0"  autocomplete="off" id="categoria" name="categoria" required>
+                                    <div class="invalid-feedback"></div>                                                                        
+                                </div>                             
+                             </div>
+
+                               <div class="form-group row mb-3">
+                                     <div class="col-sm-8">
+                                       <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">                  
+                                         
+                                    </div>
+                               </div>
+
+
+                        </div>
+                        
+                        <!-- Columna 2 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="cantidad" name="cantidad" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="precio_compra" name="precio_compra" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="precio_venta" name="precio_venta" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="codigo" name="codigo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                              <div class="form-group row mb-3">
+                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="stock" name="stock" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control  border-0" id="stock_minimo" name="stock_minimo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>                         
+
+                               <div class="form-group row mb-3">
+                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control  border-0" id="proveedor" name="proveedor" required>
+                                        <div class="invalid-feedback"></div>
+                                             <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::user()->id }}" readonly>
+
+                                    </div>
+                               </div>
+                         </div>
+                    </div>         
+                    
+
+                  
+                </div>
+
+                <div class="modal-footer">
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>                                               
+                   <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>                
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
 
 <!-- ===================================================
@@ -253,7 +593,68 @@
 
 <script>
 
-  $(document).ready(function() {
+function previewImage(input, previewId) {
+    console.log('previewImage ejecutada');
+    
+    const preview = document.getElementById(previewId);
+    const mensaje = document.getElementById('mensaje-archivo-editar');
+    
+    if (!preview) {
+        console.error('No se encontró:', previewId);
+        return;
+    }
+    
+    if (!input.files || !input.files[0]) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    const file = input.files[0];
+    
+    // Validaciones simples
+    const tiposPermitidos = ['image/webp', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+    if (!tiposPermitidos.includes(file.type)) {
+        if (mensaje) {
+            mensaje.textContent = 'Tipo de archivo no permitido';
+            mensaje.className = 'text-danger';
+        }
+        input.value = '';
+        preview.style.display = 'none';
+        return;
+    }
+    
+    if (file.size > 2 * 1024 * 1024) {
+        if (mensaje) {
+            mensaje.textContent = 'Archivo demasiado grande (máx. 2MB)';
+            mensaje.className = 'text-danger';
+        }
+        input.value = '';
+        preview.style.display = 'none';
+        return;
+    }
+    
+    // Mostrar preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        
+        // Ocultar imagen actual en edición
+        if (previewId === 'preview_editar') {
+            const previewActual = document.getElementById('preview_imagen_actual');
+            if (previewActual) previewActual.style.display = 'none';
+        }
+        
+        if (mensaje) {
+            mensaje.textContent = 'Imagen válida';
+            mensaje.className = 'text-success';
+        }
+    };
+    reader.readAsDataURL(file);
+}
+
+
+$(document).ready(function() {
 
     
 $.ajaxSetup({
@@ -262,7 +663,7 @@ $.ajaxSetup({
   }
 });
   
-    let table = $('#tablaProductos').DataTable({
+    window.table = $('#tablaProductos').DataTable({
       processing: true,
       serverSide: true,
       paging: true,
@@ -346,6 +747,12 @@ $.ajaxSetup({
 
     });
 
+//======================================
+
+// Guardar registro de producto
+
+//======================================
+
  
 $('#form_guardar_productos').off('submit').on('submit', function (event) {
 
@@ -367,11 +774,9 @@ let btn = $('#BtnGuardar_producto')
         $('#BtnGuardar_producto').attr('disabled', true);
 
       var form = document.getElementById('form_guardar_productos');
-      var formData = new FormData(form);
-           
+      var formData = new FormData(form);         
 
         try {
-
         $.ajax({
             url: "/productos",
             method: "POST",
@@ -381,38 +786,576 @@ let btn = $('#BtnGuardar_producto')
             dataType: "json",
             success: function(data) {
               
-                   table.ajax.reload();
-              //  $('#modalCategoria').modal('hide');
+                   
+                table.ajax.reload();   
 
+                $('#form_guardar_productos')[0].reset();      
                 $('#modalProductos').removeClass('show');
                 $('#modalProductos').css('display', 'none');
-                $('.modal-backdrop').remove();
-
-
-                $('#form_guardar_productos')[0].reset();
-             
-                
-                toastr["success"]("registro creado correctamente.");
-
-             
-             
-                  
-              
+                $('.modal-backdrop').remove();              
             
+
+                 toastr["success"]("registro creado correctamente.");             
+                    
          
             }
          });
         } catch(e) {
           toastr["danger"]("Se ha presentado un error.", "Información");
           }
+    }); 
+
+
+
+// =========================================
+
+/// ELIMINAR REGISTROS DE TERAPIA
+
+// =========================================   
+
+
+  
+$(document).on('click', '.eliminarTerapia', function (event) {
+     
+  event.preventDefault();
+     let id = $(this).data('id');
+   Swal.fire({
+        title: '¿Estás seguro?',
+        html: `Estás a punto de eliminar el producto: <strong>"${productName}"</strong><br><br>Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        backdrop: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+            popup: 'sweetalert-custom'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            eliminarProducto(productId);
+        }
     });
- });
+   });
 
 
  
+// ✅ FUNCIÓN SEGURA PARA CONFIRMAR ELIMINACIÓN
+function confirmarEliminacion(productId, productName) {
+    // Verificar que SweetAlert2 esté cargado
+    if (typeof Swal === 'undefined') {
+        console.error('SweetAlert2 no está disponible. Usando confirm nativo.');
+        if (confirm(`¿Estás seguro de eliminar el producto "${productName}"?`)) {
+            eliminarProducto(productId);
+        }
+        return;
+    }
+
+    // Usar SweetAlert2
+    Swal.fire({
+        title: '¿Estás seguro?',
+        html: `Estás a punto de eliminar el producto: <strong>"${productName}"</strong><br><br>Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        backdrop: true,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        customClass: {
+            popup: 'sweetalert-custom'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            eliminarProducto(productId);
+        }
+    });
+}
+
+// ✅ FUNCIÓN PARA ELIMINAR EL PRODUCTO
+function eliminarProducto(id) {
+    console.log('Eliminando producto ID:', id);
+    
+    // Mostrar loading
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Eliminando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    }
+
+    $.ajax({
+        url: "{{ url('eliminar_producto') }}/" + id,
+        method: 'DELETE',
+        data: {
+            _token: "{{ csrf_token() }}"
+        },
+        dataType: 'json',
+        success: function(response) {
+            // Cerrar loading
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+            
+            if (response.success) {
+                // Mostrar éxito
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: response.message || 'Producto eliminado correctamente',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                
+                // Recargar DataTable
+                if (window.table && typeof window.table.ajax !== 'undefined') {
+                    window.table.ajax.reload(null, false);
+                }
+                
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message || 'Error al eliminar el producto',
+                    icon: 'error',
+                    confirmButtonColor: '#d33'
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            // Cerrar loading
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
+            
+            console.error('Error al eliminar:', xhr);
+            
+            let errorMessage = 'Error al eliminar el producto';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        }
+    });
+}
+});
 
 
 </script>
+
+
+<script>
+
+
+  // =========================================
+/// VER REGISTROS DEL PRODUCTO
+// =========================================
+
+$(document).on('click', '.verProducto', function(e) {    
+    e.preventDefault();
+    
+    let id_producto = $(this).data('id');
+    
+    $.ajax({
+        url: "{{ url('mostrar_producto') }}/" + id_producto,
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log('Datos del producto recibidos:', data);
+            
+            // Llenar campos del modal VER
+            $('#modalVerProducto input[name="codigo"]').val(data.codigo || '');
+            $('#modalVerProducto input[name="nombre"]').val(data.nombre || '');
+            $('#modalVerProducto input[name="descripcion"]').val(data.descripcion || '');
+            $('#modalVerProducto input[name="marca"]').val(data.marca || '');
+            $('#modalVerProducto input[name="categoria"]').val(data.categoria || '');
+            $('#modalVerProducto input[name="unidad_medida"]').val(data.unidad_medida || '');
+            $('#modalVerProducto input[name="ubicacion"]').val(data.ubicacion || '');
+            $('#modalVerProducto input[name="cantidad"]').val(data.cantidad || '');
+            $('#modalVerProducto input[name="precio_compra"]').val(data.precio_compra || '');
+            $('#modalVerProducto input[name="precio_venta"]').val(data.precio_venta || '');
+            $('#modalVerProducto input[name="stock"]').val(data.stock || '');
+            $('#modalVerProducto input[name="stock_minimo"]').val(data.stock_minimo || '');
+            $('#modalVerProducto input[name="proveedor"]').val(data.proveedor || '');
+
+            // Manejo de imagen en modal VER
+            const preview = $('#previewVerProducto');
+            
+            if(data.imagen && data.imagen.trim() !== '') {
+                let cleanImagePath = data.imagen.replace('storage/', '');
+                let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
+                
+                preview.attr('src', imageUrl);
+                preview.css({
+                    'display': 'block',
+                    'max-width': '100px',
+                    'max-height': '100px',
+                    'margin-top': '5px'
+                });
+                
+                preview.on('load', function() {
+                    console.log('Imagen cargada correctamente');
+                });
+                
+                preview.on('error', function() {
+                    console.error('Error cargando imagen:', imageUrl);
+                    preview.attr('src', 'https://via.placeholder.com/120x120/6c757d/ffffff?text=Sin+Imagen');
+                    preview.show();
+                });
+                
+            } else {
+                console.log('No hay imagen disponible');
+                preview.hide();
+                preview.attr('src', '');
+            }
+            
+            // CORRECCIÓN: Abrir el modal VER, no el EDITAR
+            $('#modalVerProducto').modal('show');  // ← CAMBIADO A modalVerProducto
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en AJAX:', xhr);
+            toastr["error"]("Error al cargar los datos del producto.");
+        }
+    });
+});
+</script>
+
+<script>
+
+
+  // =========================================
+/// EDITAR REGISTROS DEL PRODUCTO
+// =========================================
+$(document).on('click', '.editarProducto', function(e) {    
+    e.preventDefault();
+    
+    let id_producto = $(this).data('id');
+    console.log('Editando producto ID:', id_producto);
+    
+    $.ajax({
+        url: "{{ url('editar_producto') }}/" + id_producto,
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log('Datos del producto recibidos:', data);
+            
+            // SETEAR EL ID EN EL FORMULARIO
+          //  $('#producto_id').val(data.id);
+            
+            // Llenar campos del modal
+             $('#id_producto_producto').val(data.id_producto || '');
+            $('#codigo_producto').val(data.codigo || '');
+            $('#nombre_producto').val(data.nombre || '');
+            $('#descripcion_producto').val(data.descripcion || '');
+            $('#marca_producto').val(data.marca || '');
+            $('#categoria_producto').val(data.categoria || '');
+            $('#unidad_medida_producto').val(data.unidad_medida || '');
+            $('#ubicacion_producto').val(data.ubicacion || '');
+            $('#cantidad_producto').val(data.cantidad || '');
+            $('#precio_compra_producto').val(data.precio_compra || '');
+            $('#precio_venta_producto').val(data.precio_venta || '');
+            $('#stock_producto').val(data.stock || '');
+            $('#stock_minimo_producto').val(data.stock_minimo || '');
+            $('#proveedor_producto').val(data.proveedor || '');
+
+            // MANEJO DE IMAGEN - MOSTRAR IMAGEN ACTUAL
+            const previewActual = $('#preview_imagen_actual');
+            const previewNueva = $('#preview_editar');
+            
+            if(data.imagen && data.imagen.trim() !== '') {
+                console.log('Imagen actual encontrada:', data.imagen);
+                
+                let cleanImagePath = data.imagen.replace('storage/', '');
+                let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
+                
+                console.log('URL de imagen actual:', imageUrl);
+                
+                // Mostrar imagen actual
+                previewActual.attr('src', imageUrl);
+                previewActual.css('display', 'block');
+                
+                // Ocultar preview de nueva imagen
+                previewNueva.hide();
+                
+                // Verificar si la imagen se carga correctamente
+                previewActual.on('load', function() {
+                    console.log('Imagen actual cargada correctamente');
+                });
+                
+                previewActual.on('error', function() {
+                    console.error('Error cargando imagen actual:', imageUrl);
+                    previewActual.attr('src', 'https://via.placeholder.com/120x120/6c757d/ffffff?text=Sin+Imagen');
+                    previewActual.show();
+                });
+                
+            } else {
+                console.log('No hay imagen actual disponible');
+                previewActual.hide();
+                previewActual.attr('src', '');
+                previewNueva.hide();
+            }
+            
+            $('#modalEditarProducto').modal('show');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en AJAX:', xhr);
+            toastr.error("Error al cargar los datos del producto.");
+        }
+    });
+});
+
+
+//GUardar datos editados.
+
+$(document).on('submit', '#form_editar_productos', function(event) {
+    event.preventDefault();
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    // ✅ OBTENER ID DEL CAMPO OCULTO
+    let id_producto = $('#id_producto_producto').val();
+    
+    console.log('ID obtenido:', id_producto); // Para debug
+
+    // ✅ VALIDACIÓN MÁS ROBUSTA
+    if (!id_producto || id_producto === '' || id_producto === 'undefined' || id_producto === null) {
+        console.error('ID del producto no encontrado. Valor:', id_producto);
+        toastr.error("Error: No se pudo identificar el producto a actualizar");
+        return;
+    }
+
+    // Configurar botón submit con spinner
+    let btn = $('#BtnEditar_producto');
+    let existingHTML = btn.html();
+    
+    btn.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true);
+
+    var formData = new FormData(this);
+
+    // ✅ AGREGAR EL ID AL FORMDATA POR SI ACASO
+    formData.append('id_producto_producto', id_producto);
+
+    console.log('Enviando actualización para producto ID:', id_producto);
+
+    $.ajax({
+        url: "{{ url('actualizar_producto') }}/" + id_producto,
+        method: 'POST',
+        data: formData,
+        processData: false, 
+        contentType: false,  
+        dataType: 'json',
+        success: function(data) {
+            console.log('Respuesta exitosa:', data);
+            
+            // Recargar tabla
+            if (window.table && typeof window.table.ajax !== 'undefined') {
+                window.table.ajax.reload(null, false);
+            }
+            
+            $('#form_editar_productos')[0].reset();      
+            $('#modalEditarProducto').modal('hide');
+            $('.modal-backdrop').remove();              
+            
+            toastr.success("Producto actualizado correctamente");
+            
+            // Restaurar botón
+            btn.html(existingHTML).prop('disabled', false);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error completo:', xhr);
+            
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                let errorMessage = "Errores de validación:<br>";
+                
+                for (const field in errors) {
+                    errorMessage += `- ${errors[field][0]}<br>`;
+                }
+                
+                toastr.error(errorMessage);
+            } else if (xhr.status === 404) {
+                toastr.error("Producto no encontrado");
+            } else {
+                toastr.error("Error al actualizar el producto");
+            }
+            
+            // Restaurar botón
+            btn.html(existingHTML).prop('disabled', false);
+        }
+    });
+});
+    
+</script>
+
+
+<script>
+
+//===========================================================
+
+// Función para validar archivos de imagenes antes de enviar
+
+//============================================================
+
+function validarArchivo(inputFile) {
+    const archivo = inputFile.files[0];
+    
+    if (!archivo) {
+        return { valido: false, mensaje: 'Por favor selecciona un archivo' };
+    }
+
+    // Tipos de archivo permitidos
+    const tiposPermitidos = ['image/webp', 'image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+    
+    // Validar tipo de archivo
+    if (!tiposPermitidos.includes(archivo.type)) {
+        return { 
+            valido: false, 
+            mensaje: 'Tipo de archivo no permitido. Solo se permiten: WEBP, JPEG, PNG, JPG, GIF' 
+        };
+    }
+
+    // Validar tamaño máximo (2MB = 2048KB)
+    const tamañoMaximo = 2048 * 1024; // 2MB en bytes
+    if (archivo.size > tamañoMaximo) {
+        return { 
+            valido: false, 
+            mensaje: 'El archivo es demasiado grande. Máximo permitido: 2MB' 
+        };
+    }
+
+    return { valido: true, mensaje: 'Archivo válido' };
+}
+
+//==========================================================
+
+// Función para mostrar preview y validación en tiempo real
+
+//==========================================================
+
+function manejarSeleccionArchivo(inputFile, previewElement, mensajeElement) {
+    const validacion = validarArchivo(inputFile);
+    
+    mensajeElement.textContent = validacion.mensaje;
+    mensajeElement.className = validacion.valido ? 'text-success' : 'text-danger';
+    
+    if (validacion.valido) {
+        // Mostrar preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewElement.src = e.target.result;
+            previewElement.style.display = 'block';
+        };
+        reader.readAsDataURL(inputFile.files[0]);
+    } else {
+        previewElement.style.display = 'none';
+        inputFile.value = ''; // Limpiar input
+    }
+    
+    return validacion.valido;
+}
+
+// Ejemplo de uso con AJAX
+function subirArchivo() {
+    const inputFile = document.getElementById('archivo');
+    const mensajeElement = document.getElementById('mensaje-archivo');
+    
+    // Validar antes de enviar
+    const validacion = validarArchivo(inputFile);
+    
+    if (!validacion.valido) {
+        mensajeElement.textContent = validacion.mensaje;
+        mensajeElement.className = 'text-danger';
+        return;
+    }
+
+    // Crear FormData
+    const formData = new FormData();
+    formData.append('archivo', inputFile.files[0]);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+
+    // Enviar con AJAX
+    fetch('/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            mensajeElement.textContent = 'Archivo subido correctamente';
+            mensajeElement.className = 'text-success';
+        } else {
+            mensajeElement.textContent = data.message || 'Error al subir archivo';
+            mensajeElement.className = 'text-danger';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        mensajeElement.textContent = 'Error al subir archivo';
+        mensajeElement.className = 'text-danger';
+    });
+}
+
+</script>
+
+<script>$(document).ready(function() {
+    // ===== MODAL VER PRODUCTO =====
+    $(document).on('click', '#modalVerProducto .close', function() {
+        $('#modalVerProducto').modal('hide');
+    });
+    
+    $(document).on('click', '#modalVerProducto .btn-secondary', function() {
+        $('#modalVerProducto').modal('hide');
+    });
+    
+    $('#modalVerProducto').modal({
+        backdrop: true,
+        keyboard: true,
+        show: false
+    });
+
+    // ===== MODAL EDITAR PRODUCTO =====
+    $(document).on('click', '#modalEditarProducto .close', function() {
+        $('#modalEditarProducto').modal('hide');
+    });
+    
+    $(document).on('click', '#modalEditarProducto .btn-secondary', function() {
+        $('#modalEditarProducto').modal('hide');
+    });
+    
+    $('#modalEditarProducto').modal({
+        backdrop: true,
+        keyboard: true,
+        show: false
+    });
+
+});
+
+
+</script>
+
+
+
 
 @endpush
 @endsection

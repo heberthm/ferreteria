@@ -53,6 +53,8 @@
 
 @push('js')
 
+ @include('adminlte::plugins', ['type' => 'js'])
+    @yield('js')
 
     <script>
         $(document).ready(function() {
@@ -65,10 +67,13 @@
 
 @push('css')
 
+  @include('adminlte::plugins', ['type' => 'css'])
+  @yield('css')
 
 
     <style type="text/css">
-        {{-- You can add AdminLTE customizations here --}}
+        {{-- You can add AdminLTE customizations here --}}      
+       
         /*
                 .card-header {
                     border-bottom: none;

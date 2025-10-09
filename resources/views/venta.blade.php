@@ -1,703 +1,734 @@
-
-
 @extends('layouts.app')
+
+@section('title', 'Punto de Venta - Ferretería')
+
 
 @section('content')
 
 <br>
-
-<div class="pos-container">
-    <div class="row">
-        <!-- Panel izquierdo - Productos -->
-        <div class="col-md-7">
-            <div class="card pos-products-panel">
-                <div class="card-header bg-primary text-white">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4 class="mb-0">Productos</h4>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Buscar por nombre o código..." id="product-search">
-                                <div class="input-group-append">
-                                    <button class="btn btn-light" type="button" id="search-btn">
-                                        <i class="fas fa-search"></i>
+<div class="row">
+    <!-- Columna de Búsqueda y Productos -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h3 class="card-title">Información de la Venta</h3>
+                <div class="card-tools">
+                    <button type="button" class="btn btn-tool" >
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Información del Cliente -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="customer-info bg-light p-3 rounded">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 id="customerName">Cliente: <span class="text-muted">Consumidor Final</span></h5>
+                                    <small id="customerDetails" class="text-muted">RFC: XAXX010101000 - Sin información adicional</small>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#customerModal">
+                                        <i class="fas fa-search"></i> Buscar Cliente (F3)
+                                    </button>
+                                    <button type="button" id="btnRemoveCustomer" class="btn btn-danger btn-sm d-none">
+                                        <i class="fas fa-times"></i> Quitar
                                     </button>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body">
-                    <!-- Categorías -->
-                    <div class="categories-scroll mb-3">
-                        <div class="d-flex flex-wrap">
-                            <button class="btn btn-outline-secondary category-btn active" data-category="all">Todos</button>
-                            {{--
-                            @foreach($categories as $category)
-                                <button class="btn btn-outline-secondary category-btn" data-category="{{ $category->id }}">{{ $category->name }}</button>
-                            @endforeach
-                            --}}
-                        </div>
-                    </div>
-                    
-                    <!-- Lista de productos -->
-                    <div class="products-grid" id="products-container">
 
-                    {{--
-                        @foreach($products as $product)
-                            <div class="product-card" data-product-id="{{ $product->id }}" data-category="{{ $product->category_id }}" data-name="{{ strtolower($product->name) }}" data-code="{{ strtolower($product->code) }}">
-                                <div class="product-image">
-                                    @if($product->image)
-                                        <img src="{{ asset('storage/'.$product->image) }}" alt="{{ $product->name }}" class="img-fluid product-img">
-                                    @else
-                                        <div class="no-image"><i class="fas fa-box-open"></i></div>
-                                    @endif
-                                </div>
-                                <div class="product-info">
-                                    <h6 class="product-name">{{ $product->name }}</h6>
-                                    <small class="text-muted product-code">Código: {{ $product->code }}</small>
-                                    <div class="product-price">${{ number_format($product->price, 2) }}</div>
-                                    <div class="product-stock">Disponible: {{ $product->stock }}</div>
-                                </div>
-                            </div>
-                        @endforeach
-
-                        --}}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Panel derecho - Carrito y total -->
-        <div class="col-md-5">
-            <div class="card pos-cart-panel">
-                <div class="card-header bg-success text-white">
-                    <h4 class="mb-0">Venta actual</h4>
-                </div>
-                <div class="card-body">
-                    <!-- Información del cliente -->
-                    <div class="customer-section mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6>Cliente</h6>
-                            
-                            <button class="btn btn-sm btn-outline-primary" id="seleccionar_cliente" data-toggle="modal" data-target="#modalCliente">
-                                <i class="fas fa-user-plus"></i> Seleccionar
-                            </button>
-
-                        </div>
-                        <div id="customer-info" class="mt-2 p-2 bg-light rounded">
-                            <div class="text-center text-muted">
-                                <i class="fas fa-user fa-2x mb-1"></i>
-                                <p class="mb-0">Cliente general</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Lista de productos en el carrito -->
-                    <div class="cart-items">
-                        <div class="table-responsive">
-                            <table class="table table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>Producto</th>
-                                        <th width="80">Cant.</th>
-                                        <th width="100">P. Unit.</th>
-                                        <th width="100">Total</th>
-                                        <th width="40"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cart-items-list">
-                                    <!-- Los items del carrito se agregarán aquí dinámicamente -->
-                                    <tr class="empty-cart">
-                                        <td colspan="5" class="text-center text-muted py-3">
-                                            <i class="fas fa-shopping-cart fa-2x mb-2"></i>
-                                            <p>No hay productos agregados</p>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    
-                    <!-- Resumen de la venta -->
-                    <div class="sale-summary mt-3">
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal:</span>
-                            <span id="subtotal">$0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span>Descuento:</span>
-                            <div class="input-group input-group-sm" style="width: 120px;">
-                                <input type="number" class="form-control" id="discount-input" value="0" min="0">
-                                <div class="input-group-append">
-                                    <span class="input-group-text">%</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                         {{--   <span>Impuesto ({{ $taxRate }}%):</span> --}}
-                            <span id="taxes">$0.00</span>
-                        </div>
-                        <div class="d-flex justify-content-between font-weight-bold total">
-                            <span>Total:</span>
-                            <span id="total">$0.00</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Acciones -->
-                    <div class="pos-actions mt-4">
-                        <button class="btn btn-danger btn-block mb-2" id="cancel-sale" disabled>
-                            <i class="fas fa-times"></i> Cancelar
-                        </button>
-                        <button class="btn btn-success btn-block" id="complete-sale" disabled>
-                            <i class="fas fa-check"></i> Completar venta
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Modal para seleccionar cliente -->
-<div class="modal fade" id="modalCliente" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="customerModalLabel">Seleccionar cliente</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
+                <!-- Búsqueda de Productos -->
                 <div class="input-group mb-3">
-                    <input type="text" class="form-control" placeholder="Buscar cliente..." id="customer-search">
+                    <input type="text" id="searchProduct" class="form-control form-control-lg" 
+                           placeholder="Buscar producto (F2)...">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button">
+                        <button class="btn btn-primary" id="btnSearch">
                             <i class="fas fa-search"></i>
                         </button>
                     </div>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-hover">
+                
+                <!-- Lista de Productos -->
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover table-sm" id="productsTable">
                         <thead>
                             <tr>
+                                <th>Código</th>
                                 <th>Nombre</th>
-                                <th>Identificación</th>
-                                <th>Teléfono</th>
-                                <th></th>
+                                <th>Precio Unitario</th>
+                                <th>Stock</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
-                        <tbody>
-
-                        {{--
-                            @foreach($customers as $customer)
-                                <tr class="customer-row" data-customer-id="{{ $customer->id }}">
-                                    <td>{{ $customer->name }}</td>
-                                    <td>{{ $customer->identification }}</td>
-                                    <td>{{ $customer->phone }}</td>
-                                    <td class="text-right">
-                                        <button class="btn btn-sm btn-primary select-customer-btn">Seleccionar</button>
-                                    </td>
-                                </tr>
-                            @endforeach
-                            --}}
-
+                        <tbody id="productsList">
+                            <!-- Los productos se cargarán aquí via AJAX -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Columna de Carrito y Total -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h3 class="card-title">Venta Actual</h3>
+            </div>
+            <div class="card-body">
+                <!-- Lista de Productos en el Carrito -->
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-sm" id="cartTable">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cant</th>
+                                <th>P. Unit</th>
+                                <th>Total</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="cartItems">
+                            <!-- Items del carrito -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totales -->
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <strong>Subtotal:</strong>
+                    </div>
+                    <div class="col-6 text-right">
+                        <span id="subtotal">$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label for="ivaToggle">
+                                <input type="checkbox" id="ivaToggle"> IVA (16%)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-6 text-right">
+                        <span id="ivaAmount">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-6">
+                        <strong>Total:</strong>
+                    </div>
+                    <div class="col-6 text-right">
+                        <span id="totalAmount" class="h4">$0.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Métodos de Pago -->
+        <div class="card mt-3">
+            <div class="card-header bg-light">
+                <h3 class="card-title">Método de Pago</h3>
+            </div>
+            <div class="card-body">
+                <div class="form-group">
+                    <div class="btn-group btn-group-toggle w-100" data-toggle="buttons">
+                        <label class="btn btn-outline-primary active">
+                            <input type="radio" name="paymentMethod" value="efectivo" checked> Efectivo
+                        </label>
+                        <label class="btn btn-outline-primary">
+                            <input type="radio" name="paymentMethod" value="tarjeta"> Tarjeta
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Efectivo -->
+                <div id="cashPayment" class="payment-method">
+                    <div class="form-group">
+                        <label for="cashReceived">Efectivo Recibido:</label>
+                        <input type="number" id="cashReceived" class="form-control" step="0.01" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="cashChange">Cambio:</label>
+                        <input type="text" id="cashChange" class="form-control" readonly>
+                    </div>
+                </div>
+
+                <!-- Tarjeta -->
+                <div id="cardPayment" class="payment-method d-none">
+                    <div class="form-group">
+                        <label for="cardNumber">Número de Tarjeta:</label>
+                        <input type="text" id="cardNumber" class="form-control" placeholder="**** **** **** ****">
+                    </div>
+                    <div class="form-group">
+                        <label for="cardAuth">Autorización:</label>
+                        <input type="text" id="cardAuth" class="form-control">
+                    </div>
+                </div>
+
+                <button type="button" id="btnProcessSale" class="btn btn-success btn-lg btn-block">
+                    <i class="fas fa-cash-register"></i> Procesar Venta (F9)
+                </button>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Modal para cantidad de producto -->
-<div class="modal fade" id="quantityModal" tabindex="-1" role="dialog" aria-labelledby="quantityModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-sm" role="document">
+<!-- Modal para Búsqueda de Clientes -->
+<div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-labelledby="customerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="quantityModalLabel">Cantidad</h5>
+                <h5 class="modal-title" id="customerModalLabel">Buscar Cliente</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="product-quantity">Ingrese la cantidad:</label>
-                    <input type="number" class="form-control" id="product-quantity" min="1" value="1">
+                <div class="input-group mb-3">
+                    <input type="text" id="searchCustomer" class="form-control" placeholder="Buscar por nombre, RFC, email o teléfono...">
+                    <div class="input-group-append">
+                        <button class="btn btn-primary" id="btnSearchCustomer">
+                            <i class="fas fa-search"></i> Buscar
+                        </button>
+                    </div>
                 </div>
-                <div class="product-info-modal text-center mb-3">
-                    <img id="modal-product-image" src="" class="img-fluid mb-2" style="max-height: 80px; display: none;">
-                    <h6 id="modal-product-name"></h6>
-                    <div class="product-price-modal" id="modal-product-price"></div>
-                    <div class="product-stock-modal text-muted small" id="modal-product-stock"></div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>Seleccionar</th>
+                                <th>Nombre</th>
+                                <th>RFC</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Tipo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersList">
+                            <!-- Los clientes se cargarán aquí via AJAX -->
+                        </tbody>
+                    </table>
                 </div>
-                <div class="text-right">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-primary" id="confirm-quantity">Agregar</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSelectCustomer" disabled>Seleccionar Cliente</button>
             </div>
         </div>
     </div>
 </div>
-@endsection
+@stop
 
-@push('styles')
+@section('css')
 <style>
-    .pos-container {
-        height: calc(100vh - 120px);
-    }
-    
-    .pos-products-panel, .pos-cart-panel {
-        height: 100%;
-    }
-    
-    .categories-scroll {
-        overflow-x: auto;
-        white-space: nowrap;
-        padding-bottom: 5px;
-    }
-    
-    .categories-scroll .btn {
-        margin-right: 5px;
-        margin-bottom: 5px;
-    }
-    
-    .products-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 15px;
-        max-height: calc(100vh - 250px);
-        overflow-y: auto;
-        padding: 5px;
-    }
-    
-    .product-card {
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        padding: 10px;
+    .product-item:hover, .customer-item:hover {
+        background-color: #f8f9fa;
         cursor: pointer;
-        transition: all 0.2s;
     }
-    
-    .product-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    .payment-method {
+        transition: all 0.3s ease;
     }
-    
-    .product-image {
-        height: 100px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 10px;
-        background-color: #f8f9fa;
+    #cartTable tbody tr {
+        font-size: 0.9em;
+    }
+    .shortcut-key {
+        background-color: #6c757d;
+        color: white;
+        padding: 2px 6px;
         border-radius: 3px;
-        overflow: hidden;
+        font-size: 0.8em;
     }
-    
-    .product-image img {
-        max-height: 100%;
-        max-width: 100%;
-        object-fit: contain;
+    .customer-info {
+        border-left: 4px solid #007bff;
     }
-    
-    .no-image {
-        font-size: 2rem;
-        color: #6c757d;
-    }
-    
-    .product-info {
-        text-align: center;
-    }
-    
-    .product-name {
-        font-weight: 600;
-        margin-bottom: 5px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    
-    .product-code {
-        display: block;
-        margin-bottom: 5px;
-        font-size: 0.8rem;
-    }
-    
-    .product-price {
-        font-weight: bold;
-        color: #28a745;
-    }
-    
-    .product-stock {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    .cart-items {
-        max-height: 300px;
-        overflow-y: auto;
-        border: 1px solid #eee;
-        border-radius: 5px;
-    }
-    
-    .sale-summary {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-    }
-    
-    .total {
-        font-size: 1.2rem;
-        border-top: 1px solid #dee2e6;
-        padding-top: 10px;
-        margin-top: 10px;
-    }
-    
-    #discount-input {
-        text-align: right;
-    }
-    
-    .product-info-modal {
-        padding: 10px;
-        border: 1px solid #eee;
-        border-radius: 5px;
-        background-color: #f9f9f9;
+    .customer-selected {
+        background-color: #d4edda !important;
+        border-left-color: #28a745 !important;
     }
 </style>
-@endpush
+@stop
 
-@push('scripts')
+@section('js')
 <script>
-    $(document).ready(function() {
-        // Variables para el carrito
-        let cart = [];
-        let currentCustomer = null;
-        let selectedProduct = null;
-     {{--   const taxRate = {{ $taxRate }};  --}}
-        
-        // Filtrar productos por categoría
-        $('.category-btn').click(function() {
-            $('.category-btn').removeClass('active');
-            $(this).addClass('active');
-            
-            const categoryId = $(this).data('category');
-            
-            if(categoryId === 'all') {
-                $('.product-card').show();
+$(document).ready(function() {
+    let cart = [];
+    let subtotal = 0;
+    let iva = 0;
+    let total = 0;
+    const ivaRate = 0.16;
+    let selectedCustomer = null;
+
+    // Atajos de teclado
+    $(document).keydown(function(e) {
+        // F2 - Buscar producto
+        if (e.keyCode === 113) {
+            e.preventDefault();
+            $('#searchProduct').focus();
+            return false;
+        }
+
+        // F3 - Buscar cliente
+        if (e.keyCode === 114) {
+            e.preventDefault();
+            $('#customerModal').modal('show');
+            $('#searchCustomer').focus();
+            return false;
+        }
+
+        // F9 - Procesar venta
+        if (e.keyCode === 120) {
+            e.preventDefault();
+            processSale();
+            return false;
+        }
+
+        // ESC - Limpiar búsqueda
+        if (e.keyCode === 27) {
+            if ($('#customerModal').is(':visible')) {
+                $('#searchCustomer').val('').focus();
             } else {
-                $('.product-card').hide();
-                $(`.product-card[data-category="${categoryId}"]`).show();
+                $('#searchProduct').val('').focus();
+            }
+            return false;
+        }
+    });
+
+    // Búsqueda de productos
+    $('#searchProduct').on('input', function() {
+        searchProducts($(this).val());
+    });
+
+    $('#btnSearch').click(function() {
+        searchProducts($('#searchProduct').val());
+    });
+
+    // Búsqueda de clientes
+    $('#searchCustomer').on('input', function() {
+        if ($(this).val().length >= 2) {
+            searchCustomers($(this).val());
+        }
+    });
+
+    $('#btnSearchCustomer').click(function() {
+        searchCustomers($('#searchCustomer').val());
+    });
+
+    // Selección de cliente en el modal
+    $(document).on('click', '.customer-item', function() {
+        $('.customer-item').removeClass('table-active');
+        $(this).addClass('table-active');
+        $('#btnSelectCustomer').prop('disabled', false);
+    });
+
+    // Doble click para seleccionar cliente
+    $(document).on('dblclick', '.customer-item', function() {
+        selectCustomerFromModal();
+    });
+
+    // Botón seleccionar cliente
+    $('#btnSelectCustomer').click(function() {
+        selectCustomerFromModal();
+    });
+
+    // Quitar cliente seleccionado
+    $('#btnRemoveCustomer').click(function() {
+        removeCustomer();
+    });
+
+    // Toggle IVA
+    $('#ivaToggle').change(function() {
+        calculateTotals();
+    });
+
+    // Cambio método de pago
+    $('input[name="paymentMethod"]').change(function() {
+        $('.payment-method').addClass('d-none');
+        $('#' + $(this).val() + 'Payment').removeClass('d-none');
+    });
+
+    // Calcular cambio en efectivo
+    $('#cashReceived').on('input', function() {
+        calculateChange();
+    });
+
+    // Procesar venta
+    $('#btnProcessSale').click(processSale);
+
+    function searchProducts(query) {
+        if (query.length < 2) {
+            $('#productsList').empty();
+            return;
+        }
+
+        $.ajax({
+            url: '',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                query: query
+            },
+            success: function(response) {
+                displayProducts(response.products);
+            },
+            error: function(xhr) {
+                console.error('Error en la búsqueda:', xhr);
             }
         });
+    }
+
+    function searchCustomers(query) {
+        if (!query) {
+            $('#customersList').html('<tr><td colspan="6" class="text-center">Ingrese un término de búsqueda</td></tr>');
+            return;
+        }
+
+        $.ajax({
+            url: '',
+            method: 'POST',
+            data: {
+                _token: '{{ csrf_token() }}',
+                query: query
+            },
+            success: function(response) {
+                displayCustomers(response.customers);
+            },
+            error: function(xhr) {
+                console.error('Error en la búsqueda de clientes:', xhr);
+            }
+        });
+    }
+
+    function displayCustomers(customers) {
+        const tbody = $('#customersList');
+        tbody.empty();
+
+        if (customers.length === 0) {
+            tbody.append('<tr><td colspan="6" class="text-center">No se encontraron clientes</td></tr>');
+            return;
+        }
+
+        customers.forEach(customer => {
+            const row = `
+                <tr class="customer-item" data-customer='${JSON.stringify(customer)}'>
+                    <td>
+                        <input type="radio" name="selectedCustomer" value="${customer.id}">
+                    </td>
+                    <td>${customer.name}</td>
+                    <td>${customer.rfc || 'N/A'}</td>
+                    <td>${customer.email || 'N/A'}</td>
+                    <td>${customer.phone || 'N/A'}</td>
+                    <td>
+                        <span class="badge ${customer.type === 'business' ? 'badge-primary' : 'badge-secondary'}">
+                            ${customer.type === 'business' ? 'Empresa' : 'Individual'}
+                        </span>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    function selectCustomerFromModal() {
+        const selectedRow = $('.customer-item.table-active');
+        if (selectedRow.length === 0) {
+            alert('Seleccione un cliente de la lista');
+            return;
+        }
+
+        const customerData = selectedRow.data('customer');
+        setSelectedCustomer(customerData);
+        $('#customerModal').modal('hide');
+    }
+
+    function setSelectedCustomer(customer) {
+        selectedCustomer = customer;
         
-        // Buscar productos por nombre o código
-        $('#product-search, #search-btn').on('input click', function() {
-            const searchTerm = $('#product-search').val().toLowerCase();
-            
-            if(searchTerm === '') {
-                $('.product-card').show();
+        // Actualizar interfaz
+        $('#customerName').html(`Cliente: <strong>${customer.name}</strong>`);
+        
+        let details = [];
+        if (customer.rfc) details.push(`RFC: ${customer.rfc}`);
+        if (customer.email) details.push(`Email: ${customer.email}`);
+        if (customer.phone) details.push(`Tel: ${customer.phone}`);
+        if (customer.address) details.push(`Dir: ${customer.address}`);
+        
+        $('#customerDetails').text(details.join(' - '));
+        $('.customer-info').addClass('customer-selected');
+        $('#btnRemoveCustomer').removeClass('d-none');
+    }
+
+    function removeCustomer() {
+        selectedCustomer = null;
+        $('#customerName').html('Cliente: <span class="text-muted">Consumidor Final</span>');
+        $('#customerDetails').text('RFC: XAXX010101000 - Sin información adicional');
+        $('.customer-info').removeClass('customer-selected');
+        $('#btnRemoveCustomer').addClass('d-none');
+    }
+
+    function displayProducts(products) {
+        const tbody = $('#productsList');
+        tbody.empty();
+
+        if (products.length === 0) {
+            tbody.append('<tr><td colspan="5" class="text-center">No se encontraron productos</td></tr>');
+            return;
+        }
+
+        products.forEach(product => {
+            const row = `
+                <tr class="product-item" data-product='${JSON.stringify(product)}'>
+                    <td>${product.code}</td>
+                    <td>${product.name}</td>
+                    <td>$${parseFloat(product.price).toFixed(2)}</td>
+                    <td>${product.stock}</td>
+                    <td>
+                        <button class="btn btn-sm btn-success btn-add-to-cart">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+
+        // Evento para agregar al carrito
+        $('.btn-add-to-cart').click(function() {
+            const productData = $(this).closest('tr').data('product');
+            addToCart(productData);
+        });
+
+        // Doble click en fila para agregar
+        $('.product-item').dblclick(function() {
+            const productData = $(this).data('product');
+            addToCart(productData);
+        });
+    }
+
+    function addToCart(product) {
+        const existingItem = cart.find(item => item.id === product.id);
+        
+        if (existingItem) {
+            if (existingItem.quantity < product.stock) {
+                existingItem.quantity += 1;
+            } else {
+                alert('No hay suficiente stock disponible');
                 return;
             }
-            
-            $('.product-card').each(function() {
-                const productName = $(this).data('name');
-                const productCode = $(this).data('code');
-                
-                if(productName.includes(searchTerm) || productCode.includes(searchTerm)) {
-                    $(this).show();
-                } else {
-                    $(this).hide();
-                }
-            });
-        });
-        
-        // Seleccionar producto
-        $('.product-card').click(function() {
-            const productId = $(this).data('product-id');
-            const productElement = $(this);
-            
-            // Obtener datos del producto
-            selectedProduct = {
-                id: productId,
-                name: productElement.find('.product-name').text(),
-                code: productElement.find('.product-code').text().replace('Código: ', ''),
-                price: parseFloat(productElement.find('.product-price').text().replace('$', '')),
-                stock: parseInt(productElement.find('.product-stock').text().replace('Disponible: ', '')),
-                image: productElement.find('.product-img').attr('src') || ''
-            };
-            
-            // Configurar modal
-            $('#modal-product-name').text(selectedProduct.name);
-            $('#modal-product-price').text('Precio: $' + selectedProduct.price.toFixed(2));
-            $('#modal-product-stock').text('Disponible: ' + selectedProduct.stock);
-            
-            if(selectedProduct.image) {
-                $('#modal-product-image').attr('src', selectedProduct.image).show();
-            } else {
-                $('#modal-product-image').hide();
-            }
-            
-            $('#product-quantity').val(1);
-            $('#product-quantity').attr('max', selectedProduct.stock);
-            $('#quantityModal').modal('show');
-        });
-        
-        // Confirmar cantidad
-        $('#confirm-quantity').click(function() {
-            const quantity = parseInt($('#product-quantity').val());
-            
-            if(quantity > 0 && quantity <= selectedProduct.stock) {
-                addToCart(selectedProduct, quantity);
-                $('#quantityModal').modal('hide');
-            } else {
-                alert('La cantidad debe ser mayor a 0 y no puede exceder el stock disponible.');
-            }
-        });
-        
-        // Seleccionar cliente
-        $('#select-customer').click(function() {
-            $('#customerModal').modal('show');
-        });
-        
-        // Seleccionar cliente desde el modal
-        $('.select-customer-btn').click(function() {
-            const row = $(this).closest('.customer-row');
-            const customerId = row.data('customer-id');
-            const customerName = row.find('td:first').text();
-            
-            currentCustomer = {
-                id: customerId,
-                name: customerName
-            };
-            
-            $('#customer-info').html(`
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${customerName}</strong>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger remove-customer">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `);
-            
-            $('#customerModal').modal('hide');
-            updateCartButtons();
-        });
-        
-        // Quitar cliente
-        $(document).on('click', '.remove-customer', function() {
-            currentCustomer = null;
-            $('#customer-info').html(`
-                <div class="text-center text-muted">
-                    <i class="fas fa-user fa-2x mb-1"></i>
-                    <p class="mb-0">Cliente general</p>
-                </div>
-            `);
-            updateCartButtons();
-        });
-        
-        // Función para agregar producto al carrito
-        function addToCart(product, quantity) {
-            // Verificar si el producto ya está en el carrito
-            const existingItemIndex = cart.findIndex(item => item.id === product.id);
-            
-            if(existingItemIndex >= 0) {
-                // Actualizar cantidad si ya existe
-                cart[existingItemIndex].quantity += quantity;
-            } else {
-                // Agregar nuevo item al carrito
+        } else {
+            if (product.stock > 0) {
                 cart.push({
                     id: product.id,
-                    name: product.name,
                     code: product.code,
-                    price: product.price,
-                    quantity: quantity,
-                    image: product.image
+                    name: product.name,
+                    price: parseFloat(product.price),
+                    quantity: 1,
+                    stock: product.stock
                 });
-            }
-            
-            updateCart();
-        }
-        
-        // Función para actualizar el carrito
-        function updateCart() {
-            if(cart.length === 0) {
-                $('#cart-items-list').html(`
-                    <tr class="empty-cart">
-                        <td colspan="5" class="text-center text-muted py-3">
-                            <i class="fas fa-shopping-cart fa-2x mb-2"></i>
-                            <p>No hay productos agregados</p>
-                        </td>
-                    </tr>
-                `);
-                
-                $('#subtotal').text('$0.00');
-                $('#taxes').text('$0.00');
-                $('#total').text('$0.00');
             } else {
-                let html = '';
-                let subtotal = 0;
-                
-                cart.forEach(item => {
-                    const itemTotal = item.price * item.quantity;
-                    subtotal += itemTotal;
-                    
-                    html += `
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    ${item.image ? 
-                                        `<img src="${item.image}" class="img-thumbnail mr-2" style="width: 40px; height: 40px;">` : 
-                                        `<div class="img-thumbnail mr-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                            <i class="fas fa-box-open text-muted"></i>
-                                        </div>`
-                                    }
-                                    <div>
-                                        <div>${item.name}</div>
-                                        <small class="text-muted">${item.code}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="input-group input-group-sm">
-                                    <input type="number" class="form-control item-quantity" value="${item.quantity}" min="1" 
-                                        data-product-id="${item.id}" max="${item.maxStock || 1000}">
-                                </div>
-                            </td>
-                            <td>$${item.price.toFixed(2)}</td>
-                            <td>$${(itemTotal).toFixed(2)}</td>
-                            <td class="text-center">
-                                <button class="btn btn-sm btn-outline-danger remove-item" data-product-id="${item.id}">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                
-                $('#cart-items-list').html(html);
-                
-                // Calcular totales
-                const discountPercentage = parseInt($('#discount-input').val()) || 0;
-                const discountAmount = subtotal * (discountPercentage / 100);
-                const taxes = (subtotal - discountAmount) * (taxRate / 100);
-                const total = subtotal - discountAmount + taxes;
-                
-                $('#subtotal').text('$' + subtotal.toFixed(2));
-                $('#taxes').text('$' + taxes.toFixed(2));
-                $('#total').text('$' + total.toFixed(2));
+                alert('Producto sin stock disponible');
+                return;
             }
-            
-            updateCartButtons();
         }
-        
-        // Función para actualizar estado de botones
-        function updateCartButtons() {
-            const hasItems = cart.length > 0;
-            
-            $('#cancel-sale').prop('disabled', !hasItems);
-            $('#complete-sale').prop('disabled', !hasItems);
-        }
-        
-        // Cambiar cantidad de un item
-        $(document).on('change', '.item-quantity', function() {
-            const productId = $(this).data('product-id');
-            const quantity = parseInt($(this).val());
-            
-            if(quantity > 0) {
-                const itemIndex = cart.findIndex(item => item.id === productId);
-                if(itemIndex >= 0) {
-                    cart[itemIndex].quantity = quantity;
-                    updateCart();
-                }
-            } else {
-                $(this).val(1);
-            }
-        });
-        
-        // Eliminar item del carrito
-        $(document).on('click', '.remove-item', function() {
-            const productId = $(this).data('product-id');
-            cart = cart.filter(item => item.id !== productId);
-            updateCart();
-        });
-        
-        // Aplicar descuento
-        $('#discount-input').on('change', function() {
-            updateCart();
-        });
-        
-        // Cancelar venta
-        $('#cancel-sale').click(function() {
-            if(confirm('¿Está seguro de cancelar esta venta?')) {
-                cart = [];
-                currentCustomer = null;
-                updateCart();
-                
-                $('#customer-info').html(`
-                    <div class="text-center text-muted">
-                        <i class="fas fa-user fa-2x mb-1"></i>
-                        <p class="mb-0">Cliente general</p>
-                    </div>
-                `);
-                
-                $('#discount-input').val(0);
-            }
-        });
-        
-        // Completar venta
-        $('#complete-sale').click(function() {
-            if(cart.length === 0) return;
-            
-            // Preparar datos para enviar
-            const saleData = {
-                customer_id: currentCustomer ? currentCustomer.id : null,
-                items: cart.map(item => ({
-                    product_id: item.id,
-                    quantity: item.quantity,
-                    price: item.price
-                })),
-                discount_percentage: parseInt($('#discount-input').val()) || 0,
-                tax_rate: taxRate
-            };
-            
-            // Aquí iría la petición AJAX para guardar la venta
-            console.log('Datos de la venta:', saleData);
-            
-            // Simular envío
-            $.ajax({
-                url: '{{ route("crear_venta") }}',
-                method: 'POST',
-                data: saleData,
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                success: function(response) {
-                    alert('Venta completada con éxito! N° ' + response.sale_number);
-                    
-                    // Limpiar después de la venta
-                    cart = [];
-                    currentCustomer = null;
-                    updateCart();
-                    
-                    $('#customer-info').html(`
-                        <div class="text-center text-muted">
-                            <i class="fas fa-user fa-2x mb-1"></i>
-                            <p class="mb-0">Cliente general</p>
+
+        updateCartDisplay();
+        $('#searchProduct').val('').focus();
+    }
+
+    function updateCartDisplay() {
+        const tbody = $('#cartItems');
+        tbody.empty();
+
+        cart.forEach((item, index) => {
+            const itemTotal = item.price * item.quantity;
+            const row = `
+                <tr>
+                    <td>${item.name}<br><small class="text-muted">${item.code}</small></td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <button class="btn btn-outline-secondary btn-quantity-minus" data-index="${index}">-</button>
+                            <input type="number" class="form-control form-control-sm quantity-input" 
+                                   value="${item.quantity}" min="1" max="${item.stock}" data-index="${index}">
+                            <button class="btn btn-outline-secondary btn-quantity-plus" data-index="${index}">+</button>
                         </div>
-                    `);
-                    
-                    $('#discount-input').val(0);
-                },
-                error: function(xhr) {
-                    alert('Error al procesar la venta: ' + xhr.responseJSON.message);
-                }
-            });
+                    </td>
+                    <td>$${item.price.toFixed(2)}</td>
+                    <td>$${itemTotal.toFixed(2)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger btn-remove-item" data-index="${index}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(row);
         });
-    });
+
+        // Eventos para modificar cantidades
+        $('.btn-quantity-minus').click(function() {
+            const index = $(this).data('index');
+            if (cart[index].quantity > 1) {
+                cart[index].quantity -= 1;
+                updateCartDisplay();
+            }
+        });
+
+        $('.btn-quantity-plus').click(function() {
+            const index = $(this).data('index');
+            if (cart[index].quantity < cart[index].stock) {
+                cart[index].quantity += 1;
+                updateCartDisplay();
+            }
+        });
+
+        $('.quantity-input').on('change', function() {
+            const index = $(this).data('index');
+            const newQuantity = parseInt($(this).val());
+            
+            if (newQuantity >= 1 && newQuantity <= cart[index].stock) {
+                cart[index].quantity = newQuantity;
+                updateCartDisplay();
+            } else {
+                $(this).val(cart[index].quantity);
+            }
+        });
+
+        $('.btn-remove-item').click(function() {
+            const index = $(this).data('index');
+            cart.splice(index, 1);
+            updateCartDisplay();
+        });
+
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        
+        if ($('#ivaToggle').is(':checked')) {
+            iva = subtotal * ivaRate;
+        } else {
+            iva = 0;
+        }
+
+        total = subtotal + iva;
+
+        $('#subtotal').text('$' + subtotal.toFixed(2));
+        $('#ivaAmount').text('$' + iva.toFixed(2));
+        $('#totalAmount').text('$' + total.toFixed(2));
+
+        calculateChange();
+    }
+
+    function calculateChange() {
+        const received = parseFloat($('#cashReceived').val()) || 0;
+        const change = received - total;
+        $('#cashChange').val(change >= 0 ? '$' + change.toFixed(2) : '-');
+    }
+
+    function processSale() {
+        if (cart.length === 0) {
+            alert('No hay productos en el carrito');
+            return;
+        }
+
+        const paymentMethod = $('input[name="paymentMethod"]:checked').val();
+        const paymentData = {};
+
+        if (paymentMethod === 'efectivo') {
+            const received = parseFloat($('#cashReceived').val()) || 0;
+            if (received < total) {
+                alert('El efectivo recibido es menor al total');
+                return;
+            }
+            paymentData.cash_received = received;
+            paymentData.change = received - total;
+        } else {
+            paymentData.card_number = $('#cardNumber').val();
+            paymentData.authorization = $('#cardAuth').val();
+            
+            if (!paymentData.card_number || !paymentData.authorization) {
+                alert('Complete los datos de la tarjeta');
+                return;
+            }
+        }
+
+        const saleData = {
+            _token: '{{ csrf_token() }}',
+            items: cart,
+            subtotal: subtotal,
+            iva: iva,
+            total: total,
+            apply_iva: $('#ivaToggle').is(':checked'),
+            payment_method: paymentMethod,
+            payment_data: paymentData,
+            customer_id: selectedCustomer ? selectedCustomer.id : null
+        };
+
+        $.ajax({
+            url: '',
+            method: 'POST',
+            data: saleData,
+            success: function(response) {
+                if (response.success) {
+                    alert('Venta procesada exitosamente');
+                    resetPOS();
+                } else {
+                    alert('Error al procesar la venta: ' + response.message);
+                }
+            },
+            error: function(xhr) {
+                alert('Error al procesar la venta');
+                console.error('Error:', xhr);
+            }
+        });
+    }
+
+    function resetPOS() {
+        cart = [];
+        selectedCustomer = null;
+        $('#cartItems').empty();
+        $('#searchProduct').val('').focus();
+        $('#cashReceived').val('');
+        $('#cardNumber').val('');
+        $('#cardAuth').val('');
+        $('#ivaToggle').prop('checked', false);
+        removeCustomer();
+        calculateTotals();
+    }
+
+    // Enfocar campo de búsqueda al cargar
+    $('#searchProduct').focus();
+});
 </script>
-@endpush
+
+<script>
+$(document).ready(function() {
+    // Cerrar modal con la X
+    $(document).on('click', '#modalVerProducto .close', function() {
+        $('#customerModal').modal('hide');
+    });
+    
+    // Cerrar modal con el botón Cancelar
+    $(document).on('click', '#modalVerProducto .btn-secondary', function() {
+        $('#customerModal').modal('hide');
+    });
+    
+    // Forzar la inicialización del modal
+    $('#customerModal').modal({
+        backdrop: true,
+        keyboard: true,
+        show: false
+    });
+});
+</script>
+
+@stop

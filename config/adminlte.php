@@ -502,7 +502,7 @@ return [
         [
             'text' => 'Salir',
             'icon' => 'nav-icon fas fa-power-off color:red',
-            'url' => 'login',
+           'url' => 'login',
             'icon_color' => 'danger',
         ],
 
@@ -545,8 +545,8 @@ return [
     |
     */
 
-    'plugins' => [
-          'jQuery' => [
+     'plugins' => [
+        'jquery' => [
             'active' => true,
             'files' => [
                 [
@@ -556,6 +556,17 @@ return [
                 ],
             ],
         ],
+        'bootstrap' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => false,
+                    'location' => '//cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js',
+                ],
+            ],
+        ],
+  
          'Datatables' => [
             'active' => true,
             'files' => [
@@ -591,6 +602,21 @@ return [
                 ],
             ],
         ],
+          'Toastr' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => '//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css',
+                ],
+            ],
+        ],
         'Chartjs' => [
             'active' => false,
             'files' => [
@@ -602,12 +628,12 @@ return [
             ],
         ],
         'Sweetalert2' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdn.jsdelivr.net/npm/sweetalert2@8',
+                    'asset' => true,
+                    'location' => '//cdn.jsdelivr.net/npm/sweetalert2@11',
                 ],
             ],
         ],

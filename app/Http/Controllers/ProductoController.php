@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Categoria;
+use App\Models\inventario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 class ProductoController extends Controller
 {
     public function index()
@@ -20,10 +23,9 @@ class ProductoController extends Controller
               ->rawColumns(['action'])
               ->addColumn('action', function($data) {  
   
-                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalMostrarProductos"  title="Ver datos del producto" class="fa fa-eye verProfesional"></a>                  
-                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.'" data-target="#modalEditarProductos"  title="Editar datos del producto" class="fa fa-edit editarProfesional"></a>
-                  <a href="javascript:void(0)" data-toggle="tooltip"  data-id="'.$data->id.' title="Eliminar datos del producto" class="fa fa-trash eliminarProfesional" style="color: #c47215ff;"></a>';                
-                   
+                  $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Ver datos del producto" class="fa fa-eye verProducto" style="margin-right: 5px;"></a>                  
+                                <a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Editar datos del producto" class="fa fa-edit editarProducto" style="margin-right: 5px;"></a>
+                                <a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Eliminar datos del producto" class="fa fa-trash eliminarProducto" style="color: #c47215ff;"></a>';        
                   return $actionBtn;
                  
               })
@@ -56,7 +58,9 @@ class ProductoController extends Controller
         'precio_compra' => 'required|numeric|min:0',
         'precio_venta'  => 'required|numeric|min:0',
         'unidad_medida' => 'required|string|max:50',
+        'unidad_medida' => 'required|string|max:50',
         'ubicacion'     => 'nullable|string|max:100',
+        'proveedor'     => 'nullable|string|max:100',
         'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',   
         'cantidad'      => 'required|integer|min:0',
         'stock_minimo'  => 'required|integer|min:0',
@@ -76,7 +80,7 @@ class ProductoController extends Controller
             // Validar la imagen
             $request->validate([
                 'imagen' => 'required|image|mimes:webp,jpeg,png,jpg,gif,svg|max:2048',
-                'producto_id' => 'nullable|integer'
+                'id_prodcto' => 'nullable|integer'
             ]);
 
             if ($request->hasFile('imagen')) {
@@ -116,6 +120,8 @@ class ProductoController extends Controller
         $data->precio_venta = $request->precio_venta;
         $data->unidad_medida = $request->unidad_medida; 
         $data->ubicacion = $request->ubicacion;
+        $data->marca = $request->marca;
+        $data->proveedor = $request->proveedor;
         $data->categoria = $request->categoria ;
         $data->id_categoria = $request->id_categoria;
         $data->id_proveedor = $request->id_proveedor;
@@ -134,63 +140,158 @@ class ProductoController extends Controller
           $data->save();
 
             // Respuesta de éxito con el mensaje deseado
-           return redirect()->route('productos'); 
+           return response()->json(['success'=>'Successfully']);
           
    }
 
-    public function show(Producto $producto)
-    {
-        $producto->load(['categoria', 'proveedor', 'inventario']);
-        return view('productos.show', compact('producto'));
+   public function show($id)
+  {
+    
+    $producto = Producto::find($id);    
+    if(!$producto) {
+        return response()->json(['error' => 'Producto no encontrado'], 404);
+    }    
+    return response()->json($producto);
+ }
+ 
+public function edit($id)
+{
+    try {
+        $producto = Producto::findOrFail($id);
+        return response()->json($producto);
+    } catch (\Exception $e) {
+        return response()->json(['error' => 'Producto no encontrado'], 404);
     }
+}
 
-    public function edit(Producto $producto)
-    {
-        $categorias = Categoria::all();
-        $proveedores = Proveedor::all();
-        $producto->load('inventario');
-        return view('editar_productos', compact('producto', 'categorias', 'proveedores'));
-    }
+  public function update(Request $request, $id_producto)
+{
+    try {
+       
+         $producto = Producto::find($id_producto);
 
-    public function update(Request $request, Producto $producto)
-    {
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }        
+        
+        if (!$producto) {
+          
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+       
+
+        // Validar campos básicos
         $validated = $request->validate([
-            'codigo'        => 'required|string|max:50|unique:productos,codigo,' . $producto->id,
+            'codigo'        => 'required|string|max:50',
             'nombre'        => 'required|string|max:255',
             'descripcion'   => 'nullable|string',
             'precio_compra' => 'required|numeric|min:0',
             'precio_venta'  => 'required|numeric|min:0',
             'unidad_medida' => 'required|string|max:50',
             'ubicacion'     => 'nullable|string|max:100',
-            'categoria_id'  => 'required|exists:categorias,id',
-            'proveedor_id'  => 'nullable|exists:proveedores,id',
+            'marca'         => 'nullable|string|max:80',
             'cantidad'      => 'required|integer|min:0',
+            'stock'         => 'nullable|integer|min:0',
             'stock_minimo'  => 'required|integer|min:0',
-            'stock_maximo'  => 'nullable|integer|min:0',
+            'proveedor'     => 'nullable|string|max:80',
+            'categoria'     => 'nullable|string|max:80',
+            'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',         
         ]);
 
-        $producto->update([
+        \Log::info('Validación pasada, actualizando producto...');
+
+        // Preparar datos para actualizar
+        $datosActualizar = [
             'codigo'         => $validated['codigo'],
             'nombre'         => $validated['nombre'],
-            'descripcion'    => $validated['descripcion'],
+            'descripcion'    => $validated['descripcion'] ?? null,
+            'cantidad'       => $validated['cantidad'],
             'precio_compra'  => $validated['precio_compra'],
             'precio_venta'   => $validated['precio_venta'],
             'unidad_medida'  => $validated['unidad_medida'],
-            'ubicacion'      => $validated['ubicacion'],
-            'categoria_id'   => $validated['categoria_id'],
-            'proveedor_id'   => $validated['proveedor_id'],
+            'ubicacion'      => $validated['ubicacion'] ?? null,
+            'marca'          => $validated['marca'] ?? null,
+            'categoria'      => $validated['categoria'] ?? null,
+            'stock'          => $validated['stock'] ?? 0,
+            'stock_minimo'   => $validated['stock_minimo'],
+            'proveedor'      => $validated['proveedor'] ?? null,
+        ];
+
+     if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            \Log::info('Nueva imagen válida detectada, procesando...');
+            
+            // Validar tipo de archivo
+            $imagen = $request->file('imagen');
+            $extensionesPermitidas = ['webp', 'jpeg', 'png', 'jpg', 'gif'];
+            $extension = $imagen->getClientOriginalExtension();
+            
+            if (!in_array(strtolower($extension), $extensionesPermitidas)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Tipo de archivo no permitido. Formatos aceptados: WEBP, JPEG, PNG, JPG, GIF',
+                    'errors' => ['imagen' => ['Tipo de archivo no permitido']]
+                ], 422);
+            }
+            
+            // Validar tamaño
+            if ($imagen->getSize() > 2 * 1024 * 1024) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La imagen es demasiado grande. Máximo permitido: 2MB',
+                    'errors' => ['imagen' => ['La imagen es demasiado grande']]
+                ], 422);
+            }
+            
+            // Eliminar imagen anterior si existe
+            if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
+                Storage::disk('public')->delete($producto->imagen);
+                \Log::info('Imagen anterior eliminada: ' . $producto->imagen);
+            }
+            
+            // Guardar nueva imagen
+            $nombreImagen = time() . '_' . uniqid() . '.' . $extension;
+            $rutaImagen = $imagen->storeAs('productos', $nombreImagen, 'public');
+            
+            $datosActualizar['imagen'] = $rutaImagen;
+            \Log::info('Nueva imagen guardada: ' . $rutaImagen);
+            
+        } else {
+            \Log::info('No se subió nueva imagen o es inválida, manteniendo la actual');
+            // Mantener la imagen actual
+            $datosActualizar['imagen'] = $producto->imagen;
+        }
+       
+        // Actualizar el producto
+        $producto->update($datosActualizar);     
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto actualizado exitosamente',
+            'data' => $producto
         ]);
 
-        $producto->inventario->update([
-            'cantidad'     => $validated['cantidad'],
-            'stock_minimo' => $validated['stock_minimo'],
-            'stock_maximo' => $validated['stock_maximo'],
-        ]);
-
-        return redirect()->route('productos')
-            ->with('success', 'Producto actualizado exitosamente.');
-   
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        \Log::error('Error de validación:', $e->errors());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error de validación',
+            'errors' => $e->errors()
+        ], 422);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al actualizar producto: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     public function destroy(Producto $producto)
     {

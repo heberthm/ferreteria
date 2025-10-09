@@ -409,8 +409,6 @@
 
     });
 
-
-
  
 $('#form_guardar_categoria').off('submit').on('submit', function (event) {
 
