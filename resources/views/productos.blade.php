@@ -814,36 +814,23 @@ let btn = $('#BtnGuardar_producto')
 // =========================================   
 
 
-  
-$(document).on('click', '.eliminarProducto', function (event) {
-     
-  event.preventDefault();
-     let id_producto = $('#id_producto_producto').val();
-   Swal.fire({
-        title: '¿Estás seguro?',
-        html: `Estás a punto de eliminar el producto: <strong>""</strong><br><br>Esta acción no se puede deshacer.`,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        reverseButtons: true,
-        backdrop: true,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        customClass: {
-            popup: 'sweetalert-custom'
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            eliminarProducto(id_producto);
-        }
-    });
-   });
+  $(document).on('click', '.eliminarProducto', function (event) {
+    event.preventDefault();
+    
+    // Obtener datos del producto desde los data attributes
+    let id_producto = $(this).data('id');
+    let productName = $(this).data('nombre');
+    
+    // Verificar que tenemos los datos necesarios
+    if (!id_producto) {
+        console.error('No se encontró el ID del producto');
+        return;
+    }
+    
+    // Usar la función de confirmación pasando ambos parámetros
+    confirmarEliminacion(id_producto, nombre_producto);
+});
 
-
- 
 // ✅ FUNCIÓN SEGURA PARA CONFIRMAR ELIMINACIÓN
 function confirmarEliminacion(id_producto, productName) {
     // Verificar que SweetAlert2 esté cargado
@@ -855,10 +842,10 @@ function confirmarEliminacion(id_producto, productName) {
         return;
     }
 
-    // Usar SweetAlert2
+    // Usar SweetAlert2 con el nombre del producto
     Swal.fire({
         title: '¿Estás seguro?',
-        html: `Estás a punto de eliminar el producto: <strong></strong><br><br>Esta acción no se puede deshacer.`,
+        html: `Estás a punto de eliminar el producto: <strong>${productName}</strong><br><br>Esta acción no se puede deshacer.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -896,10 +883,10 @@ function eliminarProducto(id_producto) {
     }
 
     $.ajax({
-        url: "{{ url('eliminar_producto') }}/" + id_producto,
+      url: "/eliminar_producto/" + id_producto,
         method: 'DELETE',
         data: {
-            _token: "{{ csrf_token() }}"
+            _token: $('meta[name="csrf-token"]').attr('content') // Obtener token CSRF
         },
         dataType: 'json',
         success: function(response) {
@@ -919,9 +906,14 @@ function eliminarProducto(id_producto) {
                     showConfirmButton: false
                 });
                 
-                // Recargar DataTable
+                // Recargar DataTable o actualizar la vista
                 if (window.table && typeof window.table.ajax !== 'undefined') {
                     window.table.ajax.reload(null, false);
+                } else {
+                    // Si no usas DataTable, recargar la página después de un tiempo
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
                 }
                 
             } else {
@@ -944,6 +936,10 @@ function eliminarProducto(id_producto) {
             let errorMessage = 'Error al eliminar el producto';
             if (xhr.responseJSON && xhr.responseJSON.message) {
                 errorMessage = xhr.responseJSON.message;
+            } else if (xhr.status === 404) {
+                errorMessage = 'Producto no encontrado';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Error interno del servidor';
             }
             
             Swal.fire({
@@ -955,6 +951,7 @@ function eliminarProducto(id_producto) {
         }
     });
 }
+
 });
 
 

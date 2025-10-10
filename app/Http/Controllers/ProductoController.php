@@ -293,11 +293,31 @@ public function edit($id)
     }
 }
 
-      public function destroy($id)
-    {
-        Producto::find($id)->delete();
+    public function destroy($id)
+{
+    try {
+        $producto = Producto::find($id);
+        
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+        
+        $producto->delete();
      
-        return response()->json(['success'=>'deleted successfully.']);
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto eliminado correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar el producto: ' . $e->getMessage()
+        ], 500);
     }
+}
 
 }
