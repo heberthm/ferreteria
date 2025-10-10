@@ -295,7 +295,7 @@ public function edit($id)
 
       public function destroy($id)
     {
-        terapias::find($id)->delete();
+        Producto::find($id)->delete();
      
         return response()->json(['success'=>'deleted successfully.']);
     }
