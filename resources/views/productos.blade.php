@@ -1,8 +1,6 @@
 @extends('layouts.app')
 @section('content')
 
-
-
   <style>
         .text-success { color: green; }
         .text-danger { color: red; }
@@ -13,7 +11,7 @@
             display: none;
         }
     </style>
-
+    
 <br>
 <div class="card">
     <div class="card-header d-flex bg-light justify-content-between align-items-right">
@@ -67,7 +65,7 @@
             </div>
             
             <form method="POST" id="form_guardar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
-            @csrf
+            csrf
                 <div class="modal-body">
                     <input type="hidden" id="id_categoria" name="id_categoria" value="1">
                      <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
@@ -244,7 +242,8 @@
     <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title" id="modalEditarProducto"><i class="fas fa-umbrella"></i> Editar producto</h5>
+                <h5 class="modal-title" id="modalEditarProducto"><i class="fas fa-umbrella"></i> Editar producto: &nbsp; &nbsp</h5>
+                   <h5 ><a class="mx-1 nombre" style="color:red" id="nombre_producto_titulo_2"></a></h5>    
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -432,7 +431,9 @@
     <div class="modal-dialog modal-lg"> 
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title" id="modalVerProductos"><i class="fas fa-umbrella"></i> Ver datos del producto</h5>
+                  <h5 class="modal-title" id="modalVerProductos"><i class="fas fa-umbrella"></i> Ver datos del producto: &nbsp; &nbsp;</h5>
+                      <h5 ><a class="mx-1 nombre" style="color:red" id="nombre_producto_titulo"></a></h5>     
+
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -450,7 +451,7 @@
                             <div class="form-group row mb-3">
                                 <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" autocomplete="off" id="nombre" name="nombre" required>
+                                    <input type="text" class="form-control  border-0" autocomplete="off" id="nombre" name="nombre" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -458,7 +459,7 @@
                             <div class="form-group row mb-3">
                                 <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control border-0" autocomplete="off" id="descripcion" name="descripcion" >
+                                    <input type="text" class="form-control" autocomplete="off" id="descripcion" name="descripcion" readonly >
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -466,7 +467,7 @@
                             <div class="form-group row mb-3">
                                 <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" autocomplete="off" id="unidad_medida" name="unidad_medida" required>
+                                    <input type="text" class="form-control " autocomplete="off" id="unidad_medida" name="unidad_medida" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -474,7 +475,7 @@
                             <div class="form-group row mb-3">
                                 <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" autocomplete="off" id="ubicacion" name="ubicacion" required>
+                                    <input type="text" class="form-control" autocomplete="off" id="ubicacion" name="ubicacion" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -482,27 +483,24 @@
                             <div class="form-group row mb-3">
                                 <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" autocomplete="off" id="marca" name="marca" required>
+                                    <input type="text" class="form-control " autocomplete="off" id="marca" name="marca" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
-                            </div>
-                          
+                            </div>                          
                             
                              <div class="form-group row mb-3">
                                <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
                                <div class="col-sm-8">
-                                   <input type="text" class="form-control  border-0"  autocomplete="off" id="categoria" name="categoria" required>
+                                   <input type="text" class="form-control "  autocomplete="off" id="categoria" name="categoria" readonly required>
                                     <div class="invalid-feedback"></div>                                                                        
                                 </div>                             
                              </div>
 
                                <div class="form-group row mb-3">
                                      <div class="col-sm-8">
-                                       <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">                  
-                                         
+                                       <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">                                         
                                     </div>
                                </div>
-
 
                         </div>
                         
@@ -511,7 +509,7 @@
                             <div class="form-group row mb-3">
                                 <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="cantidad" name="cantidad" required>
+                                    <input type="text" class="form-control" id="cantidad" name="cantidad" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -519,7 +517,7 @@
                             <div class="form-group row mb-3">
                                 <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="precio_compra" name="precio_compra" required>
+                                    <input type="text" class="form-control" id="precio_compra" name="precio_compra" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -527,7 +525,7 @@
                             <div class="form-group row mb-3">
                                 <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="precio_venta" name="precio_venta" required>
+                                    <input type="text" class="form-control" id="precio_venta" name="precio_venta" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -535,7 +533,7 @@
                             <div class="form-group row mb-3">
                                 <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="codigo" name="codigo" required>
+                                    <input type="text" class="form-control" id="codigo" name="codigo" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -543,7 +541,7 @@
                               <div class="form-group row mb-3">
                                 <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="stock" name="stock" required>
+                                    <input type="text" class="form-control" id="stock" name="stock" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
@@ -551,7 +549,7 @@
                             <div class="form-group row mb-3">
                                 <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" id="stock_minimo" name="stock_minimo" required>
+                                    <input type="text" class="form-control" id="stock_minimo" name="stock_minimo" readonly required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>                         
@@ -559,14 +557,14 @@
                                <div class="form-group row mb-3">
                                     <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
                                     <div class="col-sm-8">
-                                        <input type="text" class="form-control  border-0" id="proveedor" name="proveedor" required>
+                                        <input type="text" class="form-control" id="proveedor" name="proveedor" readonly required>
                                         <div class="invalid-feedback"></div>
                                              <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::user()->id }}" readonly>
 
                                     </div>
                                </div>
                          </div>
-                    </div>         
+                    </div>       
                     
 
                   
@@ -845,7 +843,8 @@ function confirmarEliminacion(id_producto, productName) {
     // Usar SweetAlert2 con el nombre del producto
     Swal.fire({
         title: '¿Estás seguro?',
-        html: `Estás a punto de eliminar el producto: <strong>${productName}</strong><br><br>Esta acción no se puede deshacer.`,
+        html: `Esta acción no se puede deshacer.`,
+      //  html: `Estás a punto de eliminar el producto: <strong>${productName}</strong><br><br>Esta acción no se puede deshacer.`,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#d33',
@@ -961,8 +960,10 @@ function eliminarProducto(id_producto) {
 <script>
 
 
-  // =========================================
+// =========================================
+
 /// VER REGISTROS DEL PRODUCTO
+
 // =========================================
 
 $(document).on('click', '.verProducto', function(e) {    
@@ -991,6 +992,9 @@ $(document).on('click', '.verProducto', function(e) {
             $('#modalVerProducto input[name="stock"]').val(data.stock || '');
             $('#modalVerProducto input[name="stock_minimo"]').val(data.stock_minimo || '');
             $('#modalVerProducto input[name="proveedor"]').val(data.proveedor || '');
+
+             // Actualizar solo el nombre en el título
+            $('#nombre_producto_titulo').text(data.nombre || '');
 
             // Manejo de imagen en modal VER
             const preview = $('#previewVerProducto');
@@ -1040,6 +1044,7 @@ $(document).on('click', '.verProducto', function(e) {
   // =========================================
 /// EDITAR REGISTROS DEL PRODUCTO
 // =========================================
+
 $(document).on('click', '.editarProducto', function(e) {    
     e.preventDefault();
     
@@ -1071,6 +1076,9 @@ $(document).on('click', '.editarProducto', function(e) {
             $('#stock_producto').val(data.stock || '');
             $('#stock_minimo_producto').val(data.stock_minimo || '');
             $('#proveedor_producto').val(data.proveedor || '');
+
+               // Actualizar solo el nombre en el título
+            $('#nombre_producto_titulo_2').text(data.nombre || '');
 
             // MANEJO DE IMAGEN - MOSTRAR IMAGEN ACTUAL
             const previewActual = $('#preview_imagen_actual');
@@ -1118,8 +1126,9 @@ $(document).on('click', '.editarProducto', function(e) {
     });
 });
 
-
+//==============================
 //GUardar datos editados.
+//===============================
 
 $(document).on('submit', '#form_editar_productos', function(event) {
     event.preventDefault();
@@ -1130,40 +1139,102 @@ $(document).on('submit', '#form_editar_productos', function(event) {
         }
     });
 
-    // ✅ OBTENER ID DEL CAMPO OCULTO
     let id_producto = $('#id_producto_producto').val();
     
-    console.log('ID obtenido:', id_producto); // Para debug
-
-    // ✅ VALIDACIÓN MÁS ROBUSTA
-    if (!id_producto || id_producto === '' || id_producto === 'undefined' || id_producto === null) {
-        console.error('ID del producto no encontrado. Valor:', id_producto);
-        toastr.error("Error: No se pudo identificar el producto a actualizar");
+    if (!id_producto) {
+        toastr.error("Error: ID del producto no encontrado");
         return;
     }
 
-    // Configurar botón submit con spinner
+    // ✅ VALIDACIÓN MEJORADA DE IMAGEN
+    const imagenInput = document.getElementById('imagen_editar');
+    let imagenValida = true;
+    let mensajeError = '';
+
+    if (imagenInput.files.length > 0) {
+        const imagenFile = imagenInput.files[0];
+        
+        console.log('Validando imagen:', {
+            nombre: imagenFile.name,
+            tipo: imagenFile.type,
+            tamaño: imagenFile.size,
+            extension: imagenFile.name.split('.').pop()
+        });
+
+        // Validar tipo MIME
+        const tiposPermitidos = [
+            'image/webp', 
+            'image/jpeg', 
+            'image/png', 
+            'image/jpg', 
+            'image/gif'
+        ];
+        
+        if (!tiposPermitidos.includes(imagenFile.type)) {
+            imagenValida = false;
+            mensajeError = 'Tipo de archivo no permitido. Formatos aceptados: WEBP, JPEG, PNG, JPG, GIF';
+            console.error('Tipo MIME no permitido:', imagenFile.type);
+        }
+        
+        // Validar extensión por si acaso
+        const extension = imagenFile.name.toLowerCase().split('.').pop();
+        const extensionesPermitidas = ['webp', 'jpeg', 'jpg', 'png', 'gif'];
+        if (!extensionesPermitidas.includes(extension)) {
+            imagenValida = false;
+            mensajeError = 'Extensión no permitida. Use: .webp, .jpeg, .jpg, .png o .gif';
+            console.error('Extensión no permitida:', extension);
+        }
+        
+        // Validar tamaño (2MB máximo)
+        if (imagenFile.size > 2 * 1024 * 1024) {
+            imagenValida = false;
+            mensajeError = 'La imagen es demasiado grande. Máximo permitido: 2MB';
+            console.error('Tamaño excedido:', imagenFile.size);
+        }
+        
+        // Validar que sea realmente una imagen
+        if (!imagenFile.type.startsWith('image/')) {
+            imagenValida = false;
+            mensajeError = 'El archivo debe ser una imagen válida';
+            console.error('No es una imagen:', imagenFile.type);
+        }
+    }
+
+    if (!imagenValida) {
+        toastr.error(mensajeError);
+        
+        // Limpiar el input de imagen
+        imagenInput.value = '';
+        
+        // Ocultar preview y mostrar imagen actual
+        $('#preview_editar').hide();
+        $('#preview_imagen_actual').show();
+        
+        return;
+    }
+
+    // Configurar botón submit
     let btn = $('#BtnEditar_producto');
     let existingHTML = btn.html();
-    
-    btn.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>Procesando...').prop('disabled', true);
+    btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>Procesando...').prop('disabled', true);
 
     var formData = new FormData(this);
 
-    // ✅ AGREGAR EL ID AL FORMDATA POR SI ACASO
-    formData.append('id_producto_producto', id_producto);
-
-    console.log('Enviando actualización para producto ID:', id_producto);
+    // ✅ DEBUG: Mostrar datos que se envían
+    console.log('Enviando FormData:');
+    for (let pair of formData.entries()) {
+        console.log(pair[0] + ':', pair[1]);
+    }
 
     $.ajax({
-        url: "{{ url('actualizar_producto') }}/" + id_producto,
+        url: "/actualizar_producto/" + id_producto,
         method: 'POST',
         data: formData,
         processData: false, 
         contentType: false,  
         dataType: 'json',
         success: function(data) {
-            console.log('Respuesta exitosa:', data);
+            console.log('✅ Respuesta exitosa:', data);
             
             // Recargar tabla
             if (window.table && typeof window.table.ajax !== 'undefined') {
@@ -1175,12 +1246,10 @@ $(document).on('submit', '#form_editar_productos', function(event) {
             $('.modal-backdrop').remove();              
             
             toastr.success("Producto actualizado correctamente");
-            
-            // Restaurar botón
             btn.html(existingHTML).prop('disabled', false);
         },
         error: function(xhr, status, error) {
-            console.error('Error completo:', xhr);
+            console.error('❌ Error en AJAX:', xhr);
             
             if (xhr.status === 422) {
                 const errors = xhr.responseJSON.errors;
@@ -1188,16 +1257,25 @@ $(document).on('submit', '#form_editar_productos', function(event) {
                 
                 for (const field in errors) {
                     errorMessage += `- ${errors[field][0]}<br>`;
+                    
+                    // Resaltar campo con error
+                    $(`[name="${field}"]`).addClass('is-invalid');
+                    $(`#error-${field}`).remove();
+                    $(`[name="${field}"]`).after(`<div class="invalid-feedback" id="error-${field}">${errors[field][0]}</div>`);
                 }
                 
                 toastr.error(errorMessage);
-            } else if (xhr.status === 404) {
-                toastr.error("Producto no encontrado");
+                
+                // Si el error es de imagen, limpiar el input
+                if (errors.imagen) {
+                    $('#imagen_editar').val('');
+                    $('#preview_editar').hide();
+                    $('#preview_imagen_actual').show();
+                }
             } else {
                 toastr.error("Error al actualizar el producto");
             }
             
-            // Restaurar botón
             btn.html(existingHTML).prop('disabled', false);
         }
     });
@@ -1348,11 +1426,6 @@ function subirArchivo() {
 
 });
 
-
 </script>
-
-
-
-
 @endpush
 @endsection

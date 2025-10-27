@@ -1,11 +1,7 @@
-@extends('adminlte::page')
-
+@extends('layouts.app')
 @section('content')
     <style>
-        .main-content {
-            padding: 10px;
-        }
-
+      
         .card-dashboard {
             border-left: 4px solid;
             transition: transform 0.3s;

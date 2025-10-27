@@ -441,10 +441,15 @@ return [
                 
             ]
         ],
+          [
+            'text' => 'Contizaciones',
+            'icon' => 'nav-icon fas fa-comments-dollar',
+            'url' => 'contizaciones',
+        ],       
         [
             'text' => 'Remisiones',
             'icon' => 'nav-icon fas fa-clipboard-list',
-            'url' => 'citas_medicas',
+            'url' => 'remisiones',
         ],       
 
         [

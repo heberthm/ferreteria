@@ -9,6 +9,8 @@ class Categoria extends Model
 {
     use HasFactory;
 
+      protected $primaryKey = 'id_categoria';
+
      protected $fillable = ['nombre', 'descripcion'];
 
     public function producto()

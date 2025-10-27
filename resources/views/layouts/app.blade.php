@@ -1,6 +1,5 @@
 @extends('adminlte::page')
 
-
 {{-- Extend and customize the browser title --}}
 
 @section('title')

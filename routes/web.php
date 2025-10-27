@@ -3,9 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
-use App\Http\Controllers\CajaController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CategoriaController;
+use App\Http\Controllers\CajaMenorController;
 
 
 
@@ -63,8 +63,22 @@ Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'stor
 Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'show'])->name('productos.show');
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
 Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
-Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');;
+Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');
 
+
+
+// ======================================================
+
+//  RUTAS PARA CATEGORIAS
+
+// ======================================================
+
+Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
+Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('crear_categorias');
+Route::get('mostrar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'show'])->name('mostrar_categoria');
+Route::get('editar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'edit'])->name('editar_categoria');
+Route::post('actualizar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'update'])->name('categoria.update');
+Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'destroy'])->name('categoria.destroy');
 
 
 
@@ -75,24 +89,10 @@ Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController
 // ======================================================
 
 
-// Rutas para la gestión de caja
-// Route::prefix('caja')->name('caja.')->group(function () {
-    Route::get('caja', [CajaController::class, 'index'])->name('caja');
-    Route::post('/abrir', [CajaController::class, 'abrirCaja'])->name('caja.abrir');
-    Route::post('/cerrar', [CajaController::class, 'cerrarCaja'])->name('caja.cerrar');
-    Route::post('movimiento', [CajaController::class, 'registrarMovimiento'])->name('caja.movimiento');
-    Route::get('movimientos', [CajaController::class, 'obtenerMovimientos'])->name('caja.movimientos');
-     Route::get('historial', [CajaController::class, 'historial'])->name('caja_historial');
-//});
+    Route::get('caja', [App\Http\Controllers\CajaMenorController::class, 'index'])->name('index');
+    Route::post('abrir_caja', [App\Http\Controllers\CajaMenorController::class, 'abrirCaja'])->name('abrir_caja');
+    Route::post('cerrar_caja', [App\Http\Controllers\CajaMenorController::class, 'cerrarCaja'])->name('cerrar_caja');
+    Route::post('movimiento_caja', [App\Http\Controllers\CajaMenorController::class, 'registrarMovimiento'])->name('movimiento_caja');
+    Route::get('Obtener_movimientos/{id}', [App\Http\Controllers\CajaMenorController::class, 'obtenerMovimientos'])->name('obtener_movimientos');
+    Route::post('reporte_caja', [App\Http\Controllers\CajaMenorController::class, 'generarReporte'])->name('reporte_caja');
 
-     /*
- 
-        Route::get('caja', [CajaController::class, 'index'])->name('caja');
-        Route::get('estado', [CajaController::class, 'estado'])->name('caja_estado');
-        Route::post('abrir', [CajaController::class, 'abrir'])->name('caja_abrir');
-        Route::post('cerrar', [CajaController::class, 'cerrar'])->name('caja_cerrar');
-        Route::get('historial', [CajaController::class, 'historial'])->name('caja_historial');
-        Route::get('{id}/detalles', [CajaController::class, 'detalles'])->name('caja_detalles');
-
-        
-     */

@@ -50,7 +50,14 @@
     </div>
 </div>
 
-<!-- Modal para crear categorías -->
+
+<!-- ===================================
+
+    MODAL CREAR CATEGORIA
+
+======================================  -->
+
+
 <div class="modal fade" id="modalCategoria" name="modalCategoria" role="dialog" tabindex="-1">
 
     <div class="modal-dialog">
@@ -109,7 +116,98 @@
       </div> 
 </div>
 
-<!-- Modal ejemplo de categorias -->
+
+
+<!-- ===================================
+
+    MODAL VER CATEGORIA
+
+======================================  -->
+
+<div class="modal fade" id="modalVerCategoria" tabindex="-1" role="dialog" aria-labelledby="modalVerCategoriaLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header  bg-light" >
+                <h5 class="modal-title" id="modalVerCategoriaLabel"><i class="fas fa-eye"></i> Ver Categoría</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="closeModalVer">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="nombre">Nombre:</label>
+                        <input type="text" class="form-control" id="nombreVer" name="nombre" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción:</label>
+                        <input type="text" class="form-control" id="descripcionVer" name="descripcion" readonly>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCerrarModalVer">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===================================
+
+    MODAL EDITAR CATEGORIA
+
+======================================  -->
+
+
+    <div class="modal fade" id="modalEditarCategoria" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header  bg-light" >
+                <h5 class="modal-title" id="modalTitle"><i class="fa fa-edit" aria-hidden="true"></i> Editar Categoría</h5>                
+                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                 <span aria-hidden="true">&times;</span>
+                 </button>
+            </div>
+
+            <form method="POST" id="form_editar_categoria" action="{{ url('categorias') }}" >
+             @csrf  
+
+                <div class="modal-body">
+                     <input type="hidden" id="id_categoria" name="id_categoria" value="1">
+                     <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
+                      <input type="hidden" name="id_categoria" id="id_categoria">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre_categoria" name="nombre" required>
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <input type="text" class="form-control" id="descripcion_categoria" name="descripcion" >                      
+                        <div class="invalid-feedback"></div>
+                    </div>                    
+                </div>
+
+                <div class="modal-footer">                
+                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                     <button type="submit" class="btn btn-primary" id="BtnEditar_categoria" name="BtnEditar_categoria">Guardar</button>   
+                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
+                </div>          
+            </form>      
+        </div>
+     </div> 
+</div>
+
+
+
+
+<!-- ======================================
+
+MODAL EJEMPLOS DE CATEGORIAS
+
+============================================ -->
 
     <div class="modal fade" id="categoriasModal" tabindex="-1" aria-labelledby="categoriasModalLabel" aria-hidden="true">
         <div class="modal-dialog ">
@@ -427,9 +525,7 @@ let btn = $('#BtnGuardar_categoria')
     setTimeout(function() {
       $(btn).html(existingHTML).prop('disabled', false) //show original HTML and enable
     },5000) 
-        $('#BtnGuardar_categoria').attr('disabled', true);
-
-     
+        $('#BtnGuardar_categoria').attr('disabled', true);    
 
         try {
 
@@ -443,13 +539,11 @@ let btn = $('#BtnGuardar_categoria')
                   table.ajax.reload();
               //  $('#modalCategoria').modal('hide');
 
-                $('#modalCategoria').removeClass('show');
-                $('#modalCategoria').css('display', 'none');
+                $('#modalVerCategoria').removeClass('show');
+                $('#modalVerCategoria').css('display', 'none');
                 $('.modal-backdrop').remove();
 
-
-                $('#form_guardar_categoria')[0].reset();
-             
+                $('#form_guardar_categoria')[0].reset();         
                   
               
              //   location.reload(true);
@@ -461,9 +555,172 @@ let btn = $('#BtnGuardar_categoria')
           toastr["danger"]("Se ha presentado un error.", "Información");
           }
     });
- });
 
+// =========================================
+/// VER REGISTROS DEL PRODUCTO
+// =========================================
 
+$(document).on('click', '.verCategoria', function(e) {    
+    e.preventDefault();
+    
+    let id_categoria = $(this).data('id');
+    
+    $.ajax({
+        url: "{{ url('mostrar_categoria') }}/" + id_categoria,
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log('Datos del producto recibidos:', data);
+            
+            // Llenar campos del modal VER
+            $('#modalVerCategoria input[name="nombre"]').val(data.nombre || '');
+            $('#modalVerCategoria input[name="descripcion"]').val(data.descripcion || '');
+            $('#modalVerCategoria').modal('show');    
+        }                
+    });                  
+});
+
+// =========================================
+/// CERRAR MODALES - CÓDIGO CORREGIDO
+// =========================================
+
+// Cerrar modal VER al hacer clic en la X o botón cerrar
+$(document).on('click', '#modalVerCategoria .close, #modalVerCategoria [data-dismiss="modal"]', function() {
+    $('#modalVerCategoria').modal('hide');
+});
+
+// Cerrar modal EDITAR al hacer clic en la X o botón cerrar
+$(document).on('click', '#modalEditarCategoria .close, #modalEditarCategoria [data-dismiss="modal"]', function() {
+    $('#modalEditarCategoria').modal('hide');
+});
+
+// Cerrar modales al hacer clic fuera
+$(document).on('click', '#modalVerCategoria, #modalEditarCategoria', function(e) {
+    if (e.target === this) {
+        $(this).modal('hide');
+    }
+});
+
+// Cerrar modales con tecla ESC
+$(document).on('keydown', function(e) {
+    if (e.keyCode === 27) { // ESC key
+        $('#modalVerCategoria').modal('hide');
+        $('#modalEditarCategoria').modal('hide');
+    }
+});
+// =========================================
+/// EDITAR REGISTROS DE CATEGORIA
+// =========================================
+
+$(document).on('click', '.editarCategoria', function(e) {    
+    e.preventDefault();
+    
+    let id_categoria = $(this).data('id');
+   
+    $.ajax({
+        url: "{{ url('editar_categoria') }}/" + id_categoria,
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            console.log('Datos recibidos para editar:', data);
+            
+            // Llenar campos del modal incluyendo el ID
+            $('#id_categoria').val(data.id_categoria || data.id); // Asegúrate de usar el campo correcto
+            $('#nombre_categoria').val(data.nombre || '');
+            $('#descripcion_categoria').val(data.descripcion || '');
+                                  
+            $('#modalEditarCategoria').modal('show');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en AJAX:', xhr);
+            toastr.error("Error al cargar los datos de la Categoria.");
+        }
+    });
+});
+
+// ==============================
+// GUARDAR DATOS EDITADOS - CORREGIDO
+// ==============================
+
+$(document).on('submit', '#form_editar_categoria', function(event) {
+    event.preventDefault();
+
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+    });
+
+    // OBTENER EL ID CORRECTAMENTE
+    let id_categoria = $('#id_categoria').val();
+    
+    if (!id_categoria) {
+        toastr.error("Error: ID de la categoría no encontrado");
+        return;
+    }
+
+    console.log('ID de categoría a actualizar:', id_categoria);
+
+    // Configurar botón submit
+    let btn = $('#BtnEditar_categoria');
+    let existingHTML = btn.html();
+    btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>Procesando...').prop('disabled', true);
+
+    var formData = new FormData(this);   
+
+    $.ajax({
+        url: "/actualizar_categoria/" + id_categoria,
+        method: 'POST',
+        data: formData,
+        processData: false, 
+        contentType: false,  
+        dataType: 'json',
+        success: function(data) {
+            console.log('✅ Respuesta exitosa:', data);
+            
+            // Recargar tabla
+            if (window.table && typeof window.table.ajax !== 'undefined') {
+                window.table.ajax.reload(null, false);
+            }
+
+              table.ajax.reload();
+            
+            $('#form_editar_categoria')[0].reset();      
+            $('#modalEditarCategoria').modal('hide');
+            $('.modal-backdrop').remove();              
+            
+            toastr.success(data.message || "Categoría actualizada correctamente");
+            btn.html(existingHTML).prop('disabled', false);
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error en AJAX:', xhr);
+            
+            if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                let errorMessage = "Errores de validación:<br>";
+                
+                for (const field in errors) {
+                    errorMessage += `- ${errors[field][0]}<br>`;
+                    
+                    // Resaltar campo con error
+                    $(`[name="${field}"]`).addClass('is-invalid');
+                    $(`#error-${field}`).remove();
+                    $(`[name="${field}"]`).after(`<div class="invalid-feedback" id="error-${field}">${errors[field][0]}</div>`);
+                }
+                
+                toastr.error(errorMessage);                
+            } else if (xhr.status === 404) {
+                toastr.error(xhr.responseJSON.message || "Categoría no encontrada");
+            } else {
+                toastr.error("Error al actualizar la categoría");
+            }
+            
+            btn.html(existingHTML).prop('disabled', false);
+        }
+    });
+});
+});
+ 
 </script>
 @endpush
 

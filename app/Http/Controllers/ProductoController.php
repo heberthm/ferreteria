@@ -32,12 +32,14 @@ class ProductoController extends Controller
                         
               ->make(true);
           } 
-  
+          
           $productos = Producto::select('id_producto','nombre')->get(); 
           $categorias = Categoria::select('nombre')->get();
 
-          return view('productos', compact('categorias'));
+          return view('productos', compact('categorias'));          
     }
+
+   
 
     public function create()
     {
@@ -201,7 +203,7 @@ public function edit($id)
             'stock_minimo'  => 'required|integer|min:0',
             'proveedor'     => 'nullable|string|max:80',
             'categoria'     => 'nullable|string|max:80',
-            'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',         
+           
         ]);
 
         \Log::info('Validación pasada, actualizando producto...');
