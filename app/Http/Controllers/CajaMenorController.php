@@ -210,41 +210,30 @@ public function obtenerMovimientos($id)
     try {
         Log::info("🔍 Solicitando movimientos para caja ID: {$id}");
 
-        // Verificar que la caja existe - BUSCAR POR id_caja
+        // Verificar que la caja existe
         $caja = CajaMenor::where('id_caja', $id)->first();
         
         if (!$caja) {
-            Log::warning("❌ Caja no encontrada con ID: {$id}");
             return response()->json([
                 'success' => false,
                 'message' => 'Caja no encontrada',
-                'movimientos' => []
+                'movimientos' => [],
+                'pagination' => null
             ], 404);
         }
 
-        Log::info("✅ Caja encontrada - ID: {$caja->id_caja}, Estado: {$caja->estado}");
-
-        // Obtener movimientos SIN relaciones primero para probar
-        $movimientos = MovimientoCaja::where('id_caja', $id)
+        // Obtener movimientos con paginación Y cargar la relación usuario
+        $movimientos = MovimientoCaja::with(['usuario']) // ← CARGAR RELACIÓN USUARIO
+            ->where('id_caja', $id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(8);
 
-        Log::info("📊 Movimientos encontrados (sin relaciones): " . $movimientos->count());
+        Log::info("📊 Movimientos encontrados: " . $movimientos->total());
 
-        // Si hay movimientos, intentar cargar relaciones
-        if ($movimientos->count() > 0) {
-            try {
-                $movimientos->load(['usuario', 'cajaMenor']);
-                Log::info("✅ Relaciones cargadas correctamente");
-            } catch (\Exception $e) {
-                Log::warning("⚠️ Error al cargar relaciones: " . $e->getMessage());
-                // Continuar sin relaciones
-            }
-        }
-
-        // Debug de movimientos
+        // Debug: verificar que se carguen las relaciones
         foreach ($movimientos as $movimiento) {
-            Log::info("💰 Movimiento - ID: {$movimiento->id}, Tipo: {$movimiento->tipo}, Monto: {$movimiento->monto}, Concepto: {$movimiento->concepto}");
+            Log::info("💰 Movimiento - ID: {$movimiento->id}, Usuario: " . 
+                     ($movimiento->usuario ? $movimiento->usuario->name : 'NO CARGADO'));
         }
 
         return response()->json([
@@ -254,17 +243,27 @@ public function obtenerMovimientos($id)
                 'estado' => $caja->estado,
                 'monto_actual' => $caja->monto_actual
             ],
-            'movimientos' => $movimientos,
-            'total_movimientos' => $movimientos->count()
+            'movimientos' => $movimientos->items(),
+            'pagination' => [
+                'current_page' => $movimientos->currentPage(),
+                'last_page' => $movimientos->lastPage(),
+                'per_page' => $movimientos->perPage(),
+                'total' => $movimientos->total(),
+                'from' => $movimientos->firstItem(),
+                'to' => $movimientos->lastItem(),
+                'has_more_pages' => $movimientos->hasMorePages(),
+                'next_page_url' => $movimientos->nextPageUrl(),
+                'prev_page_url' => $movimientos->previousPageUrl()
+            ]
         ]);
 
     } catch (\Exception $e) {
         Log::error('❌ Error al obtener movimientos: ' . $e->getMessage());
-        Log::error('❌ Stack trace: ' . $e->getTraceAsString());
         return response()->json([
             'success' => false,
             'message' => 'Error al cargar movimientos: ' . $e->getMessage(),
-            'movimientos' => []
+            'movimientos' => [],
+            'pagination' => null
         ], 500);
     }
 }

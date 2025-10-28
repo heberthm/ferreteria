@@ -256,9 +256,28 @@
 
 @section('css')
     <style>
-        .movimiento-ingreso { border-left: 4px solid #28a745; }
-        .movimiento-egreso { border-left: 4px solid #dc3545; }
-    </style>
+    .movimiento-ingreso { border-left: 4px solid #28a745; }
+    .movimiento-egreso { border-left: 4px solid #dc3545; }
+
+    /* Estilos para la paginación */
+    .pagination {
+        margin-bottom: 0;
+    }
+
+    .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    .page-link {
+        color: #007bff;
+        cursor: pointer;
+    }
+
+    .page-link:hover {
+        color: #0056b3;
+    }
+</style>
 @stop
 
 @section('js')
@@ -272,8 +291,8 @@ $.ajaxSetup({
   }
 });
 
-function cargarMovimientos() {
-    console.log('Cargando movimientos...');
+function cargarMovimientos(page = 1) {
+    console.log('Cargando movimientos - Página:', page);
     
     $('#movimientos-container').html(`
         <div class="text-center py-4">
@@ -299,7 +318,7 @@ function cargarMovimientos() {
         return;
     }
 
-    const url = '/Obtener_movimientos/' + cajaData.id;
+    const url = `/Obtener_movimientos/${cajaData.id}?page=${page}`;
     console.log('URL de movimientos:', url);
     
     $.ajax({
@@ -309,16 +328,7 @@ function cargarMovimientos() {
             console.log('Respuesta de movimientos:', response);
             
             if (response.success) {
-                if (response.movimientos && response.movimientos.length > 0) {
-                    $('#movimientos-container').html(generarHTMLMovimientos(response.movimientos));
-                } else {
-                    $('#movimientos-container').html(`
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i>
-                            No hay movimientos registrados en esta caja.
-                        </div>
-                    `);
-                }
+                $('#movimientos-container').html(generarHTMLMovimientos(response.movimientos, response.pagination));
             } else {
                 $('#movimientos-container').html(`
                     <div class="alert alert-warning">
@@ -329,19 +339,13 @@ function cargarMovimientos() {
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error completo:', {xhr: xhr, status: status, error: error});
-            
-            let errorDetail = 'Error desconocido';
-            if (xhr.responseJSON && xhr.responseJSON.message) {
-                errorDetail = xhr.responseJSON.message;
-            }
+            console.error('Error al cargar movimientos:', {xhr: xhr, status: status, error: error});
             
             $('#movimientos-container').html(`
                 <div class="alert alert-danger">
                     <i class="fas fa-exclamation-triangle"></i> 
                     Error al cargar los movimientos.
-                    <br><small>Detalle: ${errorDetail}</small>
-                    <br><small>Status: ${xhr.status} - ${xhr.statusText}</small>
+                    <br><small>Detalle: ${xhr.status} - ${xhr.statusText}</small>
                 </div>
             `);
         }
@@ -404,7 +408,7 @@ function registrarMovimiento() {
     const btn = $('#btnRegistrarMovimiento');
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Registrando...');
     
-    // URL CORREGIDA para registrar movimiento
+    // URL para registrar movimiento
     const urlRegistrar = '/movimiento_caja';
     console.log('URL para registrar:', urlRegistrar);
     
@@ -417,8 +421,8 @@ function registrarMovimiento() {
             console.log('Respuesta del servidor:', response);
             
             if (response.success) {
-                // Cerrar modal y resetear
-                $('#modalMovimiento').modal('hide');
+                          
+                // Resetear formulario
                 $('#formMovimiento')[0].reset();
                 $('#formMovimiento').find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
                 
@@ -433,6 +437,12 @@ function registrarMovimiento() {
                 
                 // Actualizar la interfaz
                 actualizarInterfazDespuesMovimiento(response.nuevo_saldo);
+
+                   // ✅ CERRAR EL MODAL                
+                     $('#modalMovimiento').modal('hide').on('hidden.bs.modal', function() {
+                    $('#formMovimiento')[0].reset();
+                    $('#formMovimiento').find('.is-invalid, .is-valid').removeClass('is-invalid is-valid');
+    });
             }
         },
         error: function(xhr) {
@@ -466,13 +476,15 @@ function registrarMovimiento() {
             Swal.fire('Error', errorMessage, 'error');
         },
         complete: function() {
+            // Restaurar botón
             btn.prop('disabled', false).html('<i class="fas fa-save"></i> Registrar Movimiento');
         }
     });
 }
 
-function generarHTMLMovimientos(movimientos) {
+function generarHTMLMovimientos(movimientos, pagination) {
     console.log('Generando HTML para movimientos:', movimientos);
+    console.log('Información de paginación:', pagination);
     
     if (!movimientos || movimientos.length === 0) {
         return `
@@ -500,6 +512,7 @@ function generarHTMLMovimientos(movimientos) {
     
     movimientos.forEach((mov) => {
         console.log('Procesando movimiento:', mov);
+        console.log('Datos del usuario:', mov.usuario);
         
         const fecha = mov.created_at ? new Date(mov.created_at).toLocaleString('es-ES') : 'N/A';
         const tipoBadge = mov.tipo === 'ingreso' 
@@ -507,7 +520,15 @@ function generarHTMLMovimientos(movimientos) {
             : '<span class="badge badge-danger"><i class="fas fa-arrow-up"></i> EGRESO</span>';
         
         const montoFormateado = mov.monto ? parseFloat(mov.monto).toFixed(2) : '0.00';
-        const usuarioNombre = mov.usuario ? mov.usuario.name : (mov.userId || 'Sistema');
+        
+        // ✅ MOSTRAR NOMBRE DEL USUARIO EN LUGAR DEL ID
+        let usuarioNombre = 'Sistema';
+        if (mov.usuario && mov.usuario.name) {
+            usuarioNombre = mov.usuario.name;
+        } else if (mov.userId) {
+            usuarioNombre = `Usuario #${mov.userId}`;
+        }
+        
         const concepto = mov.concepto || 'Sin concepto';
         const descripcion = mov.descripcion || '';
         
@@ -535,10 +556,19 @@ function generarHTMLMovimientos(movimientos) {
                 </tbody>
             </table>
         </div>
+    `;
+    
+    // Agregar información de paginación y controles
+    if (pagination) {
+        html += generarPaginacion(pagination);
+    }
+    
+    html += `
         <div class="mt-2">
             <small class="text-muted">
                 <i class="fas fa-info-circle"></i>
-                Mostrando ${movimientos.length} movimiento(s)
+                Mostrando ${movimientos.length} movimiento(s) 
+                ${pagination ? `(Página ${pagination.current_page} de ${pagination.last_page})` : ''}
             </small>
         </div>
     `;
@@ -546,6 +576,88 @@ function generarHTMLMovimientos(movimientos) {
     return html;
 }
 
+// Función para generar los controles de paginación
+function generarPaginacion(pagination) {
+    if (!pagination || pagination.last_page <= 1) {
+        return '';
+    }
+
+    const currentPage = pagination.current_page;
+    const lastPage = pagination.last_page;
+    
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <small class="text-muted">
+                    Mostrando ${pagination.from} a ${pagination.to} de ${pagination.total} registros
+                </small>
+            </div>
+            <nav aria-label="Paginación de movimientos">
+                <ul class="pagination pagination-sm mb-0">
+    `;
+
+    // Botón Anterior
+    if (currentPage > 1) {
+        html += `
+            <li class="page-item">
+                <a class="page-link" href="javascript:void(0)" onclick="cargarMovimientos(${currentPage - 1})" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        `;
+    } else {
+        html += `
+            <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+            </li>
+        `;
+    }
+
+    // Números de página
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(lastPage, currentPage + 2);
+
+    for (let page = startPage; page <= endPage; page++) {
+        if (page === currentPage) {
+            html += `
+                <li class="page-item active">
+                    <span class="page-link">${page}</span>
+                </li>
+            `;
+        } else {
+            html += `
+                <li class="page-item">
+                    <a class="page-link" href="javascript:void(0)" onclick="cargarMovimientos(${page})">${page}</a>
+                </li>
+            `;
+        }
+    }
+
+    // Botón Siguiente
+    if (currentPage < lastPage) {
+        html += `
+            <li class="page-item">
+                <a class="page-link" href="javascript:void(0)" onclick="cargarMovimientos(${currentPage + 1})" aria-label="Siguiente">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        `;
+    } else {
+        html += `
+            <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+            </li>
+        `;
+    }
+
+    html += `
+                </ul>
+            </nav>
+        </div>
+    `;
+
+    return html;
+}
 
 // Función para actualizar interfaz después de movimiento
 function actualizarInterfazDespuesMovimiento(nuevoSaldo) {
@@ -819,6 +931,19 @@ $(document).ready(function() {
     
     console.log('Inicialización completada');
 });
+
+// Función para validar monto en tiempo real
+function validarMonto(input) {
+    const valor = parseFloat(input.value);
+    const grupo = $(input).closest('.form-group');
+    
+    if (isNaN(valor) || valor <= 0) {
+        $(input).addClass('is-invalid').removeClass('is-valid');
+        grupo.find('.invalid-feedback').text('El monto debe ser mayor a 0');
+    } else {
+        $(input).removeClass('is-invalid').addClass('is-valid');
+    }
+}
 
 // Limpiar intervalo cuando la página se cierre
 $(window).on('beforeunload', function() {

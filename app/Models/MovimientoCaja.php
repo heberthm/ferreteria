@@ -9,8 +9,7 @@ class MovimientoCaja extends Model
 {
     use HasFactory;
 
-    // CAMBIA ESTA LÍNEA CON EL NOMBRE CORRECTO DE TU TABLA
-    protected $table = 'movimiento_caja'; // o el nombre que tengas
+    protected $table = 'movimiento_caja'; // Asegúrate de que este sea el nombre correcto
     
     protected $fillable = [
         'id_caja',
@@ -21,13 +20,15 @@ class MovimientoCaja extends Model
         'userId'
     ];
 
+    // Relación con CajaMenor
     public function cajaMenor()
     {
         return $this->belongsTo(CajaMenor::class, 'id_caja', 'id_caja');
     }
 
+    // Relación con User - VERIFICA QUE ESTÉ CORRECTA
     public function usuario()
     {
         return $this->belongsTo(User::class, 'userId', 'id');
     }
-}
+} 
