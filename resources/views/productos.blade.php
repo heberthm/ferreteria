@@ -14,7 +14,7 @@
     
 <br>
 <div class="card">
-    <div class="card-header d-flex bg-light justify-content-between align-items-right">
+    <div class="card-header bg-light d-flex justify-content-between align-items-right">
         <h5 class="mb-0"><i class="fas fa-umbrella"></i> Gestión de productos</h5>
       <!--  <button class="btn btn-primary float-right" id="BtnCrearProducto" data-toggle="modal" data-target="#modalProductos"><i class="fa fa-plus" aria-hidden="true"></i>  Nuevo producto</button> -->
      
@@ -65,7 +65,7 @@
             </div>
             
             <form method="POST" id="form_guardar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
-            csrf
+            
                 <div class="modal-body">
                     <input type="hidden" id="id_categoria" name="id_categoria" value="1">
                      <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
@@ -721,7 +721,6 @@ $.ajaxSetup({
             }],
 
       "language": {
-
 
         "emptyTable": "No hay productos registrados.",
         "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",

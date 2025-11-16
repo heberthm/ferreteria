@@ -6,7 +6,7 @@ use App\Models\Cliente;
 use App\Models\Producto;
 use App\Models\DetalleVenta;
 use App\Models\Inventario;
-use Illuminate\Http\Request;
+use Illuminate\Http\Reques;
 
 class VentaController extends Controller
 {

@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
+use App\Http\Controllers\PuntoVentaController;
+
+
 
 
 
@@ -95,4 +98,24 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
     Route::post('movimiento_caja', [App\Http\Controllers\CajaMenorController::class, 'registrarMovimiento'])->name('movimiento_caja');
     Route::get('Obtener_movimientos/{id}', [App\Http\Controllers\CajaMenorController::class, 'obtenerMovimientos'])->name('obtener_movimientos');
     Route::post('reporte_caja', [App\Http\Controllers\CajaMenorController::class, 'generarReporte'])->name('reporte_caja');
+    Route::post('/movimientos-caja/datatable', [CajaMenorController::class, 'datatable'])->name('movimientos.datatable');
+    Route::get('/movimientos-caja/export/excel', [CajaMenorController::class, 'exportarExcel'])->name('movimientos.export.excel');
+    Route::get('/movimientos-caja/export/pdf', [CajaMenorController::class, 'exportarPdf'])->name('movimientos.export.pdf');
+
+
+
+// ====================================================
+
+// RUTAS PARA VENTAS
+
+// ===================================================
+
+
+
+    Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
+    Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
+    Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
+    Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
+    Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
+    Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
 

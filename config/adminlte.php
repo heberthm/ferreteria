@@ -372,7 +372,7 @@ return [
         ],
         [
             'text' => 'Ventas',
-            'url' => 'admin/pages',
+            'url' => '#',
             'icon' => 'nav-icon fas fa-cash-register',
             'submenu' => [
                 [
@@ -380,6 +380,11 @@ return [
                     'icon' => 'far fa-circle nav-icon',
                     'url' => 'venta',
                 ],
+                 [
+                    'text' => 'Clientes',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => '#',
+                ],  
                 [
                     'text' => 'gastos',
                     'icon' => 'far fa-circle nav-icon',
@@ -593,16 +598,16 @@ return [
             ],
         ],
         'Select2' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => false,
+                    'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
                 ],
                 [
                     'type' => 'css',
-                    'asset' => false,
+                    'asset' => true,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
                 ],
             ],

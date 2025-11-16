@@ -36,96 +36,65 @@ class MovimientoCajaController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
+  public function store(Request $request)
+{
+    try {
         DB::beginTransaction();
-        
-        try {
-            // Validación de datos
-            $validator = Validator::make($request->all(), [
-                'caja_menor_id' => 'required|exists:caja_menor,id',
-                'tipo' => 'required|in:ingreso,egreso',
-                'monto' => 'required|numeric|min:0.01',
-                'concepto' => 'required|string|max:255',
-                'descripcion' => 'nullable|string',
-                'comprobante' => 'nullable|string|max:100'
-            ], [
-                'caja_menor_id.required' => 'El ID de caja es obligatorio',
-                'caja_menor_id.exists' => 'La caja especificada no existe',
-                'tipo.required' => 'El tipo de movimiento es obligatorio',
-                'tipo.in' => 'El tipo debe ser ingreso o egreso',
-                'monto.required' => 'El monto es obligatorio',
-                'monto.min' => 'El monto debe ser mayor a 0',
-                'concepto.required' => 'El concepto es obligatorio',
-                'concepto.max' => 'El concepto no debe exceder 255 caracteres'
-            ]);
 
-            if ($validator->fails()) {
+        $validated = $request->validate([
+            'caja_menor_id' => 'required|exists:caja_menor,id',
+            'tipo_movimiento' => 'required|in:ingreso,egreso',
+            'monto' => 'required|numeric|min:0.01',
+            'descripcion' => 'required|string|max:255'
+        ]);
+
+        $caja = CajaMenor::findOrFail($request->caja_menor_id);
+        $monto = floatval($request->monto);
+
+        // Calcular nuevo saldo
+        if ($request->tipo_movimiento === 'ingreso') {
+            $nuevoSaldo = $caja->monto_actual + $monto;
+        } else {
+            if ($caja->monto_actual < $monto) {
                 return response()->json([
                     'success' => false,
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Obtener la caja
-            $caja = CajaMenor::findOrFail($request->caja_menor_id);
-
-            // Verificar que la caja esté abierta
-            if ($caja->estado !== 'abierta') {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'No se puede registrar movimiento en una caja cerrada'
+                    'message' => 'Saldo insuficiente'
                 ], 400);
             }
-
-            // Validar fondos suficientes para egresos
-            if ($request->tipo === 'egreso' && $caja->monto_actual < $request->monto) {
-                return response()->json([
-                    'success' => false,
-                    'error' => 'Fondos insuficientes en la caja. Disponible: $' . number_format($caja->monto_actual, 2)
-                ], 400);
-            }
-
-            // Actualizar monto de la caja
-            if ($request->tipo === 'ingreso') {
-                $caja->monto_actual += $request->monto;
-            } else {
-                $caja->monto_actual -= $request->monto;
-            }
-
-            // Guardar el movimiento
-            $movimiento = MovimientoCaja::create([
-                'caja_menor_id' => $request->caja_menor_id,
-                'tipo' => $request->tipo,
-                'monto' => $request->monto,
-                'concepto' => $request->concepto,
-                'descripcion' => $request->descripcion,
-                'comprobante' => $request->comprobante,
-                'usuario_id' => auth()->id(),
-                'fecha_movimiento' => now()
-            ]);
-
-            // Actualizar la caja
-            $caja->save();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Movimiento registrado correctamente',
-                'movimiento' => $movimiento->load('usuario'),
-                'nuevo_saldo' => $caja->monto_actual
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return response()->json([
-                'success' => false,
-                'error' => 'Error al registrar movimiento: ' . $e->getMessage()
-            ], 500);
+            $nuevoSaldo = $caja->monto_actual - $monto;
         }
+
+        // Crear movimiento
+        $movimiento = MovimientoCajaMenor::create([
+            'caja_menor_id' => $caja->id,
+            'tipo_movimiento' => $request->tipo_movimiento,
+            'monto' => $monto,
+            'descripcion' => $request->descripcion,
+            'fecha_movimiento' => now(),
+            'usuario_id' => auth()->id()
+        ]);
+
+        // Actualizar caja
+        $caja->update(['monto_actual' => $nuevoSaldo]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Movimiento agregado exitosamente',
+            'nuevoSaldo' => $nuevoSaldo,
+            'movimiento' => $movimiento
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
      * Display the specified resource.
