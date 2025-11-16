@@ -198,7 +198,7 @@
                     <span class="info-box-icon bg-success"><i class="fas fa-shopping-cart"></i></span>
                     <div class="info-box-content">
                         <span class="info-box-text">Venta Actual</span>
-                        <span class="info-box-number" id="metricVentaActual">$0.00</span>
+                        <span class="info-box-number" id="metricVentaActual">$0</span>
                     </div>
                 </div>
             </div>
@@ -264,22 +264,21 @@
                     </select>
                 </div>
 
-                <!-- Totales -->
+          <!-- Totales - CORREGIDO: Sin signo $ y alineados a la derecha -->
                 <table class="table table-sm">
                     <tr>
                         <td><strong>Subtotal:</strong></td>
-                        <td class="text-right"><span id="subtotalVenta">$0.00</span></td>
+                        <td class="text-right"><span id="subtotalVenta">0</span></td>
                     </tr>
                     <tr>
                         <td><strong>IVA (<span id="porcentajeIva">16</span>%):</strong></td>
-                        <td class="text-right"><span id="ivaVenta">$0.00</span></td>
+                        <td class="text-right"><span id="ivaVenta">0</span></td>
                     </tr>
                     <tr class="table-success">
                         <td><h4><strong>TOTAL:</strong></h4></td>
-                        <td class="text-right"><h3><strong id="totalVenta">$0.00</strong></h3></td>
+                        <td class="text-right"><h3><strong id="totalVenta">0</strong></h3></td>
                     </tr>
                 </table>
-
                 <!-- Método de Pago -->
                 <div class="form-group">
                     <label>Método de Pago</label>
@@ -297,10 +296,10 @@
                 <div id="pagoEfectivo" class="metodo-pago-detalle">
                     <div class="form-group">
                         <label>Efectivo Recibido</label>
-                        <input type="number" class="form-control form-control-lg" id="efectivoRecibido" step="0.01" min="0" value="0">
+                        <input type="number" class="form-control form-control-lg" id="efectivoRecibido" step="1" min="0" value="0">
                     </div>
                     <div class="alert alert-success">
-                        <strong>Cambio:</strong> <span id="cambioVenta" class="h4">$0.00</span>
+                        <strong>Cambio:</strong> <span id="cambioVenta" class="h4">$0</span>
                     </div>
                 </div>
 
@@ -336,18 +335,18 @@
                         <div class="col-6">
                             <div class="form-group">
                                 <label>Efectivo</label>
-                                <input type="number" class="form-control" id="montoEfectivoMixto" step="0.01" min="0" value="0">
+                                <input type="number" class="form-control" id="montoEfectivoMixto" step="1" min="0" value="0">
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group">
                                 <label>Tarjeta</label>
-                                <input type="number" class="form-control" id="montoTarjetaMixto" step="0.01" min="0" value="0">
+                                <input type="number" class="form-control" id="montoTarjetaMixto" step="1" min="0" value="0">
                             </div>
                         </div>
                     </div>
                     <div class="alert alert-info">
-                        <strong>Total Mixto:</strong> <span id="totalMixto" class="h5">$0.00</span>
+                        <strong>Total Mixto:</strong> <span id="totalMixto" class="h5">$0</span>
                     </div>
                 </div>
 
@@ -513,7 +512,7 @@
     </div>
 </div>
 
-<!-- Modal Vista Previa de Impresión - CORREGIDO -->
+<!-- Modal Vista Previa de Impresión - CORREGIDO: Ahora se puede cerrar con X y botón Cerrar -->
 <div class="modal fade" id="modalVistaPrevia" tabindex="-1" role="dialog" aria-labelledby="modalVistaPreviaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -521,7 +520,7 @@
                 <h5 class="modal-title" id="modalVistaPreviaLabel">
                     <i class="fas fa-print"></i> Vista Previa - Comprobante
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="btnCerrarModalX">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -529,7 +528,7 @@
                 <div id="vistaPreviaComprobante"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCerrarModal">Cerrar</button>
                 <button type="button" class="btn btn-primary" id="btnImprimir">
                     <i class="fas fa-print"></i> Imprimir
                 </button>
@@ -704,6 +703,12 @@
     font-variant-numeric: tabular-nums;
 }
 
+/* CORRECCIÓN: Totales alineados a la derecha en factura */
+.comprobante-factura .table-bordered td:last-child {
+    text-align: right !important;
+    font-weight: bold;
+}
+
 </style>
 @stop
 
@@ -712,65 +717,65 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/es.js"></script>
 <script>
-// Datos de productos
+// Datos de productos - CORREGIDO: Precios en números enteros
 const productos = {
     '1': { 
         id: '1', codigo: 'MART001', nombre: 'Martillo de Acero 16oz', 
-        precio: 185.50, stock: 5, stock_minimo: 3, categoria: 'Herramientas',
+        precio: 185, stock: 5, stock_minimo: 3, categoria: 'Herramientas',
         imagen: 'https://via.placeholder.com/60x60?text=MARTILLO', unidad: 'pza',
         frecuente: true
     },
     '2': { 
         id: '2', codigo: 'DEST002', nombre: 'Destornillador Phillips #2', 
-        precio: 45.75, stock: 15, stock_minimo: 5, categoria: 'Herramientas',
+        precio: 45, stock: 15, stock_minimo: 5, categoria: 'Herramientas',
         imagen: 'https://via.placeholder.com/60x60?text=DESTORN', unidad: 'pza',
         frecuente: true
     },
     '3': { 
         id: '3', codigo: 'TUB001', nombre: 'Tubería PVC 1/2" x 6m', 
-        precio: 89.90, stock: 25, stock_minimo: 10, categoria: 'Materiales',
+        precio: 89, stock: 25, stock_minimo: 10, categoria: 'Materiales',
         imagen: 'https://via.placeholder.com/60x60?text=TUBERIA', unidad: 'pza',
         frecuente: true
     },
     '4': { 
         id: '4', codigo: 'CEM001', nombre: 'Cemento Gris 50kg', 
-        precio: 285.00, stock: 8, stock_minimo: 5, categoria: 'Materiales',
+        precio: 285, stock: 8, stock_minimo: 5, categoria: 'Materiales',
         imagen: 'https://via.placeholder.com/60x60?text=CEMENTO', unidad: 'saco',
         frecuente: true
     },
     '5': { 
         id: '5', codigo: 'CLAV001', nombre: 'Clavos Galvanizados 2"', 
-        precio: 35.50, stock: 50, stock_minimo: 20, categoria: 'Fijaciones',
+        precio: 35, stock: 50, stock_minimo: 20, categoria: 'Fijaciones',
         imagen: 'https://via.placeholder.com/60x60?text=CLAVOS', unidad: 'kg',
         frecuente: true
     },
     '6': { 
         id: '6', codigo: 'PINT001', nombre: 'Pintura Blanca Mate 4L', 
-        precio: 189.00, stock: 12, stock_minimo: 5, categoria: 'Pinturas',
+        precio: 189, stock: 12, stock_minimo: 5, categoria: 'Pinturas',
         imagen: 'https://via.placeholder.com/60x60?text=PINTURA', unidad: 'galon',
         frecuente: true
     },
     '7': { 
         id: '7', codigo: 'CABLE001', nombre: 'Cable THW Cal. 12', 
-        precio: 45.80, stock: 30, stock_minimo: 15, categoria: 'Electricidad',
+        precio: 45, stock: 30, stock_minimo: 15, categoria: 'Electricidad',
         imagen: 'https://via.placeholder.com/60x60?text=CABLE', unidad: 'm',
         frecuente: false
     },
     '8': { 
         id: '8', codigo: 'TORN001', nombre: 'Tornillos para Madera 3"', 
-        precio: 28.90, stock: 40, stock_minimo: 20, categoria: 'Fijaciones',
+        precio: 28, stock: 40, stock_minimo: 20, categoria: 'Fijaciones',
         imagen: 'https://via.placeholder.com/60x60?text=TORNILLO', unidad: 'pza',
         frecuente: false
     },
     '9': { 
         id: '9', codigo: 'ALIC001', nombre: 'Alicates de Corte 8"', 
-        precio: 95.00, stock: 10, stock_minimo: 5, categoria: 'Herramientas',
+        precio: 95, stock: 10, stock_minimo: 5, categoria: 'Herramientas',
         imagen: 'https://via.placeholder.com/60x60?text=ALICATE', unidad: 'pza',
         frecuente: false
     },
     '10': { 
         id: '10', codigo: 'BROCH001', nombre: 'Brocha Profesional 4"', 
-        precio: 32.50, stock: 20, stock_minimo: 8, categoria: 'Pinturas',
+        precio: 32, stock: 20, stock_minimo: 8, categoria: 'Pinturas',
         imagen: 'https://via.placeholder.com/60x60?text=BROCHA', unidad: 'pza',
         frecuente: false
     }
@@ -1021,9 +1026,9 @@ $(document).ready(function() {
     }
 
     window.mostrarMetricas = function() {
-        const totalVentasHoy = 12580.50;
+        const totalVentasHoy = 12580;
         const ventasCount = 15;
-        const ticketPromedio = totalVentasHoy / ventasCount;
+        const ticketPromedio = Math.round(totalVentasHoy / ventasCount);
         const productosVendidosHoy = 87;
         
         Swal.fire({
@@ -1038,15 +1043,15 @@ $(document).ready(function() {
                             <p><strong>Productos Vendidos:</strong></p>
                         </div>
                         <div class="col-6 text-right">
-                            <p class="text-success">$${totalVentasHoy.toFixed(2)}</p>
+                            <p class="text-success">$${totalVentasHoy}</p>
                             <p>${ventasCount}</p>
-                            <p class="text-info">$${ticketPromedio.toFixed(2)}</p>
+                            <p class="text-info">$${ticketPromedio}</p>
                             <p class="text-warning">${productosVendidosHoy}</p>
                         </div>
                     </div>
                     <hr>
                     <div class="mt-2">
-                        <p><strong>Venta Actual:</strong> $${carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0).toFixed(2)}</p>
+                        <p><strong>Venta Actual:</strong> $${carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0)}</p>
                         <p><strong>Productos en Carrito:</strong> ${carrito.reduce((sum, item) => sum + item.cantidad, 0)}</p>
                     </div>
                 </div>
@@ -1130,7 +1135,7 @@ $(document).ready(function() {
                                 </div>
                             </div>
                         </td>
-                        <td class="font-weight-bold text-success">$${producto.precio.toFixed(2)}</td>
+                        <td class="font-weight-bold text-success">$${producto.precio}</td>
                         <td class="${claseStock}">
                             ${producto.stock} ${producto.unidad}
                         </td>
@@ -1165,7 +1170,7 @@ $(document).ready(function() {
     function agregarProductoDesdeBusqueda(productoId) {
         const producto = productos[productoId];
         if (producto && agregarProductoAlCarrito(producto)) {
-            toastr.success(`${producto.nombre} agregado al carrito`, 'Producto Agregado');
+          //  toastr.success(`${producto.nombre} agregado al carrito`, 'Producto Agregado');
         }
     }
 
@@ -1181,12 +1186,12 @@ $(document).ready(function() {
                 const todosLosProductos = Object.values(productos);
                 mostrarResultadosBusqueda(todosLosProductos);
                 $('#busquedaRapida').val('');
-                toastr.info('Mostrando todos los productos', 'Filtro');
+              //  toastr.info('Mostrando todos los productos', 'Filtro');
             } else {
                 const resultados = Object.values(productos).filter(p => p.categoria === categoria);
                 mostrarResultadosBusqueda(resultados);
                 $('#busquedaRapida').val('');
-                toastr.info(`Mostrando productos de: ${categoria}`, 'Filtro');
+              //  toastr.info(`Mostrando productos de: ${categoria}`, 'Filtro');
             }
         });
     }
@@ -1215,7 +1220,7 @@ $(document).ready(function() {
                 if (agregarProductoAlCarrito(producto)) {
                     $('#modalScanner').modal('hide');
                     $('#inputCodigoManual').val('');
-                    toastr.success(`Producto escaneado: ${producto.nombre}`, 'Escaneo Exitoso');
+                 //   toastr.success(`Producto escaneado: ${producto.nombre}`, 'Escaneo Exitoso');
                 }
             } else {
                 toastr.error('Código no encontrado en el sistema', 'Error de Escaneo');
@@ -1240,7 +1245,7 @@ $(document).ready(function() {
                                 <div>
                                     <h6 class="mb-1">${producto.nombre}</h6>
                                     <small class="text-muted">${producto.codigo}</small>
-                                    <div class="precio text-success">$${producto.precio.toFixed(2)}</div>
+                                    <div class="precio text-success">$${producto.precio}</div>
                                 </div>
                                 <img src="${producto.imagen}" alt="${producto.nombre}" style="width: 40px; height: 40px;">
                             </div>
@@ -1354,65 +1359,66 @@ $(document).ready(function() {
         return true;
     }
 
-    // Actualizar carrito de compras - OPTIMIZADO: No recarga toda la tabla
-    function actualizarCarrito() {
-        const tbody = $('#itemsCarrito');
+    // Actualizar carrito de compras - CORREGIDA: Eliminación de última fila funciona correctamente
+function actualizarCarrito() {
+    const tbody = $('#itemsCarrito');
+    
+    if (carrito.length === 0) {
+        tbody.html('<tr><td colspan="4" class="text-center text-muted py-3"><i class="fas fa-shopping-basket fa-2x mb-2 d-block"></i>Carrito vacío</td></tr>');
+    } else {
+        let nuevoHTML = '';
         
-        if (carrito.length === 0) {
-            tbody.empty();
-            tbody.append('<tr><td colspan="4" class="text-center text-muted py-3"><i class="fas fa-shopping-basket fa-2x mb-2 d-block"></i>Carrito vacío</td></tr>');
-        } else {
-            // Solo actualizar si es necesario recargar toda la tabla
-            if (tbody.find('tr').length === 0 || tbody.find('tr').length !== carrito.length + 1) {
-                tbody.empty();
-                carrito.forEach((item, index) => {
-                    const total = item.precio * item.cantidad;
-                    
-                    const fila = `
-                        <tr class="fade-in">
-                            <td>
-                                <small class="text-muted d-block">${item.codigo}</small>
-                                <strong>${item.nombre}</strong>
-                            </td>
-                            <td>
-                                <div class="d-flex align-items-center gap-1">
-                                    <button class="btn btn-sm btn-outline-secondary btn-cantidad" 
-                                            onclick="modificarCantidad(${index}, -1)">
-                                        <i class="fas fa-minus"></i>
-                                    </button>
-                                    <input type="number" class="form-control form-control-sm input-cantidad" 
-                                           value="${item.cantidad}" min="1" max="${item.stock}"
-                                           onchange="actualizarCantidadManual(${index}, this.value)">
-                                    <button class="btn btn-sm btn-outline-secondary btn-cantidad" 
-                                            onclick="modificarCantidad(${index}, 1)">
-                                        <i class="fas fa-plus"></i>
-                                    </button>
-                                </div>
-                            </td>
-                            <td class="font-weight-bold text-success">$${total.toFixed(2)}</td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.append(fila);
-                });
-            } else {
-                // Solo actualizar las cantidades y totales
-                carrito.forEach((item, index) => {
-                    const total = item.precio * item.cantidad;
-                    const fila = tbody.find('tr').eq(index);
-                    fila.find('.input-cantidad').val(item.cantidad);
-                    fila.find('td').eq(2).text('$' + total.toFixed(2));
-                });
-            }
-        }
+        carrito.forEach((item, index) => {
+            const total = Math.round(item.precio * item.cantidad); // NÚMEROS ENTEROS
+            
+            nuevoHTML += `
+                <tr data-index="${index}">
+                    <td>
+                        <small class="text-muted d-block">${item.codigo}</small>
+                        <strong>${item.nombre}</strong>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-1">
+                            <button class="btn btn-sm btn-outline-secondary btn-cantidad" 
+                                    onclick="modificarCantidad(${index}, -1)">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <input type="number" class="form-control form-control-sm input-cantidad" 
+                                   value="${item.cantidad}" min="1" max="${item.stock}"
+                                   onchange="actualizarCantidadManual(${index}, this.value)">
+                            <button class="btn btn-sm btn-outline-secondary btn-cantidad" 
+                                    onclick="modificarCantidad(${index}, 1)">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="font-weight-bold text-success">$${total}</td>
+                    <td>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
         
-        calcularTotales();
-        actualizarMetricasTiempoReal();
+        // Actualizar todo de una vez sin parpadeo
+        tbody.html(nuevoHTML);
     }
+    
+    calcularTotales();
+    actualizarMetricasTiempoReal();
+}
+
+
+// Métricas en tiempo real - CORREGIDO: Sin decimales, sin signo $ y con puntos de mil
+function actualizarMetricasTiempoReal() {
+    const totalVenta = Math.round(carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0));
+    const totalProductos = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    $('#metricVentaActual').text(formatearNumero(totalVenta));
+    $('#metricTotalProductos').text(formatearNumero(totalProductos));
+}
 
     // Funciones globales para el carrito - CORREGIDAS: Mensaje de stock cero
     window.modificarCantidad = function(index, cambio) {
@@ -1446,25 +1452,31 @@ $(document).ready(function() {
         }
     }
 
-    window.eliminarProducto = function(index) {
-        if (carrito[index]) {
-            const productoEliminado = carrito[index].nombre;
-            carrito.splice(index, 1);
-            actualizarCarrito();
-            toastr.warning(`Producto eliminado: ${productoEliminado}`, 'Carrito');
-        }
+ // Función para eliminar producto - CORREGIDA: Elimina correctamente la última fila
+window.eliminarProducto = function(index) {
+    if (carrito[index]) {
+        const productoEliminado = carrito[index].nombre;
+        
+        // Eliminar del array
+        carrito.splice(index, 1);
+        
+        // Actualizar la vista del carrito
+        actualizarCarrito();
+        
+      //  toastr.warning(`Producto eliminado: ${productoEliminado}`, 'Carrito');
     }
+}
 
-    // Calcular totales
+   // Calcular totales - CORREGIDO: Sin decimales, sin signo $ y con puntos de mil
     function calcularTotales() {
-        const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+        const subtotal = Math.round(carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0));
         const porcentajeIva = parseFloat($('#selectIva').val());
-        const iva = subtotal * (porcentajeIva / 100);
+        const iva = Math.round(subtotal * (porcentajeIva / 100));
         const total = subtotal + iva;
         
-        $('#subtotalVenta').text('$' + subtotal.toFixed(2));
-        $('#ivaVenta').text('$' + iva.toFixed(2));
-        $('#totalVenta').text('$' + total.toFixed(2));
+        $('#subtotalVenta').text(formatearNumero(subtotal));
+        $('#ivaVenta').text(formatearNumero(iva));
+        $('#totalVenta').text(formatearNumero(total));
         $('#porcentajeIva').text(porcentajeIva);
         
         // Calcular cambio según método de pago
@@ -1472,28 +1484,16 @@ $(document).ready(function() {
         
         if (metodoPago === 'efectivo') {
             const efectivo = parseFloat($('#efectivoRecibido').val()) || 0;
-            const cambio = efectivo - total;
-            $('#cambioVenta').text('$' + (cambio >= 0 ? cambio.toFixed(2) : '0.00'));
+            const cambio = Math.round(efectivo - total);
+            $('#cambioVenta').text(formatearNumero(cambio >= 0 ? cambio : 0));
         } else if (metodoPago === 'mixto') {
             calcularPagoMixto();
         }
     }
 
-    // Calcular pago mixto
-    function calcularPagoMixto() {
-        const montoEfectivo = parseFloat($('#montoEfectivoMixto').val()) || 0;
-        const montoTarjeta = parseFloat($('#montoTarjetaMixto').val()) || 0;
-        const totalMixto = montoEfectivo + montoTarjeta;
-        $('#totalMixto').text('$' + totalMixto.toFixed(2));
-    }
-
-    // Métricas en tiempo real
-    function actualizarMetricasTiempoReal() {
-        const totalVenta = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-        const totalProductos = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-        
-        $('#metricVentaActual').text('$' + totalVenta.toFixed(2));
-        $('#metricTotalProductos').text(totalProductos);
+    // Función para formatear números con puntos de mil
+    function formatearNumero(numero) {
+        return numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
 
     // =============================================
@@ -1608,30 +1608,46 @@ $(document).ready(function() {
     }
 
     // Mostrar vista previa del comprobante
-    function mostrarVistaPrevia() {
-        const tipoComprobante = $('#tipoComprobante').val();
-        const ventaData = {
-            numeroFactura: numeroFactura,
-            cliente: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
-            rfc: clienteSeleccionado ? clienteSeleccionado.rfc : 'XAXX010101000',
-            telefono: clienteSeleccionado ? clienteSeleccionado.telefono : 'N/A',
-            items: carrito,
-            subtotal: parseFloat($('#subtotalVenta').text().replace('$', '')),
-            iva: parseFloat($('#ivaVenta').text().replace('$', '')),
-            total: parseFloat($('#totalVenta').text().replace('$', '')),
-            tipo: tipoComprobante,
-            fecha: new Date().toLocaleString(),
-            metodoPago: $('#metodoPago').val()
-        };
-        
-        $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
-        $('#modalVistaPrevia').modal('show');
-    }
-
-   // Generar HTML del comprobante - CORREGIDO: Sin $ en precios individuales
+function mostrarVistaPrevia() {
+    const tipoComprobante = $('#tipoComprobante').val();
+    
+    // Calcular valores actuales
+    const subtotal = Math.round(carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0));
+    const porcentajeIva = parseFloat($('#selectIva').val());
+    const iva = Math.round(subtotal * (porcentajeIva / 100));
+    const total = subtotal + iva;
+    
+    const ventaData = {
+        numeroFactura: numeroFactura,
+        cliente: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
+        rfc: clienteSeleccionado ? clienteSeleccionado.rfc : 'XAXX010101000',
+        telefono: clienteSeleccionado ? clienteSeleccionado.telefono : 'N/A',
+        items: carrito,
+        subtotal: subtotal, // Pasar el valor calculado directamente
+        iva: iva, // Pasar el valor calculado directamente
+        total: total, // Pasar el valor calculado directamente
+        tipo: tipoComprobante,
+        fecha: new Date().toLocaleString(),
+        metodoPago: $('#metodoPago').val()
+    };
+    
+    $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
+    $('#modalVistaPrevia').modal('show');
+}
+// Generar HTML del comprobante - CORREGIDO: Puntos de mil en totales, subtotales e IVA
 function generarComprobanteHTML(ventaData) {
     const esFactura = ventaData.tipo !== 'ticket';
     const esTicket = ventaData.tipo === 'ticket';
+    
+    // Convertir a números enteros
+    const subtotal = Math.round(ventaData.subtotal);
+    const iva = Math.round(ventaData.iva);
+    const total = Math.round(ventaData.total);
+    
+    // Función para formatear números con puntos de mil - CORREGIDA
+    const formatNumber = (num) => {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
     
     if (esTicket) {
         return `
@@ -1662,33 +1678,34 @@ function generarComprobanteHTML(ventaData) {
                     </tr>
                 </thead>
                 <tbody>
-                    ${ventaData.items.map(item => `
+                    ${ventaData.items.map(item => {
+                        const itemTotal = Math.round(item.precio * item.cantidad);
+                        return `
                         <tr>
                             <td style="padding: 2px 0;">
                                 ${item.cantidad} x ${item.nombre.substring(0, 20)}
                             </td>
                             <td style="text-align: right; padding: 2px 0;">
-                                ${(item.precio * item.cantidad).toFixed(2)} <!-- SIN $ -->
+                                ${formatNumber(itemTotal)}
                             </td>
                         </tr>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
             
             <hr style="border-top: 1px dashed #000; margin: 8px 0;">
             
+            <!-- CORREGIDO: Totales, subtotales e IVA con puntos de mil -->
             <table style="width: 100%;">
                 <tr>
-                    <td>SUBTOTAL:</td>
-                    <td style="text-align: right;">${ventaData.subtotal.toFixed(2)}</td> <!-- SIN $ -->
+                    <td style="text-align: right;">SUBTOTAL: ${formatNumber(subtotal)}</td>
                 </tr>
                 <tr>
-                    <td>IVA:</td>
-                    <td style="text-align: right;">${ventaData.iva.toFixed(2)}</td> <!-- SIN $ -->
+                    <td style="text-align: right;">IVA: ${formatNumber(iva)}</td>
                 </tr>
                 <tr style="font-weight: bold;">
-                    <td>TOTAL:</td>
-                    <td style="text-align: right;">$${ventaData.total.toFixed(2)}</td> <!-- CON $ -->
+                    <td style="text-align: right;">TOTAL: ${formatNumber(total)}</td>
                 </tr>
             </table>
             
@@ -1733,38 +1750,45 @@ function generarComprobanteHTML(ventaData) {
             <table class="table table-bordered table-sm">
                 <thead class="thead-dark">
                     <tr>
-                        <th>Cant.</th>
-                        <th>Descripción</th>
-                        <th>P.Unit</th>
-                        <th>Total</th>
+                        <th style="text-align: center; width: 15%;">Cant.</th>
+                        <th style="text-align: center; width: 45%;">Descripción</th>
+                        <th style="text-align: center; width: 20%;">P.Unit</th>
+                        <th style="text-align: center; width: 20%;">Total</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${ventaData.items.map(item => `
+                    ${ventaData.items.map(item => {
+                        const precioUnitario = Math.round(item.precio);
+                        const itemTotal = Math.round(item.precio * item.cantidad);
+                        return `
                         <tr>
-                            <td>${item.cantidad}</td>
+                            <td style="text-align: center;">${item.cantidad}</td>
                             <td>${item.nombre}</td>
-                            <td>${item.precio.toFixed(2)}</td> <!-- SIN $ -->
-                            <td>${(item.precio * item.cantidad).toFixed(2)}</td> <!-- SIN $ -->
+                            <td style="text-align: right;">${formatNumber(precioUnitario)}</td>
+                            <td style="text-align: right;">${formatNumber(itemTotal)}</td>
                         </tr>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </tbody>
             </table>
             
-            <table class="table table-bordered table-sm float-right" style="width: 300px;">
-                <tr>
-                    <td><strong>Subtotal:</strong></td>
-                    <td class="text-right">${ventaData.subtotal.toFixed(2)}</td> <!-- SIN $ -->
-                </tr>
-                <tr>
-                    <td><strong>IVA:</strong></td>
-                    <td class="text-right">${ventaData.iva.toFixed(2)}</td> <!-- SIN $ -->
-                </tr>
-                <tr class="table-success">
-                    <td><strong>TOTAL:</strong></td>
-                    <td class="text-right"><strong>$${ventaData.total.toFixed(2)}</strong></td> <!-- CON $ -->
-                </tr>
-            </table>
+            <!-- CORREGIDO: Totales, subtotales e IVA con puntos de mil -->
+            <div class="d-flex justify-content-end">
+                <table class="table table-bordered table-sm" style="width: 300px;">
+                    <tr>
+                        <td><strong>Subtotal:</strong></td>
+                        <td class="text-right" style="text-align: right !important;">${formatNumber(subtotal)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IVA:</strong></td>
+                        <td class="text-right" style="text-align: right !important;">${formatNumber(iva)}</td>
+                    </tr>
+                    <tr class="table-success">
+                        <td><strong>TOTAL:</strong></td>
+                        <td class="text-right" style="text-align: right !important;"><strong>${formatNumber(total)}</strong></td>
+                    </tr>
+                </table>
+            </div>
             
             <div class="clearfix"></div>
             
@@ -1781,6 +1805,12 @@ function generarComprobanteHTML(ventaData) {
         `;
     }
 }
+    function calcularPagoMixto() {
+            const montoEfectivo = parseFloat($('#montoEfectivoMixto').val()) || 0;
+            const montoTarjeta = parseFloat($('#montoTarjetaMixto').val()) || 0;
+            const totalMixto = Math.round(montoEfectivo + montoTarjeta);
+            $('#totalMixto').text(formatearNumero(totalMixto));
+        }
     
     // Imprimir comprobante desde modal
     $('#btnImprimir').click(function() {
@@ -1827,6 +1857,11 @@ function generarComprobanteHTML(ventaData) {
         $('#modalVistaPrevia').modal('hide');
         reiniciarVenta();
         toastr.success('Nueva venta iniciada', 'Sistema');
+    });
+
+    // CORREGIDO: Configurar cierre del modal desde X y botón Cerrar
+    $('#btnCerrarModal, #btnCerrarModalX').click(function() {
+        $('#modalVistaPrevia').modal('hide');
     });
 
     // Cambiar método de pago
@@ -1977,7 +2012,7 @@ function generarComprobanteHTML(ventaData) {
         
         // Mostrar modal de atajos al cargar
         setTimeout(() => {
-            toastr.info('Sistema POS optimizado cargado. Presiona F1 para ver atajos.', 'Bienvenido');
+         //   toastr.info('Sistema POS optimizado cargado. Presiona F1 para ver atajos.', 'Bienvenido');
         }, 1000);
     }
 
