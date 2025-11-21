@@ -16,7 +16,7 @@ class ProductoController extends Controller
                   
         if(request()->ajax()) {
                   
-            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'stock_minimo', 'ubicacion')->get();
+            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'stock_minimo', 'ubicacion', 'frecuente')->get();
              return datatables()->of($id)        
                                                                                                          
               ->addColumn('action', 'atencion')
@@ -39,6 +39,32 @@ class ProductoController extends Controller
           return view('productos', compact('categorias'));          
     }
 
+    public function search(Request $request)
+    {
+        $search = $request->get('search');
+        
+        $productos = Producto::where('codigo', 'like', "%{$search}%")
+                            ->orWhere('nombre', 'like', "%{$search}%")
+                            ->orWhere('categoria', 'like', "%{$search}%")
+                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock', 'stock_minimo', 
+                                    'categoria', 'imagen', 'unidad', 'frecuente')
+                            ->orderBy('nombre')
+                            ->get();
+        
+        return response()->json($productos);
+    }
+
+    public function frecuentes()
+    {
+        $productos = Producto::where('frecuente', true)
+                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock', 'stock_minimo', 
+                                    'categoria', 'imagen', 'unidad', 'frecuente')
+                            ->orderBy('nombre')
+                            ->get();
+        
+        return response()->json($productos);
+    }
+}
    
 
     public function create()

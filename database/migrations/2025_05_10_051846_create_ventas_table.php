@@ -25,6 +25,9 @@ return new class extends Migration
             $table->decimal('total', 10, 2)->default(0.00);
             $table->enum('estado', ['pendiente', 'pagado', 'cancelado'])->default('pendiente');
             $table->text('notas')->nullable();
+            $table->string('metodo_pago');
+            $table->string('tipo_comprobante');
+            $table->string('vendedor')->default('Sistema');
             $table->timestamps();
         });
     }

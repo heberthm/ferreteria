@@ -1,7 +1,5 @@
 <?php
 
-
-// app/Models/Cliente.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,19 +9,26 @@ class Cliente extends Model
 {
     use HasFactory;
 
-    protected $table = 'clientes';
-    
     protected $fillable = [
+        'userId',
         'nombre',
-        'apellido',
-        'direccion',
-        'telefono',
+        'cedula', 
         'email',
-        'cedula',
+        'telefono',
+        'direccion'
     ];
 
-    public function mascotas()
+    protected $table = 'clientes';
+
+    
+
+    public function user()
     {
-        return $this->hasMany(Mascota::class);
+        return $this->belongsTo(User::class, 'userId');
+    }
+
+    public function ventas()
+    {
+        return $this->hasMany(Venta::class, 'id_cliente');
     }
 }

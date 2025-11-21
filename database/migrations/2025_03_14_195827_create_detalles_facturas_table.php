@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('descripcion');
             $table->integer('cantidad');
             $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('importe', 10, 2);
+            $table->decimal('total', 10, 2);
             $table->timestamps();
         });
     }

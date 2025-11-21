@@ -14,12 +14,15 @@ class Venta extends Model
         'fecha_venta',
         'total',
         'iva', 
-        'descuento',
-        'gran_total',
+        'descuento',       
         'metodo_pago', 
         'observaciones',
         'id_cliente',
-        'user_id',
+        'userId',
+        'total',
+        'metodo_pago',
+        'tipo_comprobante',
+        'vendedor'
     ];
 
     protected $dates = ['fecha_venta'];

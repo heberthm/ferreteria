@@ -75,20 +75,15 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
+                       <!-- Select de Clientes -->
                         <div class="form-group">
-                            <select class="form-control select2" id="selectCliente" style="width: 100%;">
+                           
+                            <select id="selectCliente" name="cliente_id" class="form-control" required>
                                 <option value="">-- Seleccionar Cliente --</option>
-                                <option value="1">Juan Pérez - XAXX010101000</option>
-                                <option value="2">María García - XAXX010101001</option>
-                                <option value="3">Ferretería Central - FCE850301XYZ</option>
-                                <option value="4">Carlos Rodríguez - XAXX010101002</option>
-                                <option value="5">Ana López - XAXX010101003</option>
-                                <option value="6">Constructora Moderna - CME900501ABC</option>
-                                <option value="7">Roberto Silva - XAXX010101004</option>
-                                <option value="8">Laura Mendoza - XAXX010101005</option>
-                                <option value="9">Distribuidora Industrial - DIE750201MNO</option>
                             </select>
+                            <!-- El div con la información se creará automáticamente aquí -->                            
                         </div>
+                        
                     </div>
                     <div class="col-md-4">
                         <button type="button" class="btn btn-success btn-block" data-toggle="modal" data-target="#modalNuevoCliente">
@@ -97,21 +92,7 @@
                     </div>
                 </div>
                 
-                <!-- Información del Cliente Compacta -->
-                <div id="infoCliente" class="d-none mt-2">
-                    <div class="alert alert-info py-2 mb-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="cliente-info-linea">
-                                <span class="mr-3"><i class="fas fa-user"></i> <strong id="nombreClienteSeleccionado"></strong></span>
-                                <span class="mr-3"><i class="fas fa-id-card"></i> <span id="rfcClienteSeleccionado"></span></span>
-                                <span class="mr-3"><i class="fas fa-phone"></i> <span id="telefonoClienteSeleccionado"></span></span>
-                            </div>
-                            <button type="button" class="btn btn-sm btn-outline-danger" id="btnQuitarClienteLinea">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+               
             </div>
         </div>
 
@@ -458,7 +439,7 @@
     </div>
 </div>
 
-<!-- Modal Nuevo Cliente -->
+<!-- Modal Nuevo Cliente  -->
 <div class="modal fade" id="modalNuevoCliente" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -467,52 +448,77 @@
                 <button type="button" class="close" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="formNuevoCliente">
+                
+                <form method="POST" id="form_guardar_cliente" action="{{ route('venta') }}">
+                    @csrf
+                    
+                    <!-- Campo userId oculto -->
+                    <input type="hidden" name="userId" value="{{ Auth::check() ? Auth::user()->id : 1 }}">
+
+                    <input type="hidden" id="cliente_nombre" name="cliente_nombre">
+                    <input type="hidden" id="cliente_cedula" name="cliente_cedula">
+
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Nombre/Razón Social *</label>
-                                <input type="text" class="form-control" name="nombre" required>
+                                <input type="text" class="form-control" name="nombre" required 
+                                       placeholder="Ingrese nombre completo o razón social">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label>RFC/NIT</label>
-                                <input type="text" class="form-control" name="rfc">
+                                <label>Cédula/NIT</label>
+                                <input type="text" class="form-control" name="cedula"  id="cedula"
+                                       placeholder="Ingrese cédula">
+                                       <span id="error_cedula"></span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Email</label>
-                                <input type="email" class="form-control" name="email">
+                                <input type="email" class="form-control" name="email" 
+                                       placeholder="correo@ejemplo.com">
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="form-group">
                                 <label>Teléfono</label>
-                                <input type="text" class="form-control" name="telefono">
+                                <input type="text" class="form-control" name="telefono" 
+                                       placeholder="(555) 123-4567">
                             </div>
                         </div>
                         <div class="col-md-12">
                             <div class="form-group">
                                 <label>Dirección</label>
-                                <textarea class="form-control" name="direccion" rows="2"></textarea>
+                                <textarea class="form-control" name="direccion" rows="2" 
+                                          placeholder="Ingrese dirección completa"></textarea>
                             </div>
                         </div>
                     </div>
-                </form>
+                    
+                    <!-- Mensaje de empresa -->
+                    <div class="mt-3">
+                       <p class="text-muted">
+                        * Nombre de la empresa
+                      </p>                    
+                    </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-success" id="btnGuardarCliente">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-success" id="BtnGuardar_cliente">
                     <i class="fas fa-save"></i> Guardar Cliente
                 </button>
             </div>
+            </form>
         </div>
     </div>
 </div>
 
-<!-- Modal Vista Previa de Impresión - CORREGIDO: Ahora se puede cerrar con X y botón Cerrar -->
+<!-- Modal Vista Previa de Impresión  -->
+
 <div class="modal fade" id="modalVistaPrevia" tabindex="-1" role="dialog" aria-labelledby="modalVistaPreviaLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -708,149 +714,340 @@
     text-align: right !important;
     font-weight: bold;
 }
+ 
+/* Estilos para los resultados del Select2 */
+.select2-result-cliente {
+    padding: 8px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s;
+}
+
+.select2-result-cliente:hover {
+    background-color: #f8f9fa;
+}
+
+.select2-result-cliente__nombre {
+    font-weight: 600;
+    font-size: 14px;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.select2-result-cliente__info {
+    font-size: 12px;
+    color: #7f8c8d;
+    font-style: italic;
+}
+
+/* Estilos para la opción resaltada */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #007bff !important;
+    color: white;
+}
+
+.select2-container--default .select2-results__option--highlighted .select2-result-cliente__nombre,
+.select2-container--default .select2-results__option--highlighted .select2-result-cliente__info {
+    color: white;
+}
+
+/* Estilos para el card de información del cliente */
+#infoClienteSeleccionado {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+#infoClienteSeleccionado .badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.65em;
+    font-weight: 500;
+}
+
+#infoClienteSeleccionado .font-weight-bold {
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+```
+
+   /* Estilos de debug */
+    .select2-container {
+        border: 2px solid #007bff !important;
+    }
+    
+    .select2-selection {
+        background-color: #f8f9fa !important;
+    }
+    
+    #infoClienteSeleccionado {
+        border: 2px dashed #28a745 !important;
+        min-height: 50px;
+    }
+    
+    /* Resaltar elementos importantes */
+    #selectCliente {
+        border: 1px solid #dc3545 !important;
+    }
+
+
 
 </style>
+
 @stop
 
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/i18n/es.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/i18n/es.js"></script>
 <script>
-// Datos de productos - CORREGIDO: Precios en números enteros
-const productos = {
-    '1': { 
-        id: '1', codigo: 'MART001', nombre: 'Martillo de Acero 16oz', 
-        precio: 185, stock: 5, stock_minimo: 3, categoria: 'Herramientas',
-        imagen: 'https://via.placeholder.com/60x60?text=MARTILLO', unidad: 'pza',
-        frecuente: true
-    },
-    '2': { 
-        id: '2', codigo: 'DEST002', nombre: 'Destornillador Phillips #2', 
-        precio: 45, stock: 15, stock_minimo: 5, categoria: 'Herramientas',
-        imagen: 'https://via.placeholder.com/60x60?text=DESTORN', unidad: 'pza',
-        frecuente: true
-    },
-    '3': { 
-        id: '3', codigo: 'TUB001', nombre: 'Tubería PVC 1/2" x 6m', 
-        precio: 89, stock: 25, stock_minimo: 10, categoria: 'Materiales',
-        imagen: 'https://via.placeholder.com/60x60?text=TUBERIA', unidad: 'pza',
-        frecuente: true
-    },
-    '4': { 
-        id: '4', codigo: 'CEM001', nombre: 'Cemento Gris 50kg', 
-        precio: 285, stock: 8, stock_minimo: 5, categoria: 'Materiales',
-        imagen: 'https://via.placeholder.com/60x60?text=CEMENTO', unidad: 'saco',
-        frecuente: true
-    },
-    '5': { 
-        id: '5', codigo: 'CLAV001', nombre: 'Clavos Galvanizados 2"', 
-        precio: 35, stock: 50, stock_minimo: 20, categoria: 'Fijaciones',
-        imagen: 'https://via.placeholder.com/60x60?text=CLAVOS', unidad: 'kg',
-        frecuente: true
-    },
-    '6': { 
-        id: '6', codigo: 'PINT001', nombre: 'Pintura Blanca Mate 4L', 
-        precio: 189, stock: 12, stock_minimo: 5, categoria: 'Pinturas',
-        imagen: 'https://via.placeholder.com/60x60?text=PINTURA', unidad: 'galon',
-        frecuente: true
-    },
-    '7': { 
-        id: '7', codigo: 'CABLE001', nombre: 'Cable THW Cal. 12', 
-        precio: 45, stock: 30, stock_minimo: 15, categoria: 'Electricidad',
-        imagen: 'https://via.placeholder.com/60x60?text=CABLE', unidad: 'm',
-        frecuente: false
-    },
-    '8': { 
-        id: '8', codigo: 'TORN001', nombre: 'Tornillos para Madera 3"', 
-        precio: 28, stock: 40, stock_minimo: 20, categoria: 'Fijaciones',
-        imagen: 'https://via.placeholder.com/60x60?text=TORNILLO', unidad: 'pza',
-        frecuente: false
-    },
-    '9': { 
-        id: '9', codigo: 'ALIC001', nombre: 'Alicates de Corte 8"', 
-        precio: 95, stock: 10, stock_minimo: 5, categoria: 'Herramientas',
-        imagen: 'https://via.placeholder.com/60x60?text=ALICATE', unidad: 'pza',
-        frecuente: false
-    },
-    '10': { 
-        id: '10', codigo: 'BROCH001', nombre: 'Brocha Profesional 4"', 
-        precio: 32, stock: 20, stock_minimo: 8, categoria: 'Pinturas',
-        imagen: 'https://via.placeholder.com/60x60?text=BROCHA', unidad: 'pza',
-        frecuente: false
-    }
-};
 
-// Datos de clientes
-const clientes = {
-    '1': { 
-        nombre: 'Juan Pérez', 
-        rfc: 'XAXX010101000', 
-        telefono: '555-123-4567',
-        email: 'juan.perez@email.com',
-        direccion: 'Av. Principal #123'
-    },
-    '2': { 
-        nombre: 'María García', 
-        rfc: 'XAXX010101001', 
-        telefono: '555-987-6543',
-        email: 'maria.garcia@email.com',
-        direccion: 'Calle Secundaria #456'
-    },
-    '3': { 
-        nombre: 'Ferretería Central SA de CV', 
-        rfc: 'FCE850301XYZ', 
-        telefono: '555-555-7890',
-        email: 'ventas@ferreteriacentral.com',
-        direccion: 'Blvd. Industrial #789'
-    },
-    '4': { 
-        nombre: 'Carlos Rodríguez', 
-        rfc: 'XAXX010101002', 
-        telefono: '555-111-2233',
-        email: 'carlos.rodriguez@email.com',
-        direccion: 'Privada Norte #321'
-    },
-    '5': { 
-        nombre: 'Ana López', 
-        rfc: 'XAXX010101003', 
-        telefono: '555-444-5566',
-        email: 'ana.lopez@email.com',
-        direccion: 'Calle Sur #654'
-    },
-    '6': { 
-        nombre: 'Constructora Moderna SA de CV', 
-        rfc: 'CME900501ABC', 
-        telefono: '555-777-8899',
-        email: 'compras@constructoramoderna.com',
-        direccion: 'Zona Industrial #987'
-    },
-    '7': { 
-        nombre: 'Roberto Silva', 
-        rfc: 'XAXX010101004', 
-        telefono: '555-222-3344',
-        email: 'roberto.silva@email.com',
-        direccion: 'Av. Reforma #159'
-    },
-    '8': { 
-        nombre: 'Laura Mendoza', 
-        rfc: 'XAXX010101005', 
-        telefono: '555-888-9900',
-        email: 'laura.mendoza@email.com',
-        direccion: 'Calle Juárez #753'
-    },
-    '9': { 
-        nombre: 'Distribuidora Industrial SA de CV', 
-        rfc: 'DIE750201MNO', 
-        telefono: '555-666-1122',
-        email: 'ventas@distribuidoraindustrial.com',
-        direccion: 'Parque Industrial #246'
-    }
-};
 
 $(document).ready(function() {
     console.log('Punto de Venta - Sistema optimizado cargado');
+
+$(document).ready(function() {
+    // Destruir cualquier instancia previa
+    if ($.fn.select2) {
+        $('#selectCliente').select2('destroy');
+    }
     
+    // CONFIGURACIÓN DE SELECT2 CON BÚSQUEDA AJAX
+    $('#selectCliente').select2({
+        ajax: {
+            url: 'buscar_cliente',
+            dataType: 'json',
+            delay: 300,
+            data: function (params) {
+                return {
+                    q: params.term
+                };
+            },
+            processResults: function (data) {
+                var resultados = Array.isArray(data) ? data : [];
+                return {
+                    results: $.map(resultados, function (cliente) {
+                        return {
+                            id: cliente.id,
+                            text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                            nombre: cliente.nombre,
+                            cedula: cliente.cedula,
+                            email: cliente.email,
+                            telefono: cliente.telefono
+                        };
+                    })
+                };
+            },
+            cache: true
+        },
+        placeholder: 'Escribe para buscar cliente...',
+        minimumInputLength: 2,
+        language: "es",
+        allowClear: true,
+        width: '100%'
+    });
+
+    // ENFOCAR AUTOMÁTICAMENTE AL ABRIR SELECT2
+    $('#selectCliente').on('select2:open', function() {
+        setTimeout(function() {
+            $('#selectCliente').focus();
+        }, 100);
+    });
+
+    // EVENTO CHANGE - GUARDAR EN INPUTS OCULTOS Y MOSTRAR INFO
+    $('#selectCliente').on('change', function() {
+        var selectedValue = $(this).val();
+        var selectedText = $(this).find('option:selected').text();
+        
+        if (selectedValue && selectedValue !== '') {
+            // Cerrar dropdown
+            $('#selectCliente').select2('close');
+            
+            // Extraer nombre y cédula del texto
+            var partes = selectedText.split(' - ');
+            var nombreCliente = partes[0] || selectedText;
+            var cedulaCliente = partes[1] || '';
+            
+            // GUARDAR EN INPUTS OCULTOS PARA TICKET/FACTURA
+            $('#cliente_nombre').val(nombreCliente);
+            $('#cliente_cedula').val(cedulaCliente);
+            
+            console.log('💾 Datos guardados en inputs ocultos:', {
+                nombre: nombreCliente,
+                cedula: cedulaCliente
+            });
+            
+            // Mostrar información del cliente seleccionado
+            if ($('#infoClienteSeleccionado').length === 0) {
+                $('#selectCliente').closest('.form-group').after(
+                    '<div id="infoClienteSeleccionado" class="mt-2"></div>'
+                );
+            }
+            
+            $('#infoClienteSeleccionado').html(`
+                <div class="alert alert-light py-2 mb-0">
+                    <i class="fas fa-user-check mr-2"></i>
+                    <strong>Cliente:</strong> ${nombreCliente}
+                    ${cedulaCliente ? `<span class="ml-2"><strong>Cédula:</strong> ${cedulaCliente}</span>` : ''}
+                </div>
+            `);
+            
+        } else {
+            // Limpiar inputs ocultos e información
+            $('#cliente_nombre').val('');
+            $('#cliente_cedula').val('');
+            $('#infoClienteSeleccionado').html('');
+        }
+    });
+
+    // FORMATEAR CÉDULA CON PUNTOS EN INPUT
+    $('#cedula').on('input', function() {
+        var cedula = $(this).val();
+        
+        // Guardar longitud anterior para no interferir al borrar
+        if (cedula.length < $(this).data('longitud-anterior')) {
+            $(this).data('longitud-anterior', cedula.length);
+            return;
+        }
+        
+        // Quitar todos los puntos existentes
+        var sinPuntos = cedula.replace(/\./g, '');
+        
+        // Aplicar formato: 1.234.232.355
+        var formateado = '';
+        var contador = 0;
+        
+        for (var i = sinPuntos.length - 1; i >= 0; i--) {
+            formateado = sinPuntos.charAt(i) + formateado;
+            contador++;
+            
+            if (contador === 3 && i > 0) {
+                formateado = '.' + formateado;
+                contador = 0;
+            }
+        }
+        
+        // Actualizar solo si cambió
+        if (cedula !== formateado) {
+            $(this).val(formateado);
+            $(this).data('longitud-anterior', formateado.length);
+        }
+    });
+
+    // Guardar nuevo cliente
+    $('#form_guardar_cliente').on('submit', function(e) {
+        e.preventDefault();
+        guardarCliente();
+    });
+});
+
+// Función mejorada para guardar cliente
+function guardarCliente() {
+    var btn = $('#BtnGuardar_cliente');
+    var originalHTML = btn.html();
+    
+    btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>Guardando...').prop('disabled', true);
+
+    $.ajax({
+        url: 'guardar_clientes',
+        method: 'POST',
+        data: $('#form_guardar_cliente').serialize(),
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            btn.html(originalHTML).prop('disabled', false);
+            
+            if (response.success) {
+               
+                $('#modalNuevoCliente').modal('hide').removeClass('show');
+                $('body').removeClass('modal-open');
+                $('.modal-backdrop').remove();
+                $('#form_guardar_cliente')[0].reset();
+
+                if (response.cliente) {
+                    var nuevoCliente = response.cliente;
+                    var clienteId = nuevoCliente.id_cliente || nuevoCliente.id;
+                    var optionText = nuevoCliente.nombre + (nuevoCliente.cedula ? ' - ' + nuevoCliente.cedula : '');
+                    
+                    // Agregar al select y seleccionar
+                    var newOption = new Option(optionText, clienteId, false, false);
+                    $('#selectCliente').append(newOption).trigger('change');
+                    $('#selectCliente').val(clienteId).trigger('change');
+                    
+                    // También guardar en inputs ocultos
+                    $('#cliente_nombre').val(nuevoCliente.nombre);
+                    $('#cliente_cedula').val(nuevoCliente.cedula || '');
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: response.message,
+                    timer: 2000
+                });
+            } else {
+                // Manejar errores de validación del servidor
+                let mensajeError = response.message || 'Error al guardar el cliente';
+                
+                if (response.errors) {
+                    // Mostrar el primer error de validación
+                    const primerError = Object.values(response.errors)[0][0];
+                    mensajeError = primerError;
+                    
+                    // Resaltar el campo de cédula si hay error
+                    if (response.errors.cedula) {
+                        $('#cedula').addClass('is-invalid');
+                        $('#error-cedula').remove();
+                        $('#cedula').after(
+                            '<div class="invalid-feedback">' + response.errors.cedula[0] + '</div>'
+                        );
+                    }
+                }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: mensajeError,
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        },
+        error: function(xhr) {
+            btn.html(originalHTML).prop('disabled', false);
+            
+            let mensaje = 'Error al guardar el cliente';
+            
+            if (xhr.status === 422) {
+                // Error de validación del servidor
+                const response = xhr.responseJSON;
+                if (response && response.errors) {
+                    const primerError = Object.values(response.errors)[0][0];
+                    mensaje = primerError;
+                } else if (response && response.message) {
+                    mensaje = response.message;
+                }
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                mensaje = xhr.responseJSON.message;
+            }
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: mensaje,
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    });
+}
+   
     let carrito = [];
     let numeroFactura = generarNumeroFactura();
     let clienteSeleccionado = null;
@@ -887,6 +1084,9 @@ $(document).ready(function() {
             templateResult: formatClienteResult,
             templateSelection: formatClienteSelection
         });
+    
+
+
 
         // Evento cuando se selecciona un cliente
         $('#selectCliente').on('select2:select', function(e) {
@@ -905,6 +1105,14 @@ $(document).ready(function() {
             ocultarInfoCliente();
         });
     }
+
+    // Evento para enfocar automáticamente al abrir el Select2
+    $('#selectCliente').on('select2:open', function() {
+        // Esperar un poco para que el dropdown se abra completamente
+       
+           this.focus();
+          
+    });
 
     // Formatear resultado en el dropdown de Select2
     function formatClienteResult(cliente) {
@@ -932,6 +1140,12 @@ $(document).ready(function() {
 
         return clienteData.nombre;
     }
+
+
+
+
+
+
 
     // Configurar atajos de teclado
     function configurarAtajosTeclado() {
@@ -1634,7 +1848,8 @@ function mostrarVistaPrevia() {
     $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
     $('#modalVistaPrevia').modal('show');
 }
-// Generar HTML del comprobante - CORREGIDO: Puntos de mil en totales, subtotales e IVA
+
+// Generar HTML del comprobante - CORREGIDO: Orden de columnas en ticket
 function generarComprobanteHTML(ventaData) {
     const esFactura = ventaData.tipo !== 'ticket';
     const esTicket = ventaData.tipo === 'ticket';
@@ -1644,7 +1859,13 @@ function generarComprobanteHTML(ventaData) {
     const iva = Math.round(ventaData.iva);
     const total = Math.round(ventaData.total);
     
-    // Función para formatear números con puntos de mil - CORREGIDA
+    // Calcular total de productos vendidos
+    const totalProductos = ventaData.items.reduce((sum, item) => sum + item.cantidad, 0);
+    
+    // Nombre del vendedor (usuario registrado)
+    const nombreVendedor = "Carlos Rodríguez"; // Puedes cambiar esto por el nombre del usuario logueado
+    
+    // Función para formatear números con puntos de mil
     const formatNumber = (num) => {
         return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     };
@@ -1665,7 +1886,9 @@ function generarComprobanteHTML(ventaData) {
             <div style="margin: 5px 0;">
                 <strong>TICKET:</strong> ${ventaData.numeroFactura}<br>
                 <strong>FECHA:</strong> ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}<br>
-                <strong>CLIENTE:</strong> ${ventaData.cliente}
+                <strong>CLIENTE:</strong> ${ventaData.cliente}<br>
+                <strong>VENDEDOR:</strong> ${nombreVendedor}<br>
+                <strong>TOTAL PRODUCTOS:</strong> ${totalProductos}
             </div>
             
             <hr style="border-top: 1px dashed #000; margin: 8px 0;">
@@ -1673,7 +1896,8 @@ function generarComprobanteHTML(ventaData) {
             <table style="width: 100%; border-collapse: collapse;">
                 <thead>
                     <tr>
-                        <th style="text-align: left; border-bottom: 1px dashed #000; padding: 3px 0;">CANT DESC</th>
+                        <th style="text-align: left; border-bottom: 1px dashed #000; padding: 3px 0;">DESC</th>
+                        <th style="text-align: center; border-bottom: 1px dashed #000; padding: 3px 0;">CANT</th>
                         <th style="text-align: right; border-bottom: 1px dashed #000; padding: 3px 0;">TOTAL</th>
                     </tr>
                 </thead>
@@ -1683,7 +1907,10 @@ function generarComprobanteHTML(ventaData) {
                         return `
                         <tr>
                             <td style="padding: 2px 0;">
-                                ${item.cantidad} x ${item.nombre.substring(0, 20)}
+                                ${item.nombre.substring(0, 20)}
+                            </td>
+                            <td style="text-align: center; padding: 2px 0;">
+                                ${item.cantidad}
                             </td>
                             <td style="text-align: right; padding: 2px 0;">
                                 ${formatNumber(itemTotal)}
@@ -1745,6 +1972,14 @@ function generarComprobanteHTML(ventaData) {
                     <td><strong>Teléfono:</strong></td>
                     <td>${ventaData.telefono}</td>
                 </tr>
+                <tr>
+                    <td><strong>Vendedor:</strong></td>
+                    <td colspan="3">${nombreVendedor}</td>
+                </tr>
+                <tr>
+                    <td><strong>Total Productos:</strong></td>
+                    <td colspan="3">${totalProductos}</td>
+                </tr>
             </table>
             
             <table class="table table-bordered table-sm">
@@ -1805,6 +2040,7 @@ function generarComprobanteHTML(ventaData) {
         `;
     }
 }
+
     function calcularPagoMixto() {
             const montoEfectivo = parseFloat($('#montoEfectivoMixto').val()) || 0;
             const montoTarjeta = parseFloat($('#montoTarjetaMixto').val()) || 0;
@@ -1934,11 +2170,12 @@ function generarComprobanteHTML(ventaData) {
         }
     });
 
+  
     // Mostrar información del cliente
     function mostrarInfoCliente() {
         $('#infoCliente').removeClass('d-none');
         $('#nombreClienteSeleccionado').text(clienteSeleccionado.nombre);
-        $('#rfcClienteSeleccionado').text(clienteSeleccionado.rfc);
+        $('#rfcClienteSeleccionado').text(clienteSeleccionado.cedula);
         $('#telefonoClienteSeleccionado').text(clienteSeleccionado.telefono);
         $('#btnQuitarCliente').show();
     }
@@ -2020,4 +2257,53 @@ function generarComprobanteHTML(ventaData) {
     inicializarSistema();
 });
 </script>
+
+  <!-- ==============================
+
+// VERIFICAR SI EXISTE CLIENTE
+
+===================================  -->
+
+  <script>
+    $(document).ready(function() {
+
+         $.ajaxSetup({
+        headers: {
+          'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        }
+      });
+
+      $('#cedula').blur(function() {
+        var error_cedula = '';
+        var cedula = $('#cedula').val();
+        var _token = $('input[name="_token"]').val();
+        var filter = /([0-9])/;
+        if (!filter.test(cedula)) {
+          $('#error_cedula').html('<label class="text-danger">Debe escribir número de cédula.</label>');
+          $('#cedula').addClass('has-error');
+          $('#agregar_cliente').attr('disabled', 'disabled');
+        } else {
+          $.ajax({
+            url: 'verificar_cliente',
+            method: "POST",
+            data: {
+              cedula: cedula
+            },
+            success: function(result) {
+              if (result == 'unique') {
+                $('#error_cedula').html('<label class="text-danger">El cliente ya existe.</label>');
+                $('#cedula').addClass('has-error');
+                $('#agregar_cliente').attr('disabled', 'disabled');
+              } else {
+               
+
+              }
+            }
+          })
+        }
+      });
+    });
+  </script>
+
+
 @stop

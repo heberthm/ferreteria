@@ -31,6 +31,7 @@ class producto extends Model
         'proveedor',
         'id_categoria',
         'id_proveedor',
+        'frecuente'
     ];
 
     public function categoria()

@@ -1,129 +1,95 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use App\Models\Venta;
-use App\Models\Cliente;
-use App\Models\Producto;
 use App\Models\DetalleVenta;
-use App\Models\Inventario;
-use Illuminate\Http\Reques;
+use App\Models\Producto;
+use App\Models\Cliente;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
 {
-    public function index()
+    public function store(Request $request): JsonResponse
     {
-        $venta = Venta::with(['id_cliente', 'user'])->latest()->paginate(10);
-        return view('venta');
-    }
-
-  public  function generateInvoiceNumber() {
-
-      // Generar número de factura automático
-        $ultimaVenta = Venta::latest()->first();
-        $numeroFactura = $ultimaVenta ? 'FAC-' . str_pad((intval(substr($ultimaVenta->numero_factura, 4)) + 1), 6, '0', STR_PAD_LEFT) : 'FAC-000001';
-
-  }
-
-    public function create()
-    {
-        $customers = Cliente::all();
-        $products = Producto::where('stock', '>', 0)->get();
-        $invoiceNumber = Venta::generateInvoiceNumber();
-        
-        return view('venta');
-    }
-
-    public function store(Request $request)
-    {
-         $validated = $request->validate([
-            'id_cliente' => 'required|exists:customers,id',
-            'fecha_venta' => 'required|date',
-            'metodo_pago' => 'required|in:efectivo,credito,tarjeta_credito,transferencia',
-            'productos' => 'required|array',
-            'productos.*.id_producto' => 'required|exists:producto,id_producto',
-            'productos.*.cantidad' => 'required|integer|min:1',
-        ]);
-
- /*
-
-  try {
         DB::beginTransaction();
-
-*/
-            
-
-        // Calcular totales
-        $total = 0;
-        $productsData = [];
         
-        foreach ($request->products as $product) {
-            $dbProduct = Producto::findOrFail($product['id']);
-            
-            if ($dbProduct->stock < $product['cantidad']) {
-                return back()->withErrors([
-                    'products' => "El producto {$dbProduct->nombre} no tiene suficiente stock"
-                ]);
-            }
-            
-            $subtotal = $dbProduct->price * $product['cantidad'];
-            $total += $subtotal;
-            
-            $productsData[] = [
-                'id_producto' => $dbProduct->id,
-                'cantidad' => $product['cantidad'],
-                'precio_unitario' => $dbProduct->price,
-                'subtotal' => $subtotal,
-            ];
-            
-            // Reducir stock
-            $dbProduct->decrement('stock', $product['cantidad']);
+        try {
+            $request->validate([
+                'cliente_id' => 'nullable|exists:clientes,id',
+                'items' => 'required|array|min:1',
+                'items.*.producto_id' => 'required|exists:productos,id',
+                'items.*.cantidad' => 'required|integer|min:1',
+                'subtotal' => 'required|numeric|min:0',
+                'iva' => 'required|numeric|min:0',
+                'total' => 'required|numeric|min:0',
+                'metodo_pago' => 'required|string',
+                'tipo_comprobante' => 'required|string'
+            ]);
 
-           
-               // Verificar stock
-                $inventario = $producto->inventario;
-                if ($inventario->cantidad < $item['cantidad']) {
-                    throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
+            // Generar número de factura automático
+            $ultimaVenta = Venta::latest()->first();
+            $numeroFactura = $ultimaVenta ? 'FAC-' . str_pad((intval(substr($ultimaVenta->numero_factura, 4)) + 1), 6, '0', STR_PAD_LEFT) : 'FAC-000001';
+
+            // Crear la venta
+            $venta = Venta::create([
+                'numero_factura' => $numeroFactura,
+                'id_cliente' => $request->cliente_id,
+                'subtotal' => $request->subtotal,
+                'iva' => $request->iva,
+                'total' => $request->total,
+                'metodo_pago' => $request->metodo_pago,
+                'tipo_comprobante' => $request->tipo_comprobante,
+                'userId' =>  $request->userId,
+                'vendedor' => auth()->check() ? auth()->user()->name : 'Sistema'
+            ]);
+
+            // Crear detalles de venta y actualizar stock
+            foreach ($request->items as $item) {
+                $producto = Producto::find($item['producto_id']);
+                
+                // Verificar stock
+                if ($producto->stock < $item['cantidad']) {
+                    throw new \Exception("Stock insuficiente para: {$producto->nombre}");
                 }
+
+                // Crear detalle
+                DetalleVenta::create([
+                    'id_venta' => $venta->id,
+                    'id_producto' => $item['id_producto'],
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $producto->precio,
+                    'total' => $item['cantidad'] * $producto->precio
+                ]);
+
+                // Actualizar stock
+                $producto->decrement('stock', $item['cantidad']);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta procesada exitosamente',
+                'venta' => $venta,
+                'numero_factura' => $numeroFactura
+            ], 201);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar la venta: ' . $e->getMessage()
+            ], 500);
         }
-        
-        // Calcular impuestos y total general (ejemplo con 16% de IVA)
-        $tax = $total * 0.16;
-        $grandTotal = $total + $tax;
-        
-        // Crear la venta
-        $venta = Venta::create([
-            'numero_factura' => Venta::generateInvoiceNumber(),
-            'fecha_venta' => $request->sale_date,
-            'total' => $total,
-            'iva' => $tax,
-            'descuento' => 0,
-            'gran_total' => $grandTotal,
-            'metodo_pago' => $request->payment_method,
-            'observaciones' => $request->notes,
-            'id_cliente' => $request->customer_id,
-            'user_id' => auth()->id(),
-        ]);
-        
-        // Agregar detalles de venta
-        $venta->details()->createMany($productsData);
-        
-        return redirect()->route('ventas.show', $venta)
-            ->with('success', 'Venta registrada exitosamente');
-   
-
-     DB::commit();
-
-        return redirect()->route('venta', $venta)
-                ->with('success', 'Venta realizada exitosamente.');
-  
-    }
-
-    public function show(Venta $venta)
-    {
-        /*
-        $venta->load(['cliente', 'user', 'detalle_venta.producto]);
-        return view('venta', compact('cliente'));
-
-        */
     }
 }

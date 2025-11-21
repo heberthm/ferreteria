@@ -33,6 +33,7 @@ return new class extends Migration
             $table->boolean('activo')->default(true);
             $table->foreignId('id_categoria')->constrained('clientes');
             $table->foreignId('id_proveedor')->constrained('proveedores');
+             $table->boolean('frecuente')->default(false);
             $table->timestamps();
         });
     }

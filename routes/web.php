@@ -7,7 +7,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
-
+use App\Http\Controllers\ClienteController;
 
 
 
@@ -30,6 +30,21 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->name('inicio');
+
+
+
+// ======================================================
+
+//  RUTAS PARA CLIENTES
+
+// ======================================================
+
+
+
+Route::get('clientes', [ClienteController::class, 'index'])->name('clientes');
+Route::post('guardar_clientes', [ClienteController::class, 'store'])->name('guardar_clientes');
+Route::get('buscar_cliente', [ClienteController::class, 'buscar'])->name('buscar_cliente');
+Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])->name('verificar_cliente');
 
 
 
@@ -67,6 +82,8 @@ Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::cl
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
 Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
 Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');
+Route::get('/productos/search', [ProductoController::class, 'search'])->name('productos.search');
+Route::get('/productos/frecuentes', [ProductoController::class, 'frecuentes'])->name('productos.frecuentes');
 
 
 
