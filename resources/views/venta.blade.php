@@ -948,9 +948,16 @@ $(document).ready(function() {
     });
 });
 
+
 // Función mejorada para guardar cliente
 function guardarCliente() {
     var btn = $('#BtnGuardar_cliente');
+    
+    // Prevenir doble ejecución
+    if (btn.prop('disabled')) {
+        return;
+    }
+    
     var originalHTML = btn.html();
     
     btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>Guardando...').prop('disabled', true);
@@ -977,9 +984,12 @@ function guardarCliente() {
                     var clienteId = nuevoCliente.id_cliente || nuevoCliente.id;
                     var optionText = nuevoCliente.nombre + (nuevoCliente.cedula ? ' - ' + nuevoCliente.cedula : '');
                     
-                    // Agregar al select y seleccionar
-                    var newOption = new Option(optionText, clienteId, false, false);
-                    $('#selectCliente').append(newOption).trigger('change');
+                    // Verificar si ya existe antes de agregar
+                    if (!$('#selectCliente option[value="' + clienteId + '"]').length) {
+                        var newOption = new Option(optionText, clienteId, false, false);
+                        $('#selectCliente').append(newOption);
+                    }
+                    
                     $('#selectCliente').val(clienteId).trigger('change');
                     
                     // También guardar en inputs ocultos
@@ -991,7 +1001,11 @@ function guardarCliente() {
                     icon: 'success',
                     title: '¡Éxito!',
                     text: response.message,
-                    timer: 2000
+                    timer: 2000,
+                    didClose: () => {
+                        // Limpiar formulario después de cerrar el modal
+                        $('#form_guardar_cliente')[0].reset();
+                    }
                 });
             } else {
                 // Manejar errores de validación del servidor
@@ -1047,6 +1061,13 @@ function guardarCliente() {
         }
     });
 }
+
+// Prevenir doble envío en el formulario
+$('#form_guardar_cliente').on('submit', function(e) {
+    e.preventDefault();
+    guardarCliente();
+});
+
    
     let carrito = [];
     let numeroFactura = generarNumeroFactura();

@@ -64,7 +64,6 @@ class ProductoController extends Controller
         
         return response()->json($productos);
     }
-}
    
 
     public function create()

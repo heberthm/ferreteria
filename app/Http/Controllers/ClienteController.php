@@ -35,7 +35,7 @@ class ClienteController extends Controller
         return preg_replace('/[\.\s]/', '', $cedula);
     }
 
-  // En ClienteController.php - método store
+  
 public function store(Request $request)
 {
     DB::beginTransaction();
