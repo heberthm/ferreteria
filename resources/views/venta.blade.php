@@ -974,9 +974,9 @@ function guardarCliente() {
             
             if (response.success) {
                
-                $('#modalNuevoCliente').modal('hide').removeClass('show');
-                $('body').removeClass('modal-open');
-                $('.modal-backdrop').remove();
+              //  $('#modalNuevoCliente').modal('hide').removeClass('show');
+                $('#modalNuevoCliente').modal('hide');
+               
                 $('#form_guardar_cliente')[0].reset();
 
                 if (response.cliente) {
