@@ -9,7 +9,7 @@
             <button class="btn btn-outline-secondary btn-sm" id="btnAtajos">
                 <i class="fas fa-keyboard"></i> Atajos (F1)
             </button>
-            <span class="badge bg-info text-lg">Factura #: <span id="numeroFactura">F-00001</span></span>
+            <span class="badge bg-info text-lg">Factura # <span id="numeroFactura">F-00001</span></span>
         </div>
     </div>
 @stop
@@ -457,6 +457,9 @@
 
                     <input type="hidden" id="cliente_nombre" name="cliente_nombre">
                     <input type="hidden" id="cliente_cedula" name="cliente_cedula">
+                    <input type="hidden" id="cliente_email" name="cliente_email">
+                    <input type="hidden" id="cliente_direccion" name="cliente_direccion">
+                    <input type="hidden" id="cliente_telefono" name="cliente_telefono">
 
                     <div class="row">
                         <div class="col-md-6">
@@ -806,7 +809,6 @@
 @section('js')
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/i18n/es.js"></script>
 <script>
 
 
@@ -836,7 +838,7 @@ $(document).ready(function() {
                     results: $.map(resultados, function (cliente) {
                         return {
                             id: cliente.id,
-                            text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                            text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),   
                             nombre: cliente.nombre,
                             cedula: cliente.cedula,
                             email: cliente.email,
@@ -849,7 +851,7 @@ $(document).ready(function() {
         },
         placeholder: 'Escribe para buscar cliente...',
         minimumInputLength: 2,
-        language: "es",
+        
         allowClear: true,
         width: '100%'
     });
@@ -973,12 +975,10 @@ function guardarCliente() {
             btn.html(originalHTML).prop('disabled', false);
             
             if (response.success) {
-               
-              //  $('#modalNuevoCliente').modal('hide').removeClass('show');
+                // PRIMERO: Cerrar el modal
                 $('#modalNuevoCliente').modal('hide');
-               
-                $('#form_guardar_cliente')[0].reset();
-
+                
+                // SEGUNDO: Procesar el cliente guardado
                 if (response.cliente) {
                     var nuevoCliente = response.cliente;
                     var clienteId = nuevoCliente.id_cliente || nuevoCliente.id;
@@ -990,23 +990,31 @@ function guardarCliente() {
                         $('#selectCliente').append(newOption);
                     }
                     
+                    // Seleccionar el nuevo cliente en el Select2
                     $('#selectCliente').val(clienteId).trigger('change');
                     
                     // También guardar en inputs ocultos
                     $('#cliente_nombre').val(nuevoCliente.nombre);
                     $('#cliente_cedula').val(nuevoCliente.cedula || '');
+                    $('#cliente_email').val(nuevoCliente.email || '');
+                    $('#cliente_direccion').val(nuevoCliente.direccion || '');
+                    $('#cliente_telefono').val(nuevoCliente.telefono || '');
                 }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: response.message,
-                    timer: 2000,
-                    didClose: () => {
-                        // Limpiar formulario después de cerrar el modal
-                        $('#form_guardar_cliente')[0].reset();
-                    }
-                });
+                // TERCERO: Mostrar SweetAlert después de un pequeño delay
+                setTimeout(function() {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: response.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }, 500);
+
+                // CUARTO: Limpiar formulario
+                $('#form_guardar_cliente')[0].reset();
+                
             } else {
                 // Manejar errores de validación del servidor
                 let mensajeError = response.message || 'Error al guardar el cliente';
@@ -1096,77 +1104,187 @@ $('#form_guardar_cliente').on('submit', function(e) {
     $('#numeroFactura').text(numeroFactura);
 
     // Configurar Select2 para clientes
+       // CONFIGURACIÓN DE SELECT2 - CORREGIDA PARA CAPTURAR EMAIL Y DIRECCIÓN EN CAMPOS OCULTOS
     function configurarSelect2Clientes() {
+        // Destruir cualquier instancia previa
+        if ($.fn.select2 && $('#selectCliente').hasClass('select2-hidden-accessible')) {
+            $('#selectCliente').select2('destroy');
+        }
+        
+        // Configurar Select2 con búsqueda AJAX
         $('#selectCliente').select2({
-            placeholder: "Buscar cliente por nombre, RFC o teléfono...",
+            ajax: {
+                url: 'buscar_cliente',
+                dataType: 'json',
+                delay: 300,
+                data: function(params) {
+                    return { 
+                        q: params.term,
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    };
+                },
+                processResults: function(data) {
+                    const resultados = Array.isArray(data) ? data : [];
+                    return {
+                        results: $.map(resultados, function(cliente) {
+                            return {
+                                id: cliente.id,
+                                text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                                nombre: cliente.nombre,
+                                cedula: cliente.cedula,
+                                email: cliente.email,
+                                telefono: cliente.telefono,
+                                direccion: cliente.direccion // Agregar dirección si está disponible
+                            };
+                        })
+                    };
+                },
+                cache: true
+            },
+            placeholder: 'Escribe para buscar cliente...',
+            minimumInputLength: 2,
+            language: {
+                errorLoading: function () {
+                    return 'No se pudieron cargar los resultados';
+                },
+                inputTooShort: function (args) {
+                    var remainingChars = args.minimum - args.input.length;
+                    return 'Ingresa al menos ' + remainingChars + ' carácter' + (remainingChars != 1 ? 'es' : '');
+                },
+                inputTooLong: function (args) {
+                    var overChars = args.input.length - args.maximum;
+                    return 'Por favor borra ' + overChars + ' carácter' + (overChars != 1 ? 'es' : '');
+                },
+                loadingMore: function () {
+                    return 'Cargando más resultados…';
+                },
+                maximumSelected: function (args) {
+                    return 'Solo puedes seleccionar ' + args.maximum + ' elemento' + (args.maximum != 1 ? 's' : '');
+                },
+                noResults: function () {
+                    return 'No se encontraron resultados';
+                },
+                searching: function () {
+                    return 'Buscando…';
+                },
+                removeAllItems: function () {
+                    return 'Eliminar todos los elementos';
+                }
+            },
             allowClear: true,
             width: '100%',
-            language: "es",
-            templateResult: formatClienteResult,
-            templateSelection: formatClienteSelection
+            dropdownParent: $('#selectCliente').parent()
         });
-    
 
+        // ENFOCAR CORRECTAMENTE AL ABRIR SELECT2
+        $('#selectCliente').on('select2:open', function(e) {
+            setTimeout(function() {
+                var searchField = $('.select2-container--open .select2-search__field');
+                if (searchField.length > 0) {
+                    searchField[0].focus();
+                }
+            }, 50);
+        });
 
+        // Evento change - guardar en inputs ocultos y mostrar info
+        $('#selectCliente').on('change', function() {
+            const selectedData = $(this).select2('data')[0];
+            
+            if (selectedData && selectedData.id) {
+                // Cerrar dropdown automáticamente después de seleccionar
+                setTimeout(function() {
+                    $('#selectCliente').select2('close');
+                }, 100);
+                
+                // Usar los datos directamente del objeto select2
+                const nombreCliente = selectedData.nombre || selectedData.text;
+                const cedulaCliente = selectedData.cedula || '';
+                const emailCliente = selectedData.email || '';
+                const direccionCliente = selectedData.direccion || '';
+                const telefonoCliente = selectedData.telefono || '';
+                
+                // GUARDAR EN INPUTS OCULTOS - INCLUYENDO EMAIL Y DIRECCIÓN
+                $('#cliente_nombre').val(nombreCliente);
+                $('#cliente_cedula').val(cedulaCliente);
+                $('#cliente_email').val(emailCliente);
+                $('#cliente_direccion').val(direccionCliente);
+                $('#cliente_telefono').val(telefonoCliente);
+                
+                // Mostrar información del cliente - SOLO NOMBRE Y CÉDULA
+                mostrarInfoClienteSeleccionado(nombreCliente, cedulaCliente);
+                
+                // Establecer cliente seleccionado para el sistema (con todos los datos)
+                clienteSeleccionado = {
+                    id: selectedData.id,
+                    nombre: nombreCliente,
+                    cedula: cedulaCliente,
+                    email: emailCliente,
+                    direccion: direccionCliente,
+                    telefono: telefonoCliente
+                };
 
-        // Evento cuando se selecciona un cliente
-        $('#selectCliente').on('select2:select', function(e) {
-            const clienteId = $(this).val();
-            if (clienteId && clientes[clienteId]) {
-                clienteSeleccionado = clientes[clienteId];
-                mostrarInfoCliente();
-                toastr.success(`Cliente seleccionado: ${clienteSeleccionado.nombre}`, 'Cliente');
+                // Enfocar automáticamente en la búsqueda de productos después de seleccionar cliente
+                setTimeout(function() {
+                    $('#busquedaRapida').focus();
+                }, 200);
             } else {
-                ocultarInfoCliente();
+                limpiarClienteSeleccionado();
             }
         });
-
-        // Evento cuando se limpia la selección
-        $('#selectCliente').on('select2:clear', function() {
-            ocultarInfoCliente();
-        });
     }
 
-    // Evento para enfocar automáticamente al abrir el Select2
-    $('#selectCliente').on('select2:open', function() {
-        // Esperar un poco para que el dropdown se abra completamente
-       
-           this.focus();
-          
-    });
-
-    // Formatear resultado en el dropdown de Select2
-    function formatClienteResult(cliente) {
-        if (!cliente.id) return cliente.text;
+    // FUNCIÓN CORREGIDA PARA MOSTRAR SOLO NOMBRE Y CÉDULA
+    function mostrarInfoClienteSeleccionado(nombre, cedula) {
+        // Buscar el contenedor o crearlo si no existe
+        let infoContainer = $('#infoClienteSeleccionado');
         
-        const clienteData = clientes[cliente.id];
-        if (!clienteData) return cliente.text;
-
-        return $(
-            `<div>
-                <strong>${clienteData.nombre}</strong>
-                <div class="text-muted">
-                    <small>RFC: ${clienteData.rfc} | Tel: ${clienteData.telefono}</small>
+        if (infoContainer.length === 0) {
+            // Crear el contenedor después del grupo del formulario del select2
+            $('#selectCliente').closest('.form-group').after(
+                '<div id="infoClienteSeleccionado" class="mt-2 mb-3"></div>'
+            );
+            infoContainer = $('#infoClienteSeleccionado');
+        }
+        
+        // Construir el HTML con SOLO nombre y cédula
+        let infoHTML = `
+            <div class="alert alert-success py-2 mb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-user-check mr-2"></i>
+                        <strong>Cliente seleccionado:</strong> ${nombre}
+                        ${cedula ? `<span class="ml-2"><strong>Cédula:</strong> ${cedula}</span>` : ''}
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="limpiarSeleccionCliente()">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-            </div>`
-        );
-    }
-
-    // Formatear selección en el Select2
-    function formatClienteSelection(cliente) {
-        if (!cliente.id) return cliente.text;
+            </div>
+        `;
         
-        const clienteData = clientes[cliente.id];
-        if (!clienteData) return cliente.text;
-
-        return clienteData.nombre;
+        infoContainer.html(infoHTML);
     }
 
+    function limpiarClienteSeleccionado() {
+        // Limpiar TODOS los campos ocultos
+        $('#cliente_nombre').val('');
+        $('#cliente_cedula').val('');
+        $('#cliente_email').val('');
+        $('#cliente_direccion').val('');
+        $('#cliente_telefono').val('');
+        $('#infoClienteSeleccionado').html('');
+        clienteSeleccionado = null;
+    }
 
-
-
-
-
+    // Función global para limpiar selección
+    window.limpiarSeleccionCliente = function() {
+        $('#selectCliente').val('').trigger('change');
+        limpiarClienteSeleccionado();
+        // Enfocar de nuevo en el select2 después de limpiar
+        setTimeout(function() {
+            $('#selectCliente').select2('open');
+        }, 100);
+    }
 
     // Configurar atajos de teclado
     function configurarAtajosTeclado() {
