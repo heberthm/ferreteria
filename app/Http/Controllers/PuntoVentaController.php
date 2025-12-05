@@ -17,100 +17,236 @@ class PuntoVentaController extends Controller
         return view('venta');
     }
 
+    
     public function buscarProductos(Request $request)
     {
-        $consulta = $request->input('consulta');
+        $termino = $request->input('termino');
+        $categoria = $request->input('categoria', 'todas');
         
-        $productos = Producto::where('codigo', 'LIKE', "%{$consulta}%")
-            ->orWhere('nombre', 'LIKE', "%{$consulta}%")
-            ->where('stock', '>', 0)
-            ->select('id', 'codigo', 'nombre', 'precio', 'stock')
-            ->limit(20)
-            ->get();
-
-        return response()->json(['productos' => $productos]);
+        try {
+            $query = Producto::query();
+            
+            // Filtrar por término de búsqueda
+            if ($termino) {
+                $query->where(function($q) use ($termino) {
+                    $q->where('codigo', 'LIKE', "%{$termino}%")
+                      ->orWhere('nombre', 'LIKE', "%{$termino}%")
+                      ->orWhere('descripcion', 'LIKE', "%{$termino}%");
+                });
+            }
+            
+            // Filtrar por categoría
+            if ($categoria !== 'todas') {
+                $query->where('categoria', $categoria);
+            }
+            
+            // Obtener solo productos con stock disponible
+            $query->where('stock', '>', 0);
+            
+            // Ordenar por nombre
+            $query->orderBy('nombre', 'asc');
+            
+            // Limitar resultados
+            $productos = $query->limit(50)->get();
+            
+            return response()->json([
+                'success' => true,
+                'productos' => $productos,
+                'total' => $productos->count()
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al buscar productos: ' . $e->getMessage()
+            ], 500);
+        }
     }
-
-    public function buscarClientes(Request $request)
+    
+    /**
+     * Filtrar productos por categoría
+     */
+    public function filtrarProductos(Request $request)
     {
-        $consulta = $request->input('consulta');
+        $categoria = $request->input('categoria');
         
-        $clientes = Cliente::where('nombre', 'LIKE', "%{$consulta}%")
-            ->orWhere('rfc', 'LIKE', "%{$consulta}%")
-            ->orWhere('email', 'LIKE', "%{$consulta}%")
-            ->orWhere('telefono', 'LIKE', "%{$consulta}%")
-            ->select('id', 'nombre', 'rfc', 'email', 'telefono', 'direccion', 'tipo_cliente')
-            ->limit(20)
-            ->get();
-
-        return response()->json(['clientes' => $clientes]);
+        try {
+            $query = Producto::where('stock', '>', 0);
+            
+            if ($categoria && $categoria !== 'todas') {
+                $query->where('categoria', $categoria);
+            }
+            
+            $productos = $query->orderBy('nombre', 'asc')->get();
+            
+            return response()->json([
+                'success' => true,
+                'productos' => $productos
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al filtrar productos: ' . $e->getMessage()
+            ], 500);
+        }
     }
-
+    
+    /**
+     * Obtener todos los productos
+     */
+    public function todosLosProductos()
+    {
+        try {
+            $productos = Producto::where('stock', '>', 0)
+                                ->orderBy('nombre', 'asc')
+                                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'productos' => $productos
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar productos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Obtener productos frecuentes
+     */
+    public function productosFrecuentes()
+    {
+        try {
+            // Obtener los productos más vendidos
+            $productos = DB::table('productos as p')
+                ->join('detalle_ventas as dv', 'p.id', '=', 'dv.producto_id')
+                ->select('p.*', DB::raw('SUM(dv.cantidad) as total_vendido'))
+                ->where('p.stock', '>', 0)
+                ->groupBy('p.id')
+                ->orderBy('total_vendido', 'desc')
+                ->limit(10)
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'productos' => $productos
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar productos frecuentes: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    
+    /**
+     * Verificar stock de producto
+     */
+    public function verificarStock(Request $request)
+    {
+        $productoId = $request->input('producto_id');
+        $cantidadSolicitada = $request->input('cantidad', 1);
+        
+        try {
+            $producto = Producto::findOrFail($productoId);
+            
+            $stockDisponible = $producto->stock >= $cantidadSolicitada;
+            
+            return response()->json([
+                'success' => true,
+                'disponible' => $stockDisponible,
+                'stock_actual' => $producto->stock,
+                'producto' => $producto
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+    }
+    
+    /**
+     * Procesar venta
+     */
     public function procesarVenta(Request $request)
     {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.producto_id' => 'required|exists:productos,id',
+            'items.*.cantidad' => 'required|integer|min:1',
+            'subtotal' => 'required|numeric',
+            'iva' => 'required|numeric',
+            'total' => 'required|numeric',
+            'metodo_pago' => 'required|string'
+        ]);
+        
         DB::beginTransaction();
-
+        
         try {
-            // Validar stock antes de procesar
-            foreach ($request->items as $item) {
-                $producto = Producto::find($item['id']);
-                if (!$producto || $producto->stock < $item['cantidad']) {
-                    throw new \Exception("Stock insuficiente para: {$item['nombre']}");
-                }
-            }
-
             // Crear la venta
-            $venta = Venta::create([
-                'cliente_id' => $request->cliente_id,
-                'subtotal' => $request->subtotal,
-                'iva' => $request->iva,
-                'total' => $request->total,
-                'aplicar_iva' => $request->aplicar_iva,
-                'fecha_venta' => now(),
-                'estado' => 'completada'
+            $venta = DB::table('ventas')->insertGetId([
+                'numero_factura' => $request->input('numero_factura'),
+                'cliente_id' => $request->input('cliente_id'),
+                'subtotal' => $request->input('subtotal'),
+                'iva' => $request->input('iva'),
+                'total' => $request->input('total'),
+                'metodo_pago' => $request->input('metodo_pago'),
+                'usuario_id' => auth()->id(),
+                'created_at' => now(),
+                'updated_at' => now()
             ]);
-
-            // Crear detalles de venta y actualizar stock
-            foreach ($request->items as $item) {
-                DetalleVenta::create([
-                    'venta_id' => $venta->id,
-                    'producto_id' => $item['id'],
+            
+            // Procesar cada item
+            foreach ($request->input('items') as $item) {
+                // Verificar stock
+                $producto = Producto::findOrFail($item['producto_id']);
+                
+                if ($producto->stock < $item['cantidad']) {
+                    throw new \Exception("Stock insuficiente para {$producto->nombre}");
+                }
+                
+                // Insertar detalle de venta
+                DB::table('detalle_ventas')->insert([
+                    'venta_id' => $venta,
+                    'producto_id' => $item['producto_id'],
                     'cantidad' => $item['cantidad'],
-                    'precio_unitario' => $item['precio'],
-                    'total' => $item['precio'] * $item['cantidad']
+                    'precio_unitario' => $producto->precio,
+                    'subtotal' => $producto->precio * $item['cantidad'],
+                    'created_at' => now(),
+                    'updated_at' => now()
                 ]);
-
+                
                 // Actualizar stock
-                $producto = Producto::find($item['id']);
-                $producto->decrement('stock', $item['cantidad']);
+                $producto->stock -= $item['cantidad'];
+                $producto->save();
             }
-
-            // Registrar pago
-            Pago::create([
-                'venta_id' => $venta->id,
-                'metodo_pago' => $request->metodo_pago,
-                'monto' => $request->total,
-                'datos_pago' => json_encode($request->datos_pago),
-                'fecha_pago' => now()
-            ]);
-
+            
             DB::commit();
-
+            
             return response()->json([
-                'exito' => true,
-                'venta_id' => $venta->id,
-                'mensaje' => 'Venta procesada exitosamente'
+                'success' => true,
+                'message' => 'Venta procesada exitosamente',
+                'venta_id' => $venta
             ]);
-
+            
         } catch (\Exception $e) {
             DB::rollBack();
+            
             return response()->json([
-                'exito' => false,
-                'mensaje' => $e->getMessage()
+                'success' => false,
+                'message' => 'Error al procesar venta: ' . $e->getMessage()
             ], 500);
         }
     }
 
+    
     public function generarTicket($ventaId)
     {
         $venta = Venta::with(['cliente', 'detalles.producto', 'pago'])->find($ventaId);

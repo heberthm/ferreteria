@@ -82,8 +82,16 @@ Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::cl
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
 Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
 Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');
-Route::get('/productos/search', [ProductoController::class, 'search'])->name('productos.search');
-Route::get('/productos/frecuentes', [ProductoController::class, 'frecuentes'])->name('productos.frecuentes');
+
+
+Route::get('/obtener-categorias', [App\Http\Controllers\ProductoController::class, 'obtenerCategorias'])->name('categorias.obtener');
+Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('productos.por-categoria');
+Route::get('/buscar-productos', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-productos');
+Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
+Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
+Route::get('/productos-frecuentes', [App\Http\Controllers\ProductoController::class, 'productosFrecuentes'])->name('productos.frecuentes');
+
+
 
 
 
@@ -136,3 +144,21 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
     Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
     Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
 
+
+
+
+
+// Rutas para búsquedas AJAX
+
+/*
+Route::post('/buscar_cliente', [ClienteController::class, 'buscar']);
+Route::post('/buscar-productos', [ProductoController::class, 'buscar']);
+Route::get('/filtrar-productos', [ProductoController::class, 'filtrarProductos']);
+Route::post('/productos-todos', [ProductoController::class, 'todosLosProductos']);
+Route::post('/obtener-categorias', [ProductoController::class, 'obtenerCategorias']);
+
+*/
+    // Verificar stock
+  //  Route::post('verificar-stock', [puntoVentaController::class, 'verificarStock'])->name('pos-verificar-stock');
+    
+   
