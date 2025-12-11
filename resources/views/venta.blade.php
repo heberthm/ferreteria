@@ -470,11 +470,11 @@
                     <!-- Campo userId oculto -->
                     <input type="hidden" name="userId" value="{{ Auth::check() ? Auth::user()->id : 1 }}">
 
-                    <input type="text" id="cliente_nombre" name="cliente_nombre">
-                    <input type="text" id="cliente_cedula" name="cliente_cedula">
-                    <input type="text" id="cliente_email" name="cliente_email">
-                    <input type="text" id="cliente_direccion" name="cliente_direccion">
-                    <input type="text" id="cliente_telefono" name="cliente_telefono">
+                    <input type="hidden" id="cliente_nombre" name="cliente_nombre">
+                    <input type="hidden" id="cliente_cedula" name="cliente_cedula">
+                    <input type="hidden" id="cliente_email" name="cliente_email">
+                    <input type="hidden" id="cliente_direccion" name="cliente_direccion">
+                    <input type="hidden" id="cliente_telefono" name="cliente_telefono">
 
                     <div class="row">
                         <div class="col-md-6">
@@ -618,7 +618,7 @@
     }
 
     .input-cantidad {
-        width: 60px !important;
+        width: 20px !important;
         text-align: center;
     }
 
@@ -854,6 +854,27 @@
     }
 
 
+/* Estilos para el formulario de nuevo cliente */
+#modalNuevoCliente .form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+#modalNuevoCliente .text-danger {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+#modalNuevoCliente .text-success {
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Botón de guardar deshabilitado */
+#BtnGuardar_cliente:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 
 </style>
 
@@ -1009,7 +1030,22 @@ $(document).ready(function() {
                 return markup;
             }
         });
+
+        // =============================================
+        // FOCO AUTOMÁTICO AL HACER CLIC EN SELECT2
+        // =============================================
         
+        // Método 1: Evento cuando se abre el dropdown
+        selectElement.on('select2:open', function() {
+            console.log('🔍 Select2 abierto, enfocando campo de búsqueda...');
+            
+            // Esperar un poco para que el dropdown se renderice
+            setTimeout(function() {
+                // Enfocar el campo de búsqueda de Select2
+                $('.select2-search__field').focus().select();
+            }, 100);
+        });
+            
         // =============================================
         // EVENTO: Cuando se selecciona un cliente
         // =============================================
@@ -1128,6 +1164,300 @@ $(document).ready(function() {
         limpiarClienteSeleccionado();
         toastr.info('Cliente removido');
     });
+
+
+// =============================================
+// 7. MANEJO DE NUEVO CLIENTE
+// =============================================
+
+function configurarNuevoCliente() {
+    console.log('👤 Configurando nuevo cliente...');
+    
+    // EVITAR DOBLE ENVÍO
+    $('#form_guardar_cliente').off('submit'); // Remover eventos previos
+    $('#form_guardar_cliente').on('submit', function(e) {
+        e.preventDefault();
+        
+        // Deshabilitar botón para evitar doble clic
+        const $btn = $('#BtnGuardar_cliente');
+        if ($btn.prop('disabled')) {
+            console.log('⏸️ Botón ya deshabilitado, evitando doble envío');
+            return false;
+        }
+        
+        $btn.prop('disabled', true);
+        
+        setTimeout(() => {
+            guardarNuevoCliente();
+        }, 300); // Pequeño delay para evitar doble envío rápido
+    });
+    
+    // Validar cédula en tiempo real
+    $('#cedula').on('blur', function() {
+        const cedula = $(this).val().trim();
+        if (cedula) {
+            verificarCedulaExistente(cedula);
+        }
+    });
+}
+
+function verificarCedulaExistente(cedula) {
+    $.ajax({
+        url: '{{ route("verificar_cliente") }}',
+        method: 'GET',
+        data: { cedula: cedula },
+        success: function(response) {
+            if (response === 'unique') {
+                $('#error_cedula').html('<span class="text-danger">Esta cédula ya existe</span>');
+                $('#cedula').addClass('is-invalid');
+                $('#BtnGuardar_cliente').prop('disabled', true);
+            } else {
+                $('#error_cedula').html('<span class="text-success">Cédula disponible</span>');
+                $('#cedula').removeClass('is-invalid');
+                $('#BtnGuardar_cliente').prop('disabled', false);
+            }
+        },
+        error: function() {
+            console.error('Error al verificar cédula');
+        }
+    });
+}
+
+function guardarNuevoCliente() {
+    const formData = $('#form_guardar_cliente').serialize();
+    
+    // Mostrar loading
+    $('#BtnGuardar_cliente').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+    
+    $.ajax({
+        url: 'guardar_clientes',
+        method: 'POST',
+        data: formData,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message, 'Cliente');
+                
+                // Cerrar modal
+                $('#modalNuevoCliente').modal('hide');
+                
+                // Resetear formulario
+                $('#form_guardar_cliente')[0].reset();
+                $('#error_cedula').html('');
+                
+                // Agregar nuevo cliente al Select2 y seleccionarlo
+                agregarClienteAlSelect2(response.cliente);
+                
+            } else {
+                toastr.error(response.message, 'Error');
+                if (response.errors) {
+                    Object.keys(response.errors).forEach(key => {
+                        toastr.error(response.errors[key][0]);
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al guardar cliente:', xhr);
+            
+            if (xhr.status === 409) {
+                toastr.error('La cédula/NIT ya existe en el sistema');
+            } else if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                Object.keys(errors).forEach(key => {
+                    toastr.error(errors[key][0]);
+                });
+            } else {
+                toastr.error('Error al guardar el cliente');
+            }
+        },
+        complete: function() {
+            $('#BtnGuardar_cliente').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cliente');
+        }
+    });
+}
+
+function agregarClienteAlSelect2(cliente) {
+    const selectElement = $('#selectCliente');
+    
+    // Crear la opción para el nuevo cliente
+    const nuevaOpcion = new Option(
+        cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+        cliente.id,
+        true,
+        true
+    );
+    
+    // Agregar la opción al Select2
+    selectElement.append(nuevaOpcion).trigger('change');
+    
+    // Actualizar los datos de la opción
+    selectElement.trigger({
+        type: 'select2:select',
+        params: {
+            data: {
+                id: cliente.id,
+                text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                nombre: cliente.nombre,
+                cedula: cliente.cedula,
+                email: cliente.email,
+                telefono: cliente.telefono,
+                direccion: cliente.direccion
+            }
+        }
+    });
+    
+    // Mostrar información del cliente
+    mostrarInfoClienteBasica(cliente);
+    
+    // Actualizar campos ocultos
+    $('#cliente_nombre').val(cliente.nombre);
+    $('#cliente_cedula').val(cliente.cedula);
+    $('#cliente_email').val(cliente.email);
+    $('#cliente_direccion').val(cliente.direccion);
+    $('#cliente_telefono').val(cliente.telefono);
+    
+    // Guardar en variable global
+    clienteSeleccionado = cliente;
+    
+    // Mostrar botón de quitar cliente
+    $('#btnQuitarCliente').show();
+}
+
+function verificarCedulaExistente(cedula) {
+    $.ajax({
+        url: '{{ route("verificar_cliente") }}',
+        method: 'GET',
+        data: { cedula: cedula },
+        success: function(response) {
+            if (response === 'unique') {
+                $('#error_cedula').html('<span class="text-danger">Esta cédula ya existe</span>');
+                $('#cedula').addClass('is-invalid');
+                $('#BtnGuardar_cliente').prop('disabled', true);
+            } else {
+                $('#error_cedula').html('<span class="text-success">Cédula disponible</span>');
+                $('#cedula').removeClass('is-invalid');
+                $('#BtnGuardar_cliente').prop('disabled', false);
+            }
+        },
+        error: function() {
+            console.error('Error al verificar cédula');
+        }
+    });
+}
+
+function guardarNuevoCliente() {
+    const formData = $('#form_guardar_cliente').serialize();
+    
+    // Mostrar loading
+    $('#BtnGuardar_cliente').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+    
+    $.ajax({
+        url: '{{ route("guardar_clientes") }}',
+        method: 'POST',
+        data: formData,
+        headers: {
+            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+        },
+        success: function(response) {
+            if (response.success) {
+                toastr.success(response.message, 'Cliente');
+                
+                // SOLUCIÓN SIMPLE Y EFECTIVA
+                // 1. Primero ocultar con display none
+                $('#modalNuevoCliente').hide();
+                
+                // 2. Remover clases de modal
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+                
+                // 3. Resetear formulario
+                $('#form_guardar_cliente')[0].reset();
+                $('#error_cedula').html('');
+                
+                // 4. Agregar cliente al Select2
+                agregarClienteAlSelect2(response.cliente);
+                
+                // 5. Restaurar estado normal del body
+                $('body').css('padding-right', '');
+                
+            } else {
+                toastr.error(response.message, 'Error');
+                if (response.errors) {
+                    Object.keys(response.errors).forEach(key => {
+                        toastr.error(response.errors[key][0]);
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            console.error('Error al guardar cliente:', xhr);
+            
+            if (xhr.status === 409) {
+                toastr.error('La cédula/NIT ya existe en el sistema');
+            } else if (xhr.status === 422) {
+                const errors = xhr.responseJSON.errors;
+                Object.keys(errors).forEach(key => {
+                    toastr.error(errors[key][0]);
+                });
+            } else {
+                toastr.error('Error al guardar el cliente');
+            }
+        },
+        complete: function() {
+            $('#BtnGuardar_cliente').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cliente');
+        }
+    });
+}
+
+function agregarClienteAlSelect2(cliente) {
+    const selectElement = $('#selectCliente');
+    
+    // Crear la opción para el nuevo cliente
+    const nuevaOpcion = new Option(
+        cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+        cliente.id,
+        true,
+        true
+    );
+    
+    // Agregar la opción al Select2
+    selectElement.append(nuevaOpcion).trigger('change');
+    
+    // Actualizar los datos de la opción
+    selectElement.trigger({
+        type: 'select2:select',
+        params: {
+            data: {
+                id: cliente.id,
+                text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                nombre: cliente.nombre,
+                cedula: cliente.cedula,
+                email: cliente.email,
+                telefono: cliente.telefono,
+                direccion: cliente.direccion
+            }
+        }
+    });
+    
+    // Mostrar información del cliente
+    mostrarInfoClienteBasica(cliente);
+    
+    // Actualizar campos ocultos
+    $('#cliente_nombre').val(cliente.nombre);
+    $('#cliente_cedula').val(cliente.cedula);
+    $('#cliente_email').val(cliente.email);
+    $('#cliente_direccion').val(cliente.direccion);
+    $('#cliente_telefono').val(cliente.telefono);
+    
+    // Guardar en variable global
+    clienteSeleccionado = cliente;
+    
+    // Mostrar botón de quitar cliente
+    $('#btnQuitarCliente').show();
+}
 
 
     // =============================================
@@ -1429,8 +1759,8 @@ $(document).ready(function() {
                             <button class="btn btn-outline-secondary btn-sm btn-restar" data-index="${index}">-</button>
                             
                             <!-- INPUT CANTIDAD (CENTRO) -->
-                            <input type="number" class="form-control text-center mx-1" 
-                                   value="${item.cantidad}" readonly style="width: 50px;">
+                            <input type="number" class="form-control" 
+                                   value="${item.cantidad}" readonly style="width: 10px;">
                             
                             <!-- BOTÓN MÁS (DERECHA) -->
                             <button class="btn btn-outline-secondary btn-sm btn-sumar" data-index="${index}">+</button>
@@ -2173,38 +2503,75 @@ function configurarEventosCarrito() {
     }
 
 
+ // =============================================
+// MODAL SCANNER
 // =============================================
-    // 5. CONFIGURAR MODAL SCANNER
-    // =============================================
+
+$(document).ready(function() {
     
-    // Abrir modal scanner
+    // 1. ABRIR MODAL SCANNER
+     // Abrir modal scanner
     $('#btnScanner').on('click', function(e) {
         e.preventDefault();
         console.log('📷 Abriendo modal scanner');
         $('#modalScanner').modal('show');
     });
     
-    // Focus en input cuando se abre el modal
-    $('#modalScanner').on('shown.bs.modal', function() {
-        console.log('✅ Modal scanner abierto');
-        $('#inputCodigoManual').focus();
-    });
-    
-    // Limpiar input cuando se cierra el modal
-    $('#modalScanner').on('hidden.bs.modal', function() {
-        console.log('🧹 Modal scanner cerrado - limpiando input');
-        $('#inputCodigoManual').val('');
-    });
-    
-    // Cerrar modal con ESC
-    $(document).on('keydown', function(e) {
-        if (e.key === 'Escape' && $('#modalScanner').is(':visible')) {
-            console.log('⌨️ ESC presionado - cerrando modal');
+    // 2. CONFIGURAR EVENTOS DE CIERRE (ESTA ES LA CLAVE)
+    function configurarCierreModalScanner() {
+        console.log('🔧 Configurando eventos de cierre para modal scanner...');
+        
+        // Botón X superior - MÚLTIPLES MÉTODOS
+        $('#modalScanner .btn-close-modal').off('click').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('❌ Botón X clickeado');
             $('#modalScanner').modal('hide');
-        }
+            return false;
+        });
+        
+        // Botón Cancelar
+        $('#modalScanner .btn-secondary.btn-close-modal').off('click').on('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Botón Cancelar clickeado');
+            $('#modalScanner').modal('hide');
+        });
+        
+        // Cerrar con tecla ESC
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
+                console.log('⌨️ Tecla ESC presionada');
+                $('#modalScanner').modal('hide');
+            }
+        });
+        
+        // Cerrar haciendo clic fuera del modal (backdrop)
+        $('#modalScanner').on('click', function(e) {
+            if ($(e.target).hasClass('modal')) {
+                console.log('🎯 Clic fuera del modal');
+                $('#modalScanner').modal('hide');
+            }
+        });
+        
+        // Evento cuando el modal se muestra
+        $('#modalScanner').on('shown.bs.modal', function() {
+            console.log('✅ Modal scanner mostrado');
+            $('#inputCodigoManual').focus().select();
+        });
+        
+        // Evento cuando el modal se oculta
+        $('#modalScanner').on('hidden.bs.modal', function() {
+            console.log('📴 Modal scanner cerrado');
+            $('#inputCodigoManual').val('');
+        });
+    }
+    
+    // 3. PROCESAR CÓDIGO
+    $('#btnProcesarCodigo').click(function() {
+        procesarCodigoEscaneado();
     });
     
-    // Procesar código al presionar Enter
+    // 4. ENTER PARA BUSCAR
     $('#inputCodigoManual').on('keypress', function(e) {
         if (e.which === 13) {
             e.preventDefault();
@@ -2212,55 +2579,54 @@ function configurarEventosCarrito() {
         }
     });
     
-    // Botón "Procesar Código"
-    $(document).on('click', '[onclick="procesarCodigoEscaneado()"]', function(e) {
-        e.preventDefault();
-        procesarCodigoEscaneado();
-    });
-
-    // =============================================
-    // 6. FUNCIÓN PROCESAR CÓDIGO ESCANEADO
-    // =============================================
+    // 5. Función para procesar código
     window.procesarCodigoEscaneado = function() {
         const codigo = $('#inputCodigoManual').val().trim();
         
-        console.log('🔍 Procesando código:', codigo);
-        
         if (!codigo) {
-            toastr.warning('Ingrese un código para buscar');
+            toastr.warning('Ingresa un código para buscar');
+            $('#inputCodigoManual').focus();
             return;
         }
         
-        // Buscar producto por código
-        const productoEncontrado = Object.values(productos).find(p => 
-            p.codigo && p.codigo.toString() === codigo.toString()
-        );
+        console.log('🔍 Buscando:', codigo);
         
-        if (productoEncontrado) {
-            // Agregar al carrito
-            agregarAlCarrito(productoEncontrado);
-            
-            // Cerrar modal
-            $('#modalScanner').modal('hide');
-            
-            toastr.success(`Producto "${productoEncontrado.nombre}" agregado`);
-        } else {
-            // Buscar por similitud
-            const productosSimilares = Object.values(productos).filter(p => 
-                p.codigo && p.codigo.toString().includes(codigo)
-            );
-            
-            if (productosSimilares.length > 0) {
-                mostrarResultadosBusqueda(productosSimilares);
-                $('#modalScanner').modal('hide');
-                toastr.info(`Se encontraron ${productosSimilares.length} productos similares`);
-            } else {
-                toastr.error(`No se encontró producto con código: ${codigo}`);
-                $('#inputCodigoManual').select();
+        // Buscar producto
+        let productoEncontrado = null;
+        for (let id in productos) {
+            if (productos[id] && productos[id].codigo && 
+                productos[id].codigo.toString().trim() === codigo) {
+                productoEncontrado = productos[id];
+                break;
             }
         }
+        
+        if (productoEncontrado) {
+            // CERRAR MODAL PRIMERO
+            $('#modalScanner').modal('hide');
+            
+            // Agregar producto después de cerrar
+            setTimeout(function() {
+                agregarAlCarrito(productoEncontrado);
+                toastr.success(`${productoEncontrado.nombre} agregado`, 'Scanner');
+            }, 300);
+            
+        } else {
+            toastr.error(`Código no encontrado: ${codigo}`);
+            $('#inputCodigoManual').select();
+        }
     };
-
+    
+    // 6. INICIALIZAR EVENTOS CUANDO EL MODAL SE CARGUE
+    // Esto es importante para eventos dinámicos
+    $(document).on('DOMNodeInserted', '#modalScanner', function() {
+        setTimeout(configurarCierreModalScanner, 100);
+    });
+    
+    // También inicializar al cargar la página
+    setTimeout(configurarCierreModalScanner, 1000);
+    
+});
 
 // =============================================
     // 1. FUNCIÓN PARA LIMPIAR CLIENTE
@@ -2301,10 +2667,13 @@ function configurarEventosCarrito() {
     function inicializarSistema() {
         console.log('🚀 Inicializando sistema...');
         
-        configurarSelect2Clientes();
-        cargarProductosDesdeDB();
-        configurarMetodosPago();
-        configurarBusquedaTiempoReal();
+     configurarSelect2Clientes();
+    configurarNuevoCliente(); 
+    cargarProductosDesdeDB();
+    configurarMetodosPago();
+    configurarBusquedaTiempoReal();
+
+    
         
         
         // Eventos básicos

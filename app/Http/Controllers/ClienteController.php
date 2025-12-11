@@ -34,62 +34,79 @@ class ClienteController extends Controller
         return preg_replace('/[\.\s]/', '', $cedula);
     }
 
-    public function store(Request $request)
-    {
-        DB::beginTransaction();
+   public function store(Request $request)
+{
+    DB::beginTransaction();
+    
+    try {
+        // Normalizar la cédula
+        $cedulaNormalizada = preg_replace('/[\.\s]/', '', $request->cedula);
         
-        try {
-            // Normalizar la cédula (quitar puntos y espacios)
-            $cedulaNormalizada = preg_replace('/[\.\s]/', '', $request->cedula);
-            
-            // Validar con cédula normalizada
-            $validator = Validator::make(array_merge($request->all(), [
-                'cedula_normalizada' => $cedulaNormalizada
-            ]), [
-                'nombre' => 'required|string|max:255',
-                'cedula' => 'required|string|max:20',
-                'email' => 'nullable|email|max:255',
-                'telefono' => 'nullable|string|max:50',
-                'direccion' => 'nullable|string'
-            ]);
-
-            if ($validator->fails()) {
+        // Validar si la cédula ya existe
+        if (!empty($cedulaNormalizada)) {
+            $existente = Cliente::where('cedula', $cedulaNormalizada)->first();
+            if ($existente) {
                 DB::rollBack();
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error de validación',
-                    'errors' => $validator->errors()
-                ], 422);
+                    'message' => 'La cédula/NIT ya existe en el sistema'
+                ], 409);
             }
+        }
 
-            // Crear el cliente
-            $cliente = Cliente::create([
-                'userId' => $request->userId,
-                'nombre' => $request->nombre,
-                'cedula' => $request->cedula, 
-                'email' => $request->email,
-                'telefono' => $request->telefono,
-                'direccion' => $request->direccion
-            ]);
+        $validator = Validator::make($request->all(), [
+            'nombre' => 'required|string|max:255',
+            'cedula' => 'required|string|max:20',
+            'email' => 'nullable|email|max:255',
+            'telefono' => 'nullable|string|max:50',
+            'direccion' => 'nullable|string',
+            'userId' => 'required|integer'
+        ]);
 
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cliente guardado exitosamente',
-                'cliente' => $cliente
-            ]);
-
-        } catch (\Exception $e) {
+        if ($validator->fails()) {
             DB::rollBack();
-            \Log::error('Error al guardar cliente: ' . $e->getMessage());
-            
             return response()->json([
                 'success' => false,
-                'message' => 'Error interno del servidor: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        // Crear el cliente
+        $cliente = Cliente::create([
+            'userId' => $request->userId,
+            'nombre' => $request->nombre,
+            'cedula' => $cedulaNormalizada, // Usar la cédula normalizada
+            'email' => $request->email,
+            'telefono' => $request->telefono,
+            'direccion' => $request->direccion
+        ]);
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cliente guardado exitosamente',
+            'cliente' => [
+                'id' => $cliente->id_cliente,
+                'nombre' => $cliente->nombre,
+                'cedula' => $cliente->cedula,
+                'email' => $cliente->email,
+                'telefono' => $cliente->telefono,
+                'direccion' => $cliente->direccion
+            ]
+        ], 201);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error al guardar cliente: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor'
+        ], 500);
     }
+}
 
     public function verificarCliente(Request $request)
     {
