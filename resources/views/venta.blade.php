@@ -885,8 +885,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 
 
-<script>
-$(document).ready(function() {
+<script>// ENVOLVER TODO EL CÓDIGO EN UNA FUNCIÓN QUE ESPERE A QUE JQUERY ESTÉ CARGADO
+(function($) {
+    'use strict';
+    
     console.log('🚀 Punto de Venta - Sistema cargado');
 
     // Variables globales
@@ -915,75 +917,113 @@ $(document).ready(function() {
         "hideMethod": "fadeOut"
     };
 
-    // Inicializar número de factura
-    $('#numeroFactura').text(numeroFactura);
-
     // =============================================
-    // 1. FUNCIONES DE INICIALIZACIÓN
+    // 1. FUNCIONES AUXILIARES
     // =============================================
     
-  function cargarProductosDesdeDB() {
-    console.log('📦 Cargando productos...');
+    function generarNumeroFactura() {
+        let contador = localStorage.getItem('contadorFacturas') || 1;
+        contador = parseInt(contador);
+        localStorage.setItem('contadorFacturas', contador + 1);
+        return `F-${contador.toString().padStart(5, '0')}`;
+    }
     
-    $.ajax({
-        url: '{{ route("productos-todos") }}',
-        method: 'GET',
-        success: function(response) {
-            console.log('Respuesta de productos:', response);
-            
-            if (response.success && response.productos) {
-                productos = {};
-                response.productos.forEach(producto => {
-                    // IMPORTANTE: Usa 'id_producto' como 'id'
-                    const id = producto.id_producto || producto.id;
-                    
-                    productos[id] = {
-                        id: id,  // Usa el id correcto
-                        codigo: producto.codigo || '',
-                        nombre: producto.nombre || 'Sin nombre',
-                        precio: parseFloat(producto.precio) || 0,
-                        stock: parseInt(producto.stock) || 0,
-                        categoria: producto.categoria || 'Sin categoría',
-                        unidad: producto.unidad || 'unidad',
-                        stock_minimo: producto.stock_minimo || 5
-                    };
-                });
-                
-                console.log(`✅ ${Object.keys(productos).length} productos cargados`);
-                
-                // INICIALIZAR Y MOSTRAR
-                inicializarCategorias();
-                cargarProductosFrecuentes();
-                
-                // MOSTRAR TODOS LOS PRODUCTOS INMEDIATAMENTE
-                mostrarTodosLosProductos();
-                
-            } else {
-                console.error('❌ Error en respuesta:', response);
-                toastr.error('No se pudieron cargar los productos');
-            }
-        },
-        error: function(xhr) {
-            console.error('❌ Error AJAX:', xhr);
-            toastr.error('Error al conectar con el servidor');
+    function formatoPuntosMil(numero) {
+        const entero = Math.round(parseFloat(numero) || 0);
+        return entero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+    
+    function formatoDinero(numero) {
+        let num = numero;
+        if (typeof numero === 'string') {
+            num = parseFloat(numero.toString().replace(/[^\d.-]/g, '')) || 0;
         }
-    });
-}
+        const entero = Math.round(parseFloat(num) || 0);
+        return '$' + entero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
 
-  // =============================================
-    // 2. CONFIGURAR SELECT2 CLIENTES
+    function limpiarClienteSeleccionado() {
+        console.log('🧹 Limpiando cliente seleccionado');
+        
+        const selectElement = $('#selectCliente');
+        selectElement.val(null).trigger('change');
+        
+        if ($('#infoClienteSeleccionado').length) {
+            $('#infoClienteSeleccionado').remove();
+        }
+        
+        $('#cliente_nombre').val('');
+        $('#cliente_cedula').val('');
+        $('#cliente_email').val('');
+        $('#cliente_direccion').val('');
+        $('#cliente_telefono').val('');
+        
+        clienteSeleccionado = null;
+        $('#btnQuitarCliente').hide();
+        
+        console.log('✅ Cliente limpiado completamente');
+    }
+
+    // =============================================
+    // 2. FUNCIONES DE INICIALIZACIÓN
+    // =============================================
+    
+    function cargarProductosDesdeDB() {
+        console.log('📦 Cargando productos...');
+        
+        $.ajax({
+            url: '{{ route("productos-todos") }}',
+            method: 'GET',
+            success: function(response) {
+                console.log('Respuesta de productos:', response);
+                
+                if (response.success && response.productos) {
+                    productos = {};
+                    response.productos.forEach(function(producto) {
+                        const id = producto.id_producto || producto.id;
+                        
+                        productos[id] = {
+                            id: id,
+                            codigo: producto.codigo || '',
+                            nombre: producto.nombre || 'Sin nombre',
+                            precio: parseFloat(producto.precio) || 0,
+                            stock: parseInt(producto.stock) || 0,
+                            categoria: producto.categoria || 'Sin categoría',
+                            unidad: producto.unidad || 'unidad',
+                            stock_minimo: producto.stock_minimo || 5
+                        };
+                    });
+                    
+                    console.log('✅ ' + Object.keys(productos).length + ' productos cargados');
+                    
+                    inicializarCategorias();
+                    cargarProductosFrecuentes();
+                    mostrarTodosLosProductos();
+                    
+                } else {
+                    console.error('❌ Error en respuesta:', response);
+                    toastr.error('No se pudieron cargar los productos');
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Error AJAX:', xhr);
+                toastr.error('Error al conectar con el servidor');
+            }
+        });
+    }
+
+    // =============================================
+    // 3. CONFIGURAR SELECT2 CLIENTES
     // =============================================
     function configurarSelect2Clientes() {
         console.log('👤 Configurando Select2...');
         
         const selectElement = $('#selectCliente');
         
-        // Destruir instancia previa si existe
         if (selectElement.hasClass('select2-hidden-accessible')) {
             selectElement.select2('destroy');
         }
         
-        // Inicializar Select2
         selectElement.select2({
             ajax: {
                 url: '{{ route("buscar_cliente") }}',
@@ -1020,7 +1060,7 @@ $(document).ready(function() {
             width: '100%',
             templateResult: function(cliente) {
                 if (cliente.loading) return 'Buscando...';
-                return $(`<div><div>${cliente.text}</div></div>`);
+                return $('<div><div>' + cliente.text + '</div></div>');
             },
             templateSelection: function(cliente) {
                 if (!cliente.id) return 'Seleccionar cliente...';
@@ -1031,40 +1071,26 @@ $(document).ready(function() {
             }
         });
 
-        // =============================================
-        // FOCO AUTOMÁTICO AL HACER CLIC EN SELECT2
-        // =============================================
-        
-        // Método 1: Evento cuando se abre el dropdown
         selectElement.on('select2:open', function() {
             console.log('🔍 Select2 abierto, enfocando campo de búsqueda...');
-            
-            // Esperar un poco para que el dropdown se renderice
             setTimeout(function() {
-                // Enfocar el campo de búsqueda de Select2
                 $('.select2-search__field').focus().select();
             }, 100);
         });
             
-        // =============================================
-        // EVENTO: Cuando se selecciona un cliente
-        // =============================================
         selectElement.on('select2:select', function(e) {
             const selectedData = e.params.data;
             console.log('✅ Cliente seleccionado:', selectedData);
             
             if (selectedData && selectedData.id) {
-                // Guardar datos en campos ocultos
                 $('#cliente_nombre').val(selectedData.nombre || '');
                 $('#cliente_cedula').val(selectedData.cedula || '');
                 $('#cliente_email').val(selectedData.email || '');
                 $('#cliente_direccion').val(selectedData.direccion || '');
                 $('#cliente_telefono').val(selectedData.telefono || '');
                 
-                // Mostrar info del cliente
                 mostrarInfoClienteBasica(selectedData);
                 
-                // Guardar en variable global
                 clienteSeleccionado = {
                     id: selectedData.id,
                     nombre: selectedData.nombre,
@@ -1074,49 +1100,33 @@ $(document).ready(function() {
                     telefono: selectedData.telefono
                 };
                 
-                // Mostrar botón de quitar cliente
                 $('#btnQuitarCliente').show();
-                toastr.success(`Cliente ${selectedData.nombre} seleccionado`);
+                toastr.success('Cliente ' + selectedData.nombre + ' seleccionado');
             }
         });
         
-        // =============================================
-        // EVENTO: Cuando se limpia el Select2 con la X
-        // =============================================
         selectElement.on('select2:clear', function(e) {
             console.log('🧹 Select2 limpiado con X');
-            e.preventDefault(); // Prevenir comportamiento por defecto
+            e.preventDefault();
             limpiarClienteSeleccionado();
             toastr.info('Cliente removido');
         });
         
-        // =============================================
-        // EVENTO: Cuando se abre el Select2
-        // =============================================
         selectElement.on('select2:open', function() {
-            setTimeout(() => {
+            setTimeout(function() {
                 $('.select2-search__field').focus();
             }, 50);
         });
-        
-        // =============================================
-        // EVENTO: Cuando se cierra el Select2
-        // =============================================
-        selectElement.on('select2:close', function() {
-            console.log('Select2 cerrado');
-        });
     }
 
- // =============================================
-    // 3. MOSTRAR INFO BÁSICA DEL CLIENTE
+    // =============================================
+    // 4. MOSTRAR INFO BÁSICA DEL CLIENTE
     // =============================================
     function mostrarInfoClienteBasica(clienteData) {
-        // Remover info anterior si existe
         if ($('#infoClienteSeleccionado').length) {
             $('#infoClienteSeleccionado').remove();
         }
         
-        // Crear nueva información
         const infoHtml = `
             <div id="infoClienteSeleccionado" class="mt-2 p-2 bg-light rounded border">
                 <div class="d-flex justify-content-between align-items-center">
@@ -1139,354 +1149,182 @@ $(document).ready(function() {
             </div>
         `;
         
-        // Insertar después del select
         $('#selectCliente').closest('.form-group').after(infoHtml);
     }
 
     // =============================================
-    // 4. EVENTOS PARA BOTONES DE QUITAR CLIENTE
+    // 5. MANEJO DE NUEVO CLIENTE
     // =============================================
-    
-    // Botón X dentro del info del cliente (delegado)
-    $(document).on('click', '#btnQuitarClienteInfo', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log('🔴 Clic en btnQuitarClienteInfo');
-        limpiarClienteSeleccionado();
-        toastr.info('Cliente removido');
-        return false;
-    });
-    
-    // Botón del header
-    $('#btnQuitarCliente').on('click', function(e) {
-        e.preventDefault();
-        console.log('🔴 Clic en btnQuitarCliente (header)');
-        limpiarClienteSeleccionado();
-        toastr.info('Cliente removido');
-    });
-
-
-// =============================================
-// 7. MANEJO DE NUEVO CLIENTE
-// =============================================
-
-function configurarNuevoCliente() {
-    console.log('👤 Configurando nuevo cliente...');
-    
-    // EVITAR DOBLE ENVÍO
-    $('#form_guardar_cliente').off('submit'); // Remover eventos previos
-    $('#form_guardar_cliente').on('submit', function(e) {
-        e.preventDefault();
+    function configurarNuevoCliente() {
+        console.log('👤 Configurando nuevo cliente...');
         
-        // Deshabilitar botón para evitar doble clic
-        const $btn = $('#BtnGuardar_cliente');
-        if ($btn.prop('disabled')) {
-            console.log('⏸️ Botón ya deshabilitado, evitando doble envío');
-            return false;
-        }
-        
-        $btn.prop('disabled', true);
-        
-        setTimeout(() => {
-            guardarNuevoCliente();
-        }, 300); // Pequeño delay para evitar doble envío rápido
-    });
-    
-    // Validar cédula en tiempo real
-    $('#cedula').on('blur', function() {
-        const cedula = $(this).val().trim();
-        if (cedula) {
-            verificarCedulaExistente(cedula);
-        }
-    });
-}
-
-function verificarCedulaExistente(cedula) {
-    $.ajax({
-        url: '{{ route("verificar_cliente") }}',
-        method: 'GET',
-        data: { cedula: cedula },
-        success: function(response) {
-            if (response === 'unique') {
-                $('#error_cedula').html('<span class="text-danger">Esta cédula ya existe</span>');
-                $('#cedula').addClass('is-invalid');
-                $('#BtnGuardar_cliente').prop('disabled', true);
-            } else {
-                $('#error_cedula').html('<span class="text-success">Cédula disponible</span>');
-                $('#cedula').removeClass('is-invalid');
-                $('#BtnGuardar_cliente').prop('disabled', false);
-            }
-        },
-        error: function() {
-            console.error('Error al verificar cédula');
-        }
-    });
-}
-
-function guardarNuevoCliente() {
-    const formData = $('#form_guardar_cliente').serialize();
-    
-    // Mostrar loading
-    $('#BtnGuardar_cliente').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
-    
-    $.ajax({
-        url: 'guardar_clientes',
-        method: 'POST',
-        data: formData,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                toastr.success(response.message, 'Cliente');
-                
-                // Cerrar modal
-                $('#modalNuevoCliente').modal('hide');
-                
-                // Resetear formulario
-                $('#form_guardar_cliente')[0].reset();
-                $('#error_cedula').html('');
-                
-                // Agregar nuevo cliente al Select2 y seleccionarlo
-                agregarClienteAlSelect2(response.cliente);
-                
-            } else {
-                toastr.error(response.message, 'Error');
-                if (response.errors) {
-                    Object.keys(response.errors).forEach(key => {
-                        toastr.error(response.errors[key][0]);
-                    });
-                }
-            }
-        },
-        error: function(xhr) {
-            console.error('Error al guardar cliente:', xhr);
+        $('#form_guardar_cliente').off('submit');
+        $('#form_guardar_cliente').on('submit', function(e) {
+            e.preventDefault();
             
-            if (xhr.status === 409) {
-                toastr.error('La cédula/NIT ya existe en el sistema');
-            } else if (xhr.status === 422) {
-                const errors = xhr.responseJSON.errors;
-                Object.keys(errors).forEach(key => {
-                    toastr.error(errors[key][0]);
-                });
-            } else {
-                toastr.error('Error al guardar el cliente');
+            const $btn = $('#BtnGuardar_cliente');
+            if ($btn.prop('disabled')) {
+                console.log('⏸️ Botón ya deshabilitado, evitando doble envío');
+                return false;
             }
-        },
-        complete: function() {
-            $('#BtnGuardar_cliente').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cliente');
-        }
-    });
-}
-
-function agregarClienteAlSelect2(cliente) {
-    const selectElement = $('#selectCliente');
-    
-    // Crear la opción para el nuevo cliente
-    const nuevaOpcion = new Option(
-        cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
-        cliente.id,
-        true,
-        true
-    );
-    
-    // Agregar la opción al Select2
-    selectElement.append(nuevaOpcion).trigger('change');
-    
-    // Actualizar los datos de la opción
-    selectElement.trigger({
-        type: 'select2:select',
-        params: {
-            data: {
-                id: cliente.id,
-                text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
-                nombre: cliente.nombre,
-                cedula: cliente.cedula,
-                email: cliente.email,
-                telefono: cliente.telefono,
-                direccion: cliente.direccion
-            }
-        }
-    });
-    
-    // Mostrar información del cliente
-    mostrarInfoClienteBasica(cliente);
-    
-    // Actualizar campos ocultos
-    $('#cliente_nombre').val(cliente.nombre);
-    $('#cliente_cedula').val(cliente.cedula);
-    $('#cliente_email').val(cliente.email);
-    $('#cliente_direccion').val(cliente.direccion);
-    $('#cliente_telefono').val(cliente.telefono);
-    
-    // Guardar en variable global
-    clienteSeleccionado = cliente;
-    
-    // Mostrar botón de quitar cliente
-    $('#btnQuitarCliente').show();
-}
-
-function verificarCedulaExistente(cedula) {
-    $.ajax({
-        url: '{{ route("verificar_cliente") }}',
-        method: 'GET',
-        data: { cedula: cedula },
-        success: function(response) {
-            if (response === 'unique') {
-                $('#error_cedula').html('<span class="text-danger">Esta cédula ya existe</span>');
-                $('#cedula').addClass('is-invalid');
-                $('#BtnGuardar_cliente').prop('disabled', true);
-            } else {
-                $('#error_cedula').html('<span class="text-success">Cédula disponible</span>');
-                $('#cedula').removeClass('is-invalid');
-                $('#BtnGuardar_cliente').prop('disabled', false);
-            }
-        },
-        error: function() {
-            console.error('Error al verificar cédula');
-        }
-    });
-}
-
-function guardarNuevoCliente() {
-    const formData = $('#form_guardar_cliente').serialize();
-    
-    // Mostrar loading
-    $('#BtnGuardar_cliente').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
-    
-    $.ajax({
-        url: '{{ route("guardar_clientes") }}',
-        method: 'POST',
-        data: formData,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            if (response.success) {
-                toastr.success(response.message, 'Cliente');
-                
-                // SOLUCIÓN SIMPLE Y EFECTIVA
-                // 1. Primero ocultar con display none
-                $('#modalNuevoCliente').hide();
-                
-                // 2. Remover clases de modal
-                $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open');
-                
-                // 3. Resetear formulario
-                $('#form_guardar_cliente')[0].reset();
-                $('#error_cedula').html('');
-                
-                // 4. Agregar cliente al Select2
-                agregarClienteAlSelect2(response.cliente);
-                
-                // 5. Restaurar estado normal del body
-                $('body').css('padding-right', '');
-                
-            } else {
-                toastr.error(response.message, 'Error');
-                if (response.errors) {
-                    Object.keys(response.errors).forEach(key => {
-                        toastr.error(response.errors[key][0]);
-                    });
-                }
-            }
-        },
-        error: function(xhr) {
-            console.error('Error al guardar cliente:', xhr);
             
-            if (xhr.status === 409) {
-                toastr.error('La cédula/NIT ya existe en el sistema');
-            } else if (xhr.status === 422) {
-                const errors = xhr.responseJSON.errors;
-                Object.keys(errors).forEach(key => {
-                    toastr.error(errors[key][0]);
-                });
-            } else {
-                toastr.error('Error al guardar el cliente');
+            $btn.prop('disabled', true);
+            
+            setTimeout(function() {
+                guardarNuevoCliente();
+            }, 300);
+        });
+        
+        $('#cedula').on('blur', function() {
+            const cedula = $(this).val().trim();
+            if (cedula) {
+                verificarCedulaExistente(cedula);
             }
-        },
-        complete: function() {
-            $('#BtnGuardar_cliente').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cliente');
-        }
-    });
-}
-
-function agregarClienteAlSelect2(cliente) {
-    const selectElement = $('#selectCliente');
-    
-    // Crear la opción para el nuevo cliente
-    const nuevaOpcion = new Option(
-        cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
-        cliente.id,
-        true,
-        true
-    );
-    
-    // Agregar la opción al Select2
-    selectElement.append(nuevaOpcion).trigger('change');
-    
-    // Actualizar los datos de la opción
-    selectElement.trigger({
-        type: 'select2:select',
-        params: {
-            data: {
-                id: cliente.id,
-                text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
-                nombre: cliente.nombre,
-                cedula: cliente.cedula,
-                email: cliente.email,
-                telefono: cliente.telefono,
-                direccion: cliente.direccion
-            }
-        }
-    });
-    
-    // Mostrar información del cliente
-    mostrarInfoClienteBasica(cliente);
-    
-    // Actualizar campos ocultos
-    $('#cliente_nombre').val(cliente.nombre);
-    $('#cliente_cedula').val(cliente.cedula);
-    $('#cliente_email').val(cliente.email);
-    $('#cliente_direccion').val(cliente.direccion);
-    $('#cliente_telefono').val(cliente.telefono);
-    
-    // Guardar en variable global
-    clienteSeleccionado = cliente;
-    
-    // Mostrar botón de quitar cliente
-    $('#btnQuitarCliente').show();
-}
-
-
-    // =============================================
-    // 3. MOSTRAR TODOS LOS PRODUCTOS Y CATEGORÍAS
-    // =============================================
-    
-   function mostrarTodosLosProductos() {
-    const todosProductos = Object.values(productos);
-    console.log('Mostrando TODOS los productos:', todosProductos.length, 'productos');
-    
-    if (todosProductos.length === 0) {
-        console.log('No hay productos para mostrar');
-        $('#resultadosProductos').html(`
-            <tr>
-                <td colspan="5" class="text-center text-muted py-5">
-                    <i class="fas fa-box fa-3x mb-3"></i>
-                    <h5>No hay productos disponibles</h5>
-                </td>
-            </tr>
-        `);
-    } else {
-        mostrarResultadosBusqueda(todosProductos);
+        });
     }
-}
+
+    function verificarCedulaExistente(cedula) {
+        $.ajax({
+            url: '{{ route("verificar_cliente") }}',
+            method: 'GET',
+            data: { cedula: cedula },
+            success: function(response) {
+                if (response === 'unique') {
+                    $('#error_cedula').html('<span class="text-danger">Esta cédula ya existe</span>');
+                    $('#cedula').addClass('is-invalid');
+                    $('#BtnGuardar_cliente').prop('disabled', true);
+                } else {
+                    $('#error_cedula').html('<span class="text-success">Cédula disponible</span>');
+                    $('#cedula').removeClass('is-invalid');
+                    $('#BtnGuardar_cliente').prop('disabled', false);
+                }
+            },
+            error: function() {
+                console.error('Error al verificar cédula');
+            }
+        });
+    }
+
+    function guardarNuevoCliente() {
+        const formData = $('#form_guardar_cliente').serialize();
+        
+        $('#BtnGuardar_cliente').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+        
+        $.ajax({
+            url: '{{ route("guardar_clientes") }}',
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            success: function(response) {
+                if (response.success) {
+                    toastr.success(response.message, 'Cliente');
+                    
+                    $('#modalNuevoCliente').hide();
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    
+                    $('#form_guardar_cliente')[0].reset();
+                    $('#error_cedula').html('');
+                    
+                    agregarClienteAlSelect2(response.cliente);
+                    
+                    $('body').css('padding-right', '');
+                    
+                } else {
+                    toastr.error(response.message, 'Error');
+                    if (response.errors) {
+                        Object.keys(response.errors).forEach(function(key) {
+                            toastr.error(response.errors[key][0]);
+                        });
+                    }
+                }
+            },
+            error: function(xhr) {
+                console.error('Error al guardar cliente:', xhr);
+                
+                if (xhr.status === 409) {
+                    toastr.error('La cédula/NIT ya existe en el sistema');
+                } else if (xhr.status === 422) {
+                    const errors = xhr.responseJSON.errors;
+                    Object.keys(errors).forEach(function(key) {
+                        toastr.error(errors[key][0]);
+                    });
+                } else {
+                    toastr.error('Error al guardar el cliente');
+                }
+            },
+            complete: function() {
+                $('#BtnGuardar_cliente').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cliente');
+            }
+        });
+    }
+
+    function agregarClienteAlSelect2(cliente) {
+        const selectElement = $('#selectCliente');
+        
+        const nuevaOpcion = new Option(
+            cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+            cliente.id,
+            true,
+            true
+        );
+        
+        selectElement.append(nuevaOpcion).trigger('change');
+        
+        selectElement.trigger({
+            type: 'select2:select',
+            params: {
+                data: {
+                    id: cliente.id,
+                    text: cliente.nombre + (cliente.cedula ? ' - ' + cliente.cedula : ''),
+                    nombre: cliente.nombre,
+                    cedula: cliente.cedula,
+                    email: cliente.email,
+                    telefono: cliente.telefono,
+                    direccion: cliente.direccion
+                }
+            }
+        });
+        
+        mostrarInfoClienteBasica(cliente);
+        
+        $('#cliente_nombre').val(cliente.nombre);
+        $('#cliente_cedula').val(cliente.cedula);
+        $('#cliente_email').val(cliente.email);
+        $('#cliente_direccion').val(cliente.direccion);
+        $('#cliente_telefono').val(cliente.telefono);
+        
+        clienteSeleccionado = cliente;
+        $('#btnQuitarCliente').show();
+    }
+
+    // =============================================
+    // 6. MOSTRAR TODOS LOS PRODUCTOS Y CATEGORÍAS
+    // =============================================
+    function mostrarTodosLosProductos() {
+        const todosProductos = Object.values(productos);
+        console.log('Mostrando TODOS los productos:', todosProductos.length, 'productos');
+        
+        if (todosProductos.length === 0) {
+            console.log('No hay productos para mostrar');
+            $('#resultadosProductos').html(`
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="fas fa-box fa-3x mb-3"></i>
+                        <h5>No hay productos disponibles</h5>
+                    </td>
+                </tr>
+            `);
+        } else {
+            mostrarResultadosBusqueda(todosProductos);
+        }
+    }
 
     function inicializarCategorias() {
-        // Obtener categorías únicas de los productos
         const categorias = new Set();
-        Object.values(productos).forEach(p => {
+        Object.values(productos).forEach(function(p) {
             if (p.categoria && p.categoria.trim() !== '') {
                 categorias.add(p.categoria);
             }
@@ -1494,19 +1332,16 @@ function agregarClienteAlSelect2(cliente) {
         
         console.log('Categorías encontradas:', Array.from(categorias));
         
-        // Actualizar botones de filtro
         const botonesContainer = $('#filtrosCategoria .btn-group');
         botonesContainer.empty();
         
-        // Agregar botón "Todas"
         botonesContainer.append(`
             <button type="button" class="btn btn-outline-primary active" data-categoria="todas">
                 Todas
             </button>
         `);
         
-        // Agregar botones para cada categoría
-        Array.from(categorias).sort().forEach(categoria => {
+        Array.from(categorias).sort().forEach(function(categoria) {
             botonesContainer.append(`
                 <button type="button" class="btn btn-outline-secondary" data-categoria="${categoria}">
                     ${categoria}
@@ -1514,20 +1349,16 @@ function agregarClienteAlSelect2(cliente) {
             `);
         });
         
-        // Asegurar que los filtros estén visibles
         $('#filtrosCategoria').show();
         
-        // Agregar event listeners
         botonesContainer.find('button').on('click', function() {
             const categoria = $(this).data('categoria');
             
-            // Actualizar estado activo
             botonesContainer.find('button').removeClass('active btn-primary')
                 .addClass('btn-outline-secondary');
             $(this).removeClass('btn-outline-secondary')
                 .addClass('active btn-primary');
             
-            // Filtrar productos
             filtrarProductosPorCategoria(categoria);
         });
     }
@@ -1536,13 +1367,11 @@ function agregarClienteAlSelect2(cliente) {
         $('#busquedaRapida').on('input', function() {
             const termino = $(this).val().trim();
             
-            // Limpiar timeout anterior
             if (timeoutBusqueda) {
                 clearTimeout(timeoutBusqueda);
             }
             
-            // Esperar 300ms después de que el usuario deje de escribir
-            timeoutBusqueda = setTimeout(() => {
+            timeoutBusqueda = setTimeout(function() {
                 if (termino.length >= 2) {
                     buscarProductos(termino);
                 } else if (termino.length === 0) {
@@ -1574,7 +1403,7 @@ function agregarClienteAlSelect2(cliente) {
 
     function buscarProductos(termino) {
         const terminoLower = termino.toLowerCase();
-        const resultados = Object.values(productos).filter(producto => {
+        const resultados = Object.values(productos).filter(function(producto) {
             return (
                 (producto.codigo && producto.codigo.toLowerCase().includes(terminoLower)) ||
                 (producto.nombre && producto.nombre.toLowerCase().includes(terminoLower)) ||
@@ -1591,113 +1420,115 @@ function agregarClienteAlSelect2(cliente) {
         if (categoria === 'todas') {
             productosFiltrados = Object.values(productos);
         } else {
-            productosFiltrados = Object.values(productos).filter(p => p.categoria === categoria);
+            productosFiltrados = Object.values(productos).filter(function(p) {
+                return p.categoria === categoria;
+            });
         }
         
         mostrarResultadosBusqueda(productosFiltrados);
         $('#busquedaRapida').val('');
         
-        toastr.info(`${productosFiltrados.length} productos en ${categoria === 'todas' ? 'todas las categorías' : categoria}`);
+        toastr.info(productosFiltrados.length + ' productos en ' + (categoria === 'todas' ? 'todas las categorías' : categoria));
     }
 
-   function mostrarResultadosBusqueda(resultados) {
-    console.log('Mostrando resultados:', resultados.length, 'productos');
-    
-    const tbody = $('#resultadosProductos');
-    tbody.empty();
-    
-    if (resultados.length === 0) {
-        tbody.append(`
-            <tr>
-                <td colspan="5" class="text-center text-muted py-5">
-                    <i class="fas fa-search fa-3x mb-3"></i>
-                    <h5>No se encontraron productos</h5>
-                </td>
-            </tr>
-        `);
-    } else {
-        resultados.forEach(producto => {
-            console.log('Producto:', producto);
-            
-            const precio = parseFloat(producto.precio) || 0;
-            const stock = parseInt(producto.stock) || 0;
-            const claseStock = stock <= 5 ? 'text-danger font-weight-bold' : 
-                              stock <= 10 ? 'text-warning font-weight-bold' : 'text-success';
-            
-            const fila = `
-                <tr class="producto-fila" style="cursor: pointer;">
-                    <td class="align-middle">
-                        <small class="text-muted font-weight-bold">${producto.codigo || 'N/A'}</small>
-                    </td>
-                    <td class="align-middle">
-                        <div class="d-flex align-items-center">
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center mr-3" 
-                                 style="width: 40px; height: 40px;">
-                                <i class="fas fa-box text-primary"></i>
-                            </div>
-                            <div>
-                                <div class="font-weight-bold text-dark">${producto.nombre}</div>
-                                <small class="text-muted">${producto.categoria || 'Sin categoría'}</small>
-                            </div>
-                        </div>
-                    </td>
-                    <td class="align-middle font-weight-bold text-success">$${precio.toFixed(2)}</td>
-                    <td class="align-middle ${claseStock}">
-                        ${stock}
-                        ${stock <= 5 ? '<br><small class="badge badge-danger">Stock bajo</small>' : ''}
-                    </td>
-                    <td class="align-middle">
-                        <button class="btn btn-sm btn-success btn-agregar" 
-                                data-id="${producto.id}"
-                                data-nombre="${producto.nombre}"
-                                data-precio="${producto.precio}"
-                                data-stock="${producto.stock}"
-                                data-codigo="${producto.codigo || ''}">
-                            <i class="fas fa-cart-plus"></i> Agregar
-                        </button>
+    function mostrarResultadosBusqueda(resultados) {
+        console.log('Mostrando resultados:', resultados.length, 'productos');
+        
+        const tbody = $('#resultadosProductos');
+        tbody.empty();
+        
+        if (resultados.length === 0) {
+            tbody.append(`
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-5">
+                        <i class="fas fa-search fa-3x mb-3"></i>
+                        <h5>No se encontraron productos</h5>
                     </td>
                 </tr>
-            `;
-            tbody.append(fila);
-        });
+            `);
+        } else {
+            resultados.forEach(function(producto) {
+                console.log('Producto:', producto);
+                
+                const precio = parseFloat(producto.precio) || 0;
+                const stock = parseInt(producto.stock) || 0;
+                const claseStock = stock <= 5 ? 'text-danger font-weight-bold' : 
+                                  stock <= 10 ? 'text-warning font-weight-bold' : 'text-success';
+                
+                const fila = `
+                    <tr class="producto-fila" style="cursor: pointer;">
+                        <td class="align-middle">
+                            <small class="text-muted font-weight-bold">${producto.codigo || 'N/A'}</small>
+                        </td>
+                        <td class="align-middle">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center mr-3" 
+                                     style="width: 40px; height: 40px;">
+                                    <i class="fas fa-box text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="font-weight-bold text-dark">${producto.nombre}</div>
+                                    <small class="text-muted">${producto.categoria || 'Sin categoría'}</small>
+                                </div>
+                            </div>
+                        </td>
+                      <td class="align-middle font-weight-bold text-success">${formatoDinero(precio)}</td>
+                        <td class="align-middle ${claseStock}">
+                            ${stock}
+                            ${stock <= 5 ? '<br><small class="badge badge-danger">Stock bajo</small>' : ''}
+                        </td>
+                        <td class="align-middle">
+                            <button class="btn btn-sm btn-success btn-agregar" 
+                                    data-id="${producto.id}"
+                                    data-nombre="${producto.nombre}"
+                                    data-precio="${producto.precio}"
+                                    data-stock="${producto.stock}"
+                                    data-codigo="${producto.codigo || ''}">
+                                <i class="fas fa-cart-plus"></i> Agregar
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(fila);
+            });
 
-        // Configurar eventos
-        $('.btn-agregar').off('click').on('click', function(e) {
-            e.stopPropagation();
-            const productoId = $(this).data('id');
-            console.log('Agregando producto ID:', productoId);
-            const producto = productos[productoId];
-            if (producto) {
-                agregarAlCarrito(producto);
-            } else {
-                console.error('Producto no encontrado en productos[]:', productoId);
-                toastr.error('Producto no encontrado');
-            }
-        });
-
-        $('.producto-fila').off('click').on('click', function(e) {
-            if (!$(e.target).closest('.btn-agregar').length) {
-                const productoId = $(this).find('.btn-agregar').data('id');
+            $('.btn-agregar').off('click').on('click', function(e) {
+                e.stopPropagation();
+                const productoId = $(this).data('id');
+                console.log('Agregando producto ID:', productoId);
                 const producto = productos[productoId];
                 if (producto) {
                     agregarAlCarrito(producto);
+                } else {
+                    console.error('Producto no encontrado en productos[]:', productoId);
+                    toastr.error('Producto no encontrado');
                 }
-            }
-        });
+            });
+
+            $('.producto-fila').off('click').on('click', function(e) {
+                if (!$(e.target).closest('.btn-agregar').length) {
+                    const productoId = $(this).find('.btn-agregar').data('id');
+                    const producto = productos[productoId];
+                    if (producto) {
+                        agregarAlCarrito(producto);
+                    }
+                }
+            });
+        }
     }
-}
 
     // =============================================
-    // 4. FUNCIONES DEL CARRITO - SIN PARPADEO
+    // 7. FUNCIONES DEL CARRITO
     // =============================================
-
     function agregarAlCarrito(producto) {
         if (!producto || producto.stock <= 0) {
             toastr.error('Producto sin stock disponible');
             return;
         }
 
-        const productoEnCarrito = carrito.find(item => item.id === producto.id);
+        const productoEnCarrito = carrito.find(function(item) {
+            return item.id === producto.id;
+        });
         
         if (productoEnCarrito) {
             if (productoEnCarrito.cantidad >= producto.stock) {
@@ -1717,10 +1548,8 @@ function agregarClienteAlSelect2(cliente) {
             });
         }
         
-        // ACTUALIZAR SIN EFECTOS DE PARPADEO
         actualizarCarrito();
         actualizarMetricas();
-        toastr.success(`${producto.nombre} agregado al carrito`);
     }
 
     function actualizarCarrito() {
@@ -1742,11 +1571,10 @@ function agregarClienteAlSelect2(cliente) {
         
         let subtotal = 0;
         
-        carrito.forEach((item, index) => {
+        carrito.forEach(function(item, index) {
             const itemSubtotal = item.precio * item.cantidad;
             subtotal += itemSubtotal;
             
-            // BOTONES -/+ ALREDEDOR DEL INPUT (menos a la izquierda, más a la derecha)
             const fila = `
                 <tr>
                     <td class="align-middle">
@@ -1754,19 +1582,32 @@ function agregarClienteAlSelect2(cliente) {
                         <small class="text-muted">${item.codigo}</small>
                     </td>
                     <td class="align-middle">
-                        <div class="d-flex align-items-center">
-                            <!-- BOTÓN MENOS (IZQUIERDA) -->
-                            <button class="btn btn-outline-secondary btn-sm btn-restar" data-index="${index}">-</button>
+                        <div class="d-flex align-items-center justify-content-center">
+                            <button class="btn btn-outline-secondary btn-sm btn-restar mr-1" 
+                                    data-index="${index}">
+                                <i class="fas fa-minus"></i>
+                            </button>
                             
-                            <!-- INPUT CANTIDAD (CENTRO) -->
-                            <input type="number" class="form-control" 
-                                   value="${item.cantidad}" readonly style="width: 10px;">
+                            <div class="input-group" style="width: 90px;">
+                                <input type="number" 
+                                       class="form-control text-center cantidad-input" 
+                                       value="${item.cantidad}" 
+                                       min="1" 
+                                       max="${item.stock}"
+                                       data-index="${index}"
+                                       style="height: 31px;">
+                            </div>
                             
-                            <!-- BOTÓN MÁS (DERECHA) -->
-                            <button class="btn btn-outline-secondary btn-sm btn-sumar" data-index="${index}">+</button>
+                            <button class="btn btn-outline-secondary btn-sm btn-sumar ml-1" 
+                                    data-index="${index}">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
                     </td>
-                    <td class="align-middle font-weight-bold">$${itemSubtotal.toFixed(2)}</td>
+                    <td class="align-middle font-weight-bold">
+                       ${formatoDinero(item.precio)}<br>
+                        <small class="text-success">Subtotal: ${formatoDinero(itemSubtotal)}</small>
+                    </td>
                     <td class="align-middle">
                         <button class="btn btn-sm btn-danger btn-eliminar" data-index="${index}">
                             <i class="fas fa-trash"></i>
@@ -1778,8 +1619,10 @@ function agregarClienteAlSelect2(cliente) {
         });
         
         actualizarTotales(subtotal);
-        
-        // Configurar eventos del carrito
+        configurarEventosCarrito();
+    }
+
+    function configurarEventosCarrito() {
         $('.btn-sumar').off('click').on('click', function() {
             const index = $(this).data('index');
             const producto = carrito[index];
@@ -1787,6 +1630,7 @@ function agregarClienteAlSelect2(cliente) {
                 producto.cantidad++;
                 actualizarCarrito();
                 actualizarMetricas();
+                toastr.info(producto.nombre + ': ' + producto.cantidad + ' unidades');
             } else {
                 toastr.error('Stock insuficiente');
             }
@@ -1799,6 +1643,7 @@ function agregarClienteAlSelect2(cliente) {
                 producto.cantidad--;
                 actualizarCarrito();
                 actualizarMetricas();
+                toastr.info(producto.nombre + ': ' + producto.cantidad + ' unidades');
             } else {
                 carrito.splice(index, 1);
                 actualizarCarrito();
@@ -1810,216 +1655,44 @@ function agregarClienteAlSelect2(cliente) {
         $('.btn-eliminar').off('click').on('click', function() {
             const index = $(this).data('index');
             const producto = carrito[index];
+            
             carrito.splice(index, 1);
             actualizarCarrito();
             actualizarMetricas();
-            toastr.info(`${producto.nombre} eliminado`);
+            toastr.info(producto.nombre + ' eliminado');
+        });
+        
+        $('.cantidad-input').off('change').on('change', function() {
+            const index = $(this).data('index');
+            const nuevaCantidad = parseInt($(this).val());
+            const producto = carrito[index];
+            
+            if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
+                producto.cantidad = nuevaCantidad;
+                actualizarCarrito();
+                actualizarMetricas();
+                toastr.info(producto.nombre + ': ' + producto.cantidad + ' unidades');
+            } else if (nuevaCantidad > producto.stock) {
+                $(this).val(producto.cantidad);
+                toastr.error('Stock máximo: ' + producto.stock + ' unidades');
+            } else {
+                $(this).val(producto.cantidad);
+            }
         });
     }
-
-
-
- // Actualizar tabla de productos encontrados
-    function actualizarTablaProductos() {
-        const tbody = $('#resultadosProductos');
-        tbody.empty();
-        
-        if (carrito.length === 0) {
-            tbody.append('<tr><td colspan="5" class="text-center text-muted">Busque un producto para agregarlo</td></tr>');
-        } else {
-            carrito.forEach((item, index) => {
-                const stockInfo = verificarStock(item, 1);
-                const claseStock = item.stock <= item.stock_minimo ? 'stock-bajo' : 'stock-normal';
-                const fila = `
-                    <tr>
-                        <td>${item.codigo}</td>
-                        <td>${item.nombre}</td>
-                        <td>$${item.precio.toFixed(2)}</td>
-                        <td class="${claseStock}">${item.stock} unidades</td>
-                        <td>
-                            <button class="btn btn-sm btn-success btn-agregar-mas" data-index="${index}">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.append(fila);
-            });
-            
-            $('.btn-agregar-mas').click(function() {
-                const index = $(this).data('index');
-                const producto = carrito[index];
-                if (agregarProductoAlCarrito(producto, 1)) {
-                    // La función agregarProductoAlCarrito ya maneja los mensajes toastr
-                }
-            });
-        }
-    }
-    
-    // Actualizar carrito de compras
-    function actualizarCarrito() {
-    const tbody = $('#itemsCarrito');
-    tbody.empty();
-    
-    if (carrito.length === 0) {
-        tbody.html(`
-            <tr>
-                <td colspan="4" class="text-center text-muted py-3">
-                    <i class="fas fa-shopping-basket fa-2x mb-2 d-block"></i>
-                    Carrito vacío
-                </td>
-            </tr>
-        `);
-        actualizarTotales();
-        return;
-    }
-    
-    let subtotal = 0;
-    
-    carrito.forEach((item, index) => {
-        const itemSubtotal = item.precio * item.cantidad;
-        subtotal += itemSubtotal;
-        
-        // NUEVA ESTRUCTURA: botones a los lados del campo cantidad
-        const fila = `
-            <tr>
-                <td class="align-middle">
-                    <div class="font-weight-bold">${item.nombre}</div>
-                    <small class="text-muted">${item.codigo}</small>
-                </td>
-                <td class="align-middle">
-                    <div class="d-flex align-items-center justify-content-center">
-                        <!-- BOTÓN MENOS (IZQUIERDA) -->
-                        <button class="btn btn-outline-secondary btn-sm btn-restar mr-1" 
-                                data-index="${index}">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        
-                        <!-- INPUT CANTIDAD (CENTRO) -->
-                        <div class="input-group" style="width: 90px;">
-                            <input type="number" 
-                                   class="form-control text-center cantidad-input" 
-                                   value="${item.cantidad}" 
-                                   min="1" 
-                                   max="${item.stock}"
-                                   data-index="${index}"
-                                   style="height: 31px;">
-                        </div>
-                        
-                        <!-- BOTÓN MÁS (DERECHA) -->
-                        <button class="btn btn-outline-secondary btn-sm btn-sumar ml-1" 
-                                data-index="${index}">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                    </div>
-                </td>
-                <td class="align-middle font-weight-bold">
-                    $${item.precio.toFixed(2)}<br>
-                    <small class="text-success">Subtotal: $${itemSubtotal.toFixed(2)}</small>
-                </td>
-                <td class="align-middle">
-                    <button class="btn btn-sm btn-danger btn-eliminar" data-index="${index}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            </tr>
-        `;
-        tbody.append(fila);
-    });
-    
-    actualizarTotales(subtotal);
-    
-    // Configurar eventos del carrito
-    configurarEventosCarrito();
-}
-
-function configurarEventosCarrito() {
-    // Botón sumar
-    $('.btn-sumar').off('click').on('click', function() {
-        const index = $(this).data('index');
-        const producto = carrito[index];
-        if (producto.cantidad < producto.stock) {
-            producto.cantidad++;
-            actualizarCarrito();
-            actualizarMetricas();
-            toastr.info(`${producto.nombre}: ${producto.cantidad} unidades`);
-        } else {
-            toastr.error('Stock insuficiente');
-        }
-    });
-    
-    // Botón restar
-    $('.btn-restar').off('click').on('click', function() {
-        const index = $(this).data('index');
-        const producto = carrito[index];
-        if (producto.cantidad > 1) {
-            producto.cantidad--;
-            actualizarCarrito();
-            actualizarMetricas();
-            toastr.info(`${producto.nombre}: ${producto.cantidad} unidades`);
-        } else {
-            carrito.splice(index, 1);
-            actualizarCarrito();
-            actualizarMetricas();
-            toastr.info('Producto eliminado');
-        }
-    });
-    
-    // Eliminar producto
-    $('.btn-eliminar').off('click').on('click', function() {
-        const index = $(this).data('index');
-        const producto = carrito[index];
-        
-            carrito.splice(index, 1);
-            actualizarCarrito();
-            actualizarMetricas();
-            toastr.info(`${producto.nombre} eliminado`);
-       
-    });
-    
-    // Cambiar cantidad manualmente
-    $('.cantidad-input').off('change').on('change', function() {
-        const index = $(this).data('index');
-        const nuevaCantidad = parseInt($(this).val());
-        const producto = carrito[index];
-        
-        if (nuevaCantidad >= 1 && nuevaCantidad <= producto.stock) {
-            producto.cantidad = nuevaCantidad;
-            actualizarCarrito();
-            actualizarMetricas();
-            toastr.info(`${producto.nombre}: ${producto.cantidad} unidades`);
-        } else if (nuevaCantidad > producto.stock) {
-            $(this).val(producto.cantidad);
-            toastr.error(`Stock máximo: ${producto.stock} unidades`);
-        } else {
-            $(this).val(producto.cantidad);
-        }
-    });
-}
-    
-    // Cancelar venta
-    $('#btnCancelar').click(function() {
-        if (carrito.length > 0 && confirm('¿Está seguro de cancelar la venta?')) {
-            reiniciarVenta();
-            toastr.info('Venta cancelada', 'Sistema');
-        }
-    });
-
-
-    
-    
-    // =============================================
-    // 5. FUNCIONES AUXILIARES (sin cambios)
-    // =============================================
     
     function actualizarTotales(subtotal = 0) {
         const ivaPorcentaje = parseFloat($('#selectIva').val()) || 0;
         const iva = subtotal * (ivaPorcentaje / 100);
         const total = subtotal + iva;
         
-        $('#subtotalVenta').text(subtotal.toFixed(2));
-        $('#ivaVenta').text(iva.toFixed(2));
-        $('#totalVenta').text(total.toFixed(2));
+        window.ventaSubtotalNumerico = subtotal;
+        window.ventaIvaNumerico = iva;
+        window.ventaTotalNumerico = total;
+        
+        $('#subtotalVenta').text(formatoPuntosMil(subtotal));
+        $('#ivaVenta').text(formatoPuntosMil(iva));
+        $('#totalVenta').text(formatoDinero(total));
         $('#porcentajeIva').text(ivaPorcentaje);
         
         if ($('#metodoPago').val() === 'efectivo') {
@@ -2030,18 +1703,18 @@ function configurarEventosCarrito() {
             calcularTotalMixto();
         }
     }
-
+    
     function actualizarMetricas() {
         let totalProductos = 0;
         let totalVenta = 0;
         
-        carrito.forEach(item => {
+        carrito.forEach(function(item) {
             totalProductos += item.cantidad;
             totalVenta += item.precio * item.cantidad;
         });
         
         $('#metricTotalProductos').text(totalProductos);
-        $('#metricVentaActual').text('$' + totalVenta.toFixed(2));
+        $('#metricVentaActual').text(formatoDinero(totalVenta));
     }
 
     function calcularCambio() {
@@ -2050,9 +1723,9 @@ function configurarEventosCarrito() {
         const cambio = efectivo - total;
         
         if (cambio >= 0) {
-            $('#cambioVenta').text('$' + cambio.toFixed(2));
+            $('#cambioVenta').text('$' + cambio);
         } else {
-            $('#cambioVenta').text('-$' + Math.abs(cambio).toFixed(2));
+            $('#cambioVenta').text('-$' + Math.abs(cambio));
         }
     }
 
@@ -2069,7 +1742,7 @@ function configurarEventosCarrito() {
             $('.metodo-pago-detalle').addClass('d-none');
             
             const metodo = $(this).val();
-            $(`#pago${metodo.charAt(0).toUpperCase() + metodo.slice(1)}`).removeClass('d-none');
+            $('#pago' + metodo.charAt(0).toUpperCase() + metodo.slice(1)).removeClass('d-none');
             
             if (metodo === 'efectivo') {
                 calcularCambio();
@@ -2106,15 +1779,15 @@ function configurarEventosCarrito() {
             return;
         }
         
-        productosFrecuentes.forEach(producto => {
+        productosFrecuentes.forEach(function(producto) {
             const card = `
                 <div class="col-6 col-md-4 mb-3">
-                    <div class="producto-card" onclick="agregarProductoFrecuente(${producto.id})">
+                    <div class="producto-card" onclick="window.agregarProductoFrecuente(${producto.id})">
                         <div class="text-center">
                             <i class="fas fa-star text-warning mb-2"></i>
                             <h6 class="mb-1">${producto.nombre}</h6>
                             <small class="text-muted d-block">${producto.codigo}</small>
-                            <span class="badge badge-success">$${parseFloat(producto.precio).toFixed(2)}</span>
+                            <span class="badge badge-success">${formatoDinero(producto.precio)}</span>
                             <small class="d-block mt-1">Stock: ${producto.stock}</small>
                         </div>
                     </div>
@@ -2124,33 +1797,24 @@ function configurarEventosCarrito() {
         });
     }
 
-
-
-
-        // Imprimir directo (sin procesar venta)
-    $('#btnImprimirDirecto').click(function() {
+    // =============================================
+    // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL MODIFICADA
+    // =============================================
+    $(document).on('click', '#btnProcesarVenta', function(e) {
+        e.preventDefault();
+        
         if (carrito.length === 0) {
-            toastr.error('No hay productos en el carrito para imprimir', 'Impresión');
-            return;
-        }
-        mostrarVistaPrevia();
-        toastr.info('Generando vista previa para impresión', 'Impresión');
-    });
-    
-    // Procesar venta
-    $('#btnProcesarVenta').click(function() {
-        if (carrito.length === 0) {
-            toastr.error('Agregue productos al carrito', 'Venta');
+            toastr.error('El carrito está vacío', 'Error');
             return;
         }
         
-        // Verificar stock final antes de procesar
+        // Validar stock antes de procesar
         let stockValido = true;
-        carrito.forEach(item => {
-            const productoOriginal = productos[Object.keys(productos).find(key => productos[key].codigo === item.codigo)];
-            if (productoOriginal && item.cantidad > productoOriginal.stock) {
+        carrito.forEach(function(item) {
+            const producto = productos[item.id];
+            if (producto.stock < item.cantidad) {
+                toastr.error('Stock insuficiente para ' + item.nombre + '. Disponible: ' + producto.stock);
                 stockValido = false;
-                toastr.error(`Stock insuficiente: ${item.nombre} (Solicitado: ${item.cantidad}, Disponible: ${productoOriginal.stock})`, 'Stock');
             }
         });
         
@@ -2158,92 +1822,176 @@ function configurarEventosCarrito() {
             return;
         }
         
-        const metodoPago = $('#metodoPago').val();
-        const total = parseFloat($('#totalVenta').text().replace('$', ''));
+        // Preparar datos de la venta
+        const ventaData = {
+            numero_factura: numeroFactura,
+            cliente_id: clienteSeleccionado ? clienteSeleccionado.id : null,
+            cliente_nombre: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
+            cliente_cedula: clienteSeleccionado ? clienteSeleccionado.cedula : null,
+            subtotal: window.ventaSubtotalNumerico || 0,
+            iva: window.ventaIvaNumerico || 0,
+            total: window.ventaTotalNumerico || 0,
+            metodo_pago: $('#metodoPago').val() || 'efectivo',
+            tipo_comprobante: $('#tipoComprobante').val() || 'ticket',
+            porcentaje_iva: parseFloat($('#selectIva').val()) || 16,
+            referencia_pago: obtenerReferenciaPago(),
+            efectivo_recibido: parseFloat($('#efectivoRecibido').val()) || 0,
+            cambio: parseFloat($('#cambioVenta').text().replace(/[^\d.-]/g, '')) || 0,
+            productos: carrito.map(function(item) {
+                return {
+                    producto_id: item.id,
+                    codigo: item.codigo,
+                    nombre: item.nombre,
+                    cantidad: item.cantidad,
+                    precio_unitario: item.precio,
+                    subtotal: item.precio * item.cantidad
+                };
+            })
+        };
         
-        // Validaciones según método de pago
-        let validacion = true;
-        let mensajeError = '';
+        console.log('📤 Datos de venta a enviar:', ventaData);
         
-        switch(metodoPago) {
-            case 'efectivo':
-                const efectivo = parseFloat($('#efectivoRecibido').val()) || 0;
-                if (efectivo < total) {
-                    validacion = false;
-                    mensajeError = 'El efectivo recibido es menor al total';
-                }
-                break;
+        // Mostrar loading
+        const $btn = $(this);
+        $btn.prop('disabled', true)
+            .html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+        
+        // Enviar al servidor
+        $.ajax({
+            url: '{{ route("procesar-venta}',
+            method: 'POST',
+            data: JSON.stringify(ventaData),
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                'Accept': 'application/json'
+            },
+            success: function(response) {
+                console.log('✅ Respuesta del servidor:', response);
                 
-            case 'tarjeta':
-                if (!$('#numeroTarjeta').val() || !$('#fechaVencimiento').val() || !$('#cvvTarjeta').val()) {
-                    validacion = false;
-                    mensajeError = 'Complete todos los datos de la tarjeta';
+                if (response.success) {
+                    toastr.success(response.message, '¡Venta Exitosa!');
+                    
+                    // Actualizar stock localmente
+                    carrito.forEach(function(item) {
+                        if (productos[item.id]) {
+                            productos[item.id].stock -= item.cantidad;
+                        }
+                    });
+                    
+                    // Mostrar vista previa
+                    mostrarVistaPrevia();
+                    
+                    // Reiniciar para nueva venta después de 2 segundos
+                    setTimeout(function() {
+                        reiniciarVenta();
+                        $('#modalVistaPrevia').modal('hide');
+                    }, 2000);
+                    
+                } else {
+                    toastr.error(response.message || 'Error al procesar la venta', 'Error');
+                    
+                    if (response.errors) {
+                        Object.keys(response.errors).forEach(function(field) {
+                            response.errors[field].forEach(function(error) {
+                                toastr.error(error);
+                            });
+                        });
+                    }
                 }
-                break;
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error en AJAX:', xhr);
                 
-            case 'mixto':
-                const totalMixto = parseFloat($('#totalMixto').text().replace('$', '')) || 0;
-                if (totalMixto < total) {
-                    validacion = false;
-                    mensajeError = 'El total del pago mixto es menor al total de la venta';
-                }
-                break;
+                let errorMessage = 'Error al procesar la venta';
                 
-            case 'transferencia':
-            case 'cheque':
-                if (!$('#referenciaTransaccion').val()) {
-                    validacion = false;
-                    mensajeError = 'Ingrese la referencia/autorización';
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    if (errorResponse.message) errorMessage = errorResponse.message;
+                    
+                    if (errorResponse.errors) {
+                        Object.keys(errorResponse.errors).forEach(function(field) {
+                            errorResponse.errors[field].forEach(function(err) {
+                                toastr.error(err);
+                            });
+                        });
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error parsing response:', e);
                 }
-                break;
-        }
-        
-        if (!validacion) {
-            toastr.error(mensajeError, 'Validación de Pago');
-            return;
-        }
-        
-        // Procesar venta y mostrar vista previa
-        procesarVenta();
+                
+                toastr.error(errorMessage, 'Error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false)
+                    .html('<i class="fas fa-check"></i> COBRAR');
+            }
+        });
     });
-    
-    // Procesar venta
-    function procesarVenta() {
-        // Actualizar stock
-        actualizarStockVenta();
+
+    function obtenerReferenciaPago() {
+        const metodo = $('#metodoPago').val();
         
-        // Mostrar mensaje de éxito
-        toastr.success(`Venta procesada exitosamente - ${numeroFactura}`, '¡Éxito!');
-        
-        // Mostrar vista previa
-        mostrarVistaPrevia();
+        switch(metodo) {
+            case 'efectivo':
+                return null;
+            case 'tarjeta':
+                return $('#numeroTarjeta').val() || 'Tarjeta';
+            case 'transferencia':
+                return $('#referenciaTransaccion').val() || 'Transferencia';
+            case 'cheque':
+                return $('#referenciaTransaccion').val() || 'Cheque';
+            case 'mixto':
+                return 'Mixto: Efectivo ' + ($('#montoEfectivoMixto').val() || 0) + ', Tarjeta ' + ($('#montoTarjetaMixto').val() || 0);
+            default:
+                return null;
+        }
     }
-    
-    // Mostrar vista previa del comprobante
+
+    // =============================================
+    // 9. VISTA PREVIA Y COMPROBANTES
+    // =============================================
     function mostrarVistaPrevia() {
         const tipoComprobante = $('#tipoComprobante').val();
+        
+        let subtotal = window.ventaSubtotalNumerico || 0;
+        let iva = window.ventaIvaNumerico || 0;
+        let total = window.ventaTotalNumerico || 0;
+        
+        if (subtotal === 0 && carrito.length > 0) {
+            subtotal = carrito.reduce(function(sum, item) {
+                return sum + (item.precio * item.cantidad);
+            }, 0);
+            const ivaPorcentaje = parseFloat($('#selectIva').val()) || 0;
+            iva = subtotal * (ivaPorcentaje / 100);
+            total = subtotal + iva;
+        }
+        
         const ventaData = {
             numeroFactura: numeroFactura,
             cliente: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
-            rfc: clienteSeleccionado ? clienteSeleccionado.rfc : 'XAXX010101000',
+            cedula: clienteSeleccionado ? clienteSeleccionado.cedula : 'N/A',
             telefono: clienteSeleccionado ? clienteSeleccionado.telefono : 'N/A',
             items: carrito,
-            subtotal: parseFloat($('#subtotalVenta').text().replace('$', '')),
-            iva: parseFloat($('#ivaVenta').text().replace('$', '')),
-            total: parseFloat($('#totalVenta').text().replace('$', '')),
+            subtotal: subtotal,
+            iva: iva,
+            total: total,
             tipo: tipoComprobante,
             fecha: new Date().toLocaleString(),
-            metodoPago: $('#metodoPago').val()
+            metodoPago: $('#metodoPago').val(),
+            porcentajeIva: parseFloat($('#selectIva').val()) || 0
         };
         
         $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
         $('#modalVistaPrevia').modal('show');
     }
     
-    // Generar HTML del comprobante
     function generarComprobanteHTML(ventaData) {
         const esFactura = ventaData.tipo !== 'ticket';
         const esTicket = ventaData.tipo === 'ticket';
+        const cedulaCliente = clienteSeleccionado ? (clienteSeleccionado.cedula || 'N/A') : 'N/A';
         
         if (esTicket) {
             return `
@@ -2261,7 +2009,9 @@ function configurarEventosCarrito() {
                 <div style="margin: 5px 0;">
                     <strong>TICKET:</strong> ${ventaData.numeroFactura}<br>
                     <strong>FECHA:</strong> ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}<br>
-                    <strong>CLIENTE:</strong> ${ventaData.cliente}
+                    <strong>CLIENTE:</strong> ${ventaData.cliente}<br>
+                     <strong>CEDULA:</strong> ${cedulaCliente}
+                    
                 </div>
                 
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
@@ -2274,34 +2024,36 @@ function configurarEventosCarrito() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${ventaData.items.map(item => `
-                            <tr>
-                                <td style="padding: 2px 0;">
-                                    ${item.cantidad} x ${item.nombre.substring(0, 20)}
-                                </td>
-                                <td style="text-align: right; padding: 2px 0;">
-                                    $${(item.precio * item.cantidad).toFixed(2)}
-                                </td>
-                            </tr>
-                        `).join('')}
+                        ${ventaData.items.map(function(item) {
+                            return `
+                                <tr>
+                                    <td style="padding: 2px 0;">
+                                        ${item.cantidad} x ${item.nombre.substring(0, 20)}
+                                    </td>
+                                    <td style="text-align: right; padding: 2px 0;">
+                                         ${formatoDinero(item.precio * item.cantidad)}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
                 
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
                 
                 <table style="width: 100%;">
-                    <tr>
+                  <tr>
                         <td>SUBTOTAL:</td>
-                        <td style="text-align: right;">$${ventaData.subtotal.toFixed(2)}</td>
+                        <td style="text-align: right;">${formatoDinero(ventaData.subtotal)}</td>
                     </tr>
                     <tr>
                         <td>IVA:</td>
-                        <td style="text-align: right;">$${ventaData.iva.toFixed(2)}</td>
+                        <td style="text-align: right;">${formatoDinero(ventaData.iva)}</td>
                     </tr>
                     <tr style="font-weight: bold;">
                         <td>TOTAL:</td>
-                        <td style="text-align: right;">$${ventaData.total.toFixed(2)}</td>
-                    </tr>
+                        <td style="text-align: right;">${formatoDinero(ventaData.total)}</td>
+                  </tr>
                 </table>
                 
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
@@ -2332,11 +2084,11 @@ function configurarEventosCarrito() {
                     </tr>
                     <tr>
                         <td><strong>Cliente:</strong></td>
-                        <td colspan="3">${ventaData.cliente}</td>
+                        <td>${ventaData.cliente}</td>
                     </tr>
                     <tr>
-                        <td><strong>RFC:</strong></td>
-                        <td>${ventaData.rfc}</td>
+                        <td><strong>Cédula:</strong></td>
+                        <td>${cedulaCliente}</td>
                         <td><strong>Teléfono:</strong></td>
                         <td>${ventaData.telefono}</td>
                     </tr>
@@ -2352,29 +2104,31 @@ function configurarEventosCarrito() {
                         </tr>
                     </thead>
                     <tbody>
-                        ${ventaData.items.map(item => `
-                            <tr>
-                                <td>${item.cantidad}</td>
-                                <td>${item.nombre}</td>
-                                <td>$${item.precio.toFixed(2)}</td>
-                                <td>$${(item.precio * item.cantidad).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
+                        ${ventaData.items.map(function(item) {
+                            return `
+                                <tr>
+                                    <td>${item.cantidad}</td>
+                                    <td>${item.nombre}</td>
+                                    <td>${formatoDinero(item.precio)}</td>
+                                    <td>${formatoDinero(item.precio * item.cantidad)}</td>
+                                </tr>
+                            `;
+                        }).join('')}
                     </tbody>
                 </table>
                 
                 <table class="table table-bordered table-sm float-right" style="width: 300px;">
                     <tr>
                         <td><strong>Subtotal:</strong></td>
-                        <td class="text-right">$${ventaData.subtotal.toFixed(2)}</td>
+                        <td style="text-align: right;">${formatoDinero(ventaData.subtotal)}</td>
                     </tr>
                     <tr>
                         <td><strong>IVA:</strong></td>
-                        <td class="text-right">$${ventaData.iva.toFixed(2)}</td>
+                       <td style="text-align: right;">${formatoDinero(ventaData.iva)}</td>
                     </tr>
                     <tr class="table-success">
                         <td><strong>TOTAL:</strong></td>
-                        <td class="text-right"><strong>$${ventaData.total.toFixed(2)}</strong></td>
+                       <td style="text-align: right;">${formatoDinero(ventaData.total)}</td>
                     </tr>
                 </table>
                 
@@ -2394,54 +2148,27 @@ function configurarEventosCarrito() {
         }
     }
     
-    // Imprimir comprobante desde modal
-    $('#btnImprimir').click(function() {
+    $(document).on('click', '#btnImprimir', function() {
         const tipoComprobante = $('#tipoComprobante').val();
         const esTicket = tipoComprobante === 'ticket';
         
         const ventana = window.open('', '_blank');
         const estilo = esTicket ? 
-            `<style>
-                @media print {
-                    body { margin: 0; padding: 0; }
-                    .comprobante-ticket { width: 80mm; font-family: 'Courier New', monospace; font-size: 12px; }
-                }
-            </style>` : 
-            `<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">`;
+            '<style>@media print { body { margin: 0; padding: 0; } .comprobante-ticket { width: 80mm; font-family: "Courier New", monospace; font-size: 12px; } }</style>' : 
+            '<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">';
         
-        ventana.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Comprobante - ${numeroFactura}</title>
-                ${estilo}
-            </head>
-            <body>
-                ${$('#vistaPreviaComprobante').html()}
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        setTimeout(() => {
-                            window.close();
-                        }, 1000);
-                    }
-                <\/script>
-            </body>
-            </html>
-        `);
+        ventana.document.write('<!DOCTYPE html><html><head><title>Comprobante - ' + numeroFactura + '</title>' + estilo + '</head><body>' + $('#vistaPreviaComprobante').html() + '<script>window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 1000); }<\/script></body></html>');
         ventana.document.close();
         
         toastr.success('Comprobante enviado a impresión', 'Impresión');
     });
     
-    // Nueva venta
-    $('#btnNuevaVenta').click(function() {
+    $(document).on('click', '#btnNuevaVenta', function() {
         $('#modalVistaPrevia').modal('hide');
         reiniciarVenta();
         toastr.success('Nueva venta iniciada', 'Sistema');
     });
     
-    // Reiniciar venta
     function reiniciarVenta() {
         carrito = [];
         clienteSeleccionado = null;
@@ -2455,7 +2182,6 @@ function configurarEventosCarrito() {
         $('#metodoPago').val('efectivo');
         $('#tipoComprobante').val('ticket');
         
-        // Limpiar campos de pago
         $('#numeroTarjeta').val('');
         $('#fechaVencimiento').val('');
         $('#cvvTarjeta').val('');
@@ -2468,19 +2194,86 @@ function configurarEventosCarrito() {
         $('#pagoEfectivo').removeClass('d-none');
         
         actualizarCarrito();
-        actualizarTablaProductos();
+        actualizarMetricas();
+        
+        cargarProductosDesdeDB();
     }
     
-    // Guardar nuevo cliente (simulado)
-    $('#btnGuardarCliente').click(function() {
-        toastr.success('Cliente guardado exitosamente', 'Clientes');
-        $('#modalNuevoCliente').modal('hide');
-        $('#formNuevoCliente')[0].reset();
+    // =============================================
+    // 10. EVENTOS DE BOTONES
+    // =============================================
+    $(document).on('click', '#btnQuitarClienteInfo', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔴 Clic en btnQuitarClienteInfo');
+        limpiarClienteSeleccionado();
+        toastr.info('Cliente removido');
+        return false;
     });
     
-    // Inicializar
-    actualizarTablaProductos();
+    $(document).on('click', '#btnQuitarCliente', function(e) {
+        e.preventDefault();
+        console.log('🔴 Clic en btnQuitarCliente (header)');
+        limpiarClienteSeleccionado();
+        toastr.info('Cliente removido');
+    });
+    
+    $(document).on('click', '#btnCancelar', function() {
+        if (carrito.length > 0 && confirm('¿Está seguro de cancelar la venta?')) {
+            reiniciarVenta();
+            toastr.info('Venta cancelada', 'Sistema');
+        }
+    });
+    
+    $(document).on('click', '#btnLimpiarCarrito', function() {
+        if (carrito.length > 0 && confirm('¿Limpiar carrito?')) {
+            carrito = [];
+            actualizarCarrito();
+            actualizarMetricas();
+            toastr.success('Carrito limpiado');
+        }
+    });
+    
+    $(document).on('click', '#btnImprimirDirecto', function() {
+        if (carrito.length === 0) {
+            toastr.error('No hay productos en el carrito para imprimir', 'Impresión');
+            return;
+        }
+        mostrarVistaPrevia();
+        toastr.info('Generando vista previa para impresión', 'Impresión');
+    });
+    
+    // =============================================
+    // 11. INICIALIZACIÓN
+    // =============================================
+    function inicializarSistema() {
+        console.log('🚀 Inicializando sistema...');
+        
+        configurarSelect2Clientes();
+        configurarNuevoCliente(); 
+        cargarProductosDesdeDB();
+        configurarMetodosPago();
+        configurarBusquedaTiempoReal();
 
+        $('#selectIva').on('change', function() {
+            const subtotal = parseFloat($('#subtotalVenta').text()) || 0;
+            actualizarTotales(subtotal);
+        });
+        
+        $('#numeroFactura').text(numeroFactura);
+        
+        console.log('✅ Sistema inicializado');
+        toastr.success('Sistema de punto de venta listo');
+    }
+
+    // Iniciar sistema cuando el documento esté listo
+    $(document).ready(function() {
+        setTimeout(inicializarSistema, 500);
+    });
+    
+    // =============================================
+    // 12. FUNCIONES GLOBALES
+    // =============================================
     window.agregarProductoFrecuente = function(id) {
         const producto = productos[id];
         if (producto) {
@@ -2495,209 +2288,7 @@ function configurarEventosCarrito() {
         toastr.info('Productos frecuentes actualizados');
     };
 
-    function generarNumeroFactura() {
-        let contador = localStorage.getItem('contadorFacturas') || 1;
-        contador = parseInt(contador);
-        localStorage.setItem('contadorFacturas', contador + 1);
-        return `F-${contador.toString().padStart(5, '0')}`;
-    }
-
-
- // =============================================
-// MODAL SCANNER
-// =============================================
-
-$(document).ready(function() {
-    
-    // 1. ABRIR MODAL SCANNER
-     // Abrir modal scanner
-    $('#btnScanner').on('click', function(e) {
-        e.preventDefault();
-        console.log('📷 Abriendo modal scanner');
-        $('#modalScanner').modal('show');
-    });
-    
-    // 2. CONFIGURAR EVENTOS DE CIERRE (ESTA ES LA CLAVE)
-    function configurarCierreModalScanner() {
-        console.log('🔧 Configurando eventos de cierre para modal scanner...');
-        
-        // Botón X superior - MÚLTIPLES MÉTODOS
-        $('#modalScanner .btn-close-modal').off('click').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log('❌ Botón X clickeado');
-            $('#modalScanner').modal('hide');
-            return false;
-        });
-        
-        // Botón Cancelar
-        $('#modalScanner .btn-secondary.btn-close-modal').off('click').on('click', function(e) {
-            e.preventDefault();
-            console.log('🚫 Botón Cancelar clickeado');
-            $('#modalScanner').modal('hide');
-        });
-        
-        // Cerrar con tecla ESC
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
-                console.log('⌨️ Tecla ESC presionada');
-                $('#modalScanner').modal('hide');
-            }
-        });
-        
-        // Cerrar haciendo clic fuera del modal (backdrop)
-        $('#modalScanner').on('click', function(e) {
-            if ($(e.target).hasClass('modal')) {
-                console.log('🎯 Clic fuera del modal');
-                $('#modalScanner').modal('hide');
-            }
-        });
-        
-        // Evento cuando el modal se muestra
-        $('#modalScanner').on('shown.bs.modal', function() {
-            console.log('✅ Modal scanner mostrado');
-            $('#inputCodigoManual').focus().select();
-        });
-        
-        // Evento cuando el modal se oculta
-        $('#modalScanner').on('hidden.bs.modal', function() {
-            console.log('📴 Modal scanner cerrado');
-            $('#inputCodigoManual').val('');
-        });
-    }
-    
-    // 3. PROCESAR CÓDIGO
-    $('#btnProcesarCodigo').click(function() {
-        procesarCodigoEscaneado();
-    });
-    
-    // 4. ENTER PARA BUSCAR
-    $('#inputCodigoManual').on('keypress', function(e) {
-        if (e.which === 13) {
-            e.preventDefault();
-            procesarCodigoEscaneado();
-        }
-    });
-    
-    // 5. Función para procesar código
-    window.procesarCodigoEscaneado = function() {
-        const codigo = $('#inputCodigoManual').val().trim();
-        
-        if (!codigo) {
-            toastr.warning('Ingresa un código para buscar');
-            $('#inputCodigoManual').focus();
-            return;
-        }
-        
-        console.log('🔍 Buscando:', codigo);
-        
-        // Buscar producto
-        let productoEncontrado = null;
-        for (let id in productos) {
-            if (productos[id] && productos[id].codigo && 
-                productos[id].codigo.toString().trim() === codigo) {
-                productoEncontrado = productos[id];
-                break;
-            }
-        }
-        
-        if (productoEncontrado) {
-            // CERRAR MODAL PRIMERO
-            $('#modalScanner').modal('hide');
-            
-            // Agregar producto después de cerrar
-            setTimeout(function() {
-                agregarAlCarrito(productoEncontrado);
-                toastr.success(`${productoEncontrado.nombre} agregado`, 'Scanner');
-            }, 300);
-            
-        } else {
-            toastr.error(`Código no encontrado: ${codigo}`);
-            $('#inputCodigoManual').select();
-        }
-    };
-    
-    // 6. INICIALIZAR EVENTOS CUANDO EL MODAL SE CARGUE
-    // Esto es importante para eventos dinámicos
-    $(document).on('DOMNodeInserted', '#modalScanner', function() {
-        setTimeout(configurarCierreModalScanner, 100);
-    });
-    
-    // También inicializar al cargar la página
-    setTimeout(configurarCierreModalScanner, 1000);
-    
-});
-
-// =============================================
-    // 1. FUNCIÓN PARA LIMPIAR CLIENTE
-    // =============================================
-    function limpiarClienteSeleccionado() {
-        console.log('🧹 Limpiando cliente seleccionado');
-        
-        // 1. Limpiar Select2
-        const selectElement = $('#selectCliente');
-        selectElement.val(null).trigger('change');
-        
-        // 2. Remover info del cliente si existe
-        if ($('#infoClienteSeleccionado').length) {
-            $('#infoClienteSeleccionado').remove();
-        }
-        
-        // 3. Limpiar campos ocultos
-        $('#cliente_nombre').val('');
-        $('#cliente_cedula').val('');
-        $('#cliente_email').val('');
-        $('#cliente_direccion').val('');
-        $('#cliente_telefono').val('');
-        
-        // 4. Limpiar variable global
-        clienteSeleccionado = null;
-        
-        // 5. Ocultar botón de quitar cliente del header
-        $('#btnQuitarCliente').hide();
-        
-        console.log('✅ Cliente limpiado completamente');
-    }
-
-
-    // =============================================
-    // 6. INICIALIZACIÓN
-    // =============================================
-
-    function inicializarSistema() {
-        console.log('🚀 Inicializando sistema...');
-        
-     configurarSelect2Clientes();
-    configurarNuevoCliente(); 
-    cargarProductosDesdeDB();
-    configurarMetodosPago();
-    configurarBusquedaTiempoReal();
-
-    
-        
-        
-        // Eventos básicos
-        $('#btnLimpiarCarrito').on('click', function() {
-            if (carrito.length > 0 && confirm('¿Limpiar carrito?')) {
-                carrito = [];
-                actualizarCarrito();
-                actualizarMetricas();
-                toastr.success('Carrito limpiado');
-            }
-        });
-        
-        $('#selectIva').on('change', function() {
-            const subtotal = parseFloat($('#subtotalVenta').text()) || 0;
-            actualizarTotales(subtotal);
-        });
-        
-        console.log('✅ Sistema inicializado');
-        toastr.success('Sistema de punto de venta listo');
-    }
-
-    // Iniciar sistema
-    setTimeout(inicializarSistema, 500);
-});
+})(jQuery); // Pasar jQuery como parámetro para evitar conflictos
 </script>
 
 @stop

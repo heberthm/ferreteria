@@ -2,274 +2,127 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Producto;
-use App\Models\Cliente;
 use App\Models\Venta;
 use App\Models\DetalleVenta;
+use App\Models\Producto;
+use App\Models\Inventario;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class VentaController extends Controller
 {
-    /**
-     * Mostrar la vista del punto de venta
-     */
-    public function index()
-    {
-        return view('venta');
-    }
-
-    /**
-     * Buscar productos para el punto de venta
-     */
-    public function buscarProductos(Request $request)
-    {
-        $termino = $request->get('q');
-        
-        $productos = Producto::select('id', 'codigo', 'nombre', 'precio', 'stock', 'categoria', 'unidad', 'stock_minimo')
-            ->where('activo', true)
-            ->where(function($query) use ($termino) {
-                $query->where('codigo', 'LIKE', "%$termino%")
-                      ->orWhere('nombre', 'LIKE', "%$termino%")
-                      ->orWhere('categoria', 'LIKE', "%$termino%");
-            })
-            ->where('stock', '>', 0)
-            ->orderBy('nombre')
-            ->limit(10)
-            ->get();
-        
-        return response()->json(['success' => true, 'productos' => $productos]);
-    }
-
-    /**
-     * Obtener todos los productos para el punto de venta
-     */
-    public function todosProductos()
-    {
-        $productos = Producto::select('id', 'codigo', 'nombre', 'precio', 'stock', 'categoria', 'unidad', 'stock_minimo')
-            ->where('activo', true)
-            ->where('stock', '>', 0)
-            ->orderBy('nombre')
-            ->get();
-        
-        return response()->json(['success' => true, 'productos' => $productos]);
-    }
-
-    /**
-     * Buscar clientes para Select2
-     */
-    public function buscarClientes(Request $request)
-    {
-        $termino = $request->get('q');
-        
-        $clientes = Cliente::select('id', 'nombre', 'cedula', 'email', 'telefono', 'direccion')
-            ->where('activo', true)
-            ->where(function($query) use ($termino) {
-                $query->where('nombre', 'LIKE', "%$termino%")
-                      ->orWhere('cedula', 'LIKE', "%$termino%")
-                      ->orWhere('email', 'LIKE', "%$termino%");
-            })
-            ->orderBy('nombre')
-            ->limit(20)
-            ->get();
-        
-        return response()->json($clientes);
-    }
-
-    /**
-     * Guardar un nuevo cliente
-     */
-    public function guardarCliente(Request $request)
-    {
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'cedula' => 'nullable|string|max:20|unique:clientes,cedula',
-            'email' => 'nullable|email|max:255',
-            'telefono' => 'nullable|string|max:20',
-            'direccion' => 'nullable|string|max:500',
-        ]);
-
-        try {
-            $cliente = Cliente::create([
-                'nombre' => $request->nombre,
-                'cedula' => $request->cedula,
-                'email' => $request->email,
-                'telefono' => $request->telefono,
-                'direccion' => $request->direccion,
-                'activo' => true,
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Cliente creado exitosamente',
-                'cliente' => $cliente
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el cliente: ' . $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
-     * Obtener productos frecuentes
-     */
-    public function productosFrecuentes()
-    {
-        $productosFrecuentes = DetalleVenta::select(
-                'producto_id',
-                DB::raw('SUM(cantidad) as total_vendido'),
-                DB::raw('MAX(productos.nombre) as nombre'),
-                DB::raw('MAX(productos.codigo) as codigo'),
-                DB::raw('MAX(productos.precio) as precio'),
-                DB::raw('MAX(productos.stock) as stock'),
-                DB::raw('MAX(productos.categoria) as categoria')
-            )
-            ->join('productos', 'detalle_ventas.producto_id', '=', 'productos.id')
-            ->where('productos.activo', true)
-            ->where('productos.stock', '>', 0)
-            ->groupBy('producto_id')
-            ->orderBy('total_vendido', 'DESC')
-            ->limit(12)
-            ->get();
-        
-        return response()->json([
-            'success' => true,
-            'productos' => $productosFrecuentes
-        ]);
-    }
-
-    /**
-     * Procesar una venta
-     */
-    public function procesarVenta(Request $request)
+    public function store(Request $request)
     {
         DB::beginTransaction();
-
+        
         try {
+            // Validar datos con nombres flexibles
             $validated = $request->validate([
-                'cliente_id' => 'nullable|exists:clientes,id',
-                'cliente_nombre' => 'nullable|string|max:255',
-                'cliente_cedula' => 'nullable|string|max:20',
+                'numero_factura' => 'required|unique:ventas,numero_factura',
+                'cliente_id' => 'nullable',
                 'subtotal' => 'required|numeric|min:0',
                 'iva' => 'required|numeric|min:0',
                 'total' => 'required|numeric|min:0',
-                'metodo_pago' => 'required|in:efectivo,tarjeta,transferencia,mixto,credito,cheque',
-                'datos_pago' => 'nullable|array',
-                'tipo_comprobante' => 'required|in:ticket,factura,factura_fiscal',
+                'metodo_pago' => 'required|in:efectivo,tarjeta,transferencia,cheque,mixto',
+                'tipo_comprobante' => 'required|in:ticket,factura,boleta',
                 'productos' => 'required|array|min:1',
-                'productos.*.id' => 'required|exists:productos,id',
+                'productos.*.producto_id' => 'required',
+                'productos.*.id_producto' => 'required', // Por si usas diferente nombre
                 'productos.*.cantidad' => 'required|integer|min:1',
-                'productos.*.precio' => 'required|numeric|min:0',
+                'productos.*.precio_unitario' => 'required|numeric|min:0',
             ]);
-
-            // Generar número de factura
-            $ultimaVenta = Venta::latest()->first();
-            $numeroFactura = 'F-' . str_pad(($ultimaVenta ? $ultimaVenta->id : 0) + 1, 5, '0', STR_PAD_LEFT);
-
-            // Crear la venta
+            
+            // 1. Crear la venta - Usa los nombres exactos de tus columnas
             $venta = Venta::create([
-                'numero_factura' => $numeroFactura,
-                'cliente_id' => $validated['cliente_id'],
-                'cliente_nombre' => $validated['cliente_nombre'],
-                'cliente_cedula' => $validated['cliente_cedula'],
-                'usuario_id' => Auth::id(),
-                'subtotal' => $validated['subtotal'],
-                'iva' => $validated['iva'],
-                'total' => $validated['total'],
-                'metodo_pago' => $validated['metodo_pago'],
-                'datos_pago' => json_encode($validated['datos_pago'] ?? []),
-                'tipo_comprobante' => $validated['tipo_comprobante'],
-                'fecha_venta' => now(),
+                'numero_factura' => $request->numero_factura,
+                'id_cliente' => $request->cliente_id, // Cambia según tu columna
+                'fecha' => now(),
+                'subtotal' => $request->subtotal,
+                'iva' => $request->iva,
+                'total' => $request->total,
+                'metodo_pago' => $request->metodo_pago,
+                'tipo_comprobante' => $request->tipo_comprobante,
+                'referencia_pago' => $request->referencia_pago,
+                'efectivo_recibido' => $request->efectivo_recibido,
+                'cambio' => $request->cambio,
                 'estado' => 'completada',
+                'id_usuario' => auth()->id(), // Cambia según tu columna
             ]);
-
-            // Crear detalles de venta y actualizar stock
-            foreach ($validated['productos'] as $item) {
-                $producto = Producto::find($item['id']);
+            
+            // 2. Crear detalles de venta y actualizar inventario
+            foreach ($request->productos as $productoData) {
+                // Obtener el ID del producto
+                $productoId = $productoData['producto_id'] ?? $productoData['id_producto'] ?? null;
+                
+                if (!$productoId) {
+                    throw new \Exception("ID de producto no especificado");
+                }
+                
+                // Buscar el producto - usando el nombre correcto de la columna
+                $producto = Producto::where('id_producto', $productoId)
+                                  ->orWhere('id', $productoId)
+                                  ->first();
                 
                 if (!$producto) {
-                    throw new \Exception("Producto no encontrado: {$item['id']}");
+                    throw new \Exception("Producto con ID $productoId no encontrado");
                 }
                 
-                if ($producto->stock < $item['cantidad']) {
-                    throw new \Exception("Stock insuficiente para: {$producto->nombre}");
-                }
-
-                // Crear detalle
+                // Crear detalle de venta
                 DetalleVenta::create([
-                    'venta_id' => $venta->id,
-                    'producto_id' => $item['id'],
-                    'producto_nombre' => $producto->nombre,
-                    'cantidad' => $item['cantidad'],
-                    'precio_unitario' => $item['precio'],
-                    'subtotal' => $item['precio'] * $item['cantidad'],
+                    'id_venta' => $venta->id_venta ?? $venta->id, // Ajusta según tu columna
+                    'id_producto' => $producto->id_producto ?? $producto->id,
+                    'cantidad' => $productoData['cantidad'],
+                    'precio_unitario' => $productoData['precio_unitario'],
+                    'subtotal' => $productoData['subtotal'],
                 ]);
-
-                // Actualizar stock
-                $producto->stock -= $item['cantidad'];
+                
+                // Actualizar inventario
+                $inventario = Inventario::where('id_producto', $producto->id_producto ?? $producto->id)->first();
+                
+                if ($inventario) {
+                    // Verificar stock
+                    if ($inventario->stock_actual < $productoData['cantidad']) {
+                        throw new \Exception("Stock insuficiente para " . ($producto->nombre ?? 'producto'));
+                    }
+                    
+                    // Reducir stock
+                    $stockAnterior = $inventario->stock_actual;
+                    $inventario->stock_actual -= $productoData['cantidad'];
+                    $inventario->save();
+                    
+                    // Registrar movimiento (si tienes tabla de movimientos)
+                    // MovimientoInventario::create([...]);
+                }
+                
+                // Actualizar stock en producto
+                $producto->stock -= $productoData['cantidad'];
                 $producto->save();
             }
-
+            
             DB::commit();
-
+            
             return response()->json([
                 'success' => true,
                 'message' => 'Venta procesada exitosamente',
-                'venta_id' => $venta->id,
-                'numero_factura' => $numeroFactura,
-                'total' => $venta->total,
-            ]);
-
+                'venta_id' => $venta->id_venta ?? $venta->id,
+                'numero_factura' => $venta->numero_factura,
+                'venta' => $venta->load(['detalles.producto', 'cliente'])
+            ], 201);
+            
         } catch (\Exception $e) {
             DB::rollBack();
             
+            // Log del error para debugging
+            \Log::error('Error al procesar venta: ' . $e->getMessage(), [
+                'request' => $request->all(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Error al procesar la venta: ' . $e->getMessage()
+                'message' => 'Error al procesar la venta: ' . $e->getMessage(),
+                'error' => $e->getMessage()
             ], 500);
         }
-    }
-
-    /**
-     * Obtener categorías únicas de productos
-     */
-    public function categorias()
-    {
-        $categorias = Producto::select('categoria')
-            ->whereNotNull('categoria')
-            ->where('categoria', '!=', '')
-            ->where('activo', true)
-            ->distinct()
-            ->orderBy('categoria')
-            ->pluck('categoria');
-        
-        return response()->json(['success' => true, 'categorias' => $categorias]);
-    }
-
-    /**
-     * Obtener un producto por código
-     */
-    public function productoPorCodigo($codigo)
-    {
-        $producto = Producto::where('codigo', $codigo)
-            ->where('activo', true)
-            ->where('stock', '>', 0)
-            ->first();
-        
-        if ($producto) {
-            return response()->json([
-                'success' => true,
-                'producto' => $producto
-            ]);
-        }
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Producto no encontrado'
-        ], 404);
     }
 }

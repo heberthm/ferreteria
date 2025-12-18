@@ -8,6 +8,7 @@ use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
 use App\Http\Controllers\ClienteController;
+use App\http\Controllers\ventaController;
 
 
 
@@ -138,6 +139,8 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
 
 
     Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
+    Route::post('/guardar-venta', [ventaController::class, 'store'])->name('guardar-venta');
+
     Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
     Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
     Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
