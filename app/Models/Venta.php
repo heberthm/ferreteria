@@ -27,9 +27,10 @@ class Venta extends Model
 
     protected $dates = ['fecha_venta'];
 
-    public function cliente()
+     public function cliente()
     {
-        return $this->belongsTo(Cliente::class);
+        // Si la clave foránea en ventas es 'cliente_id' y la primaria en clientes es 'id_cliente'
+        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
     }
 
     public function user()

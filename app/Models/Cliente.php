@@ -19,6 +19,7 @@ class Cliente extends Model
     ];
 
     protected $table = 'clientes';
+    protected $primaryKey = 'id_cliente';
 
     
 

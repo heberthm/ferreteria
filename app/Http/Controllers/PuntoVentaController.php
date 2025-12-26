@@ -203,129 +203,120 @@ class PuntoVentaController extends Controller
     /**
      * Procesar venta (VERSIÓN COMPLETA)
      */
-    public function procesarVenta(Request $request)
-    {
-        // Validar datos de entrada
-        $validator = Validator::make($request->all(), [
-            'numero_factura' => 'required|string|max:50',
-            'cliente_id' => 'nullable|exists:clientes,id',
-            'subtotal' => 'required|numeric|min:0',
-            'iva' => 'required|numeric|min:0',
-            'total' => 'required|numeric|min:0',
-            'metodo_pago' => 'required|string|in:efectivo,tarjeta,transferencia,mixto,credito,cheque',
-            'tipo_comprobante' => 'required|string|in:ticket,factura,factura_fiscal',
-            'referencia_pago' => 'nullable|string|max:100',
-            'efectivo_recibido' => 'nullable|numeric|min:0',
-            'cambio' => 'nullable|numeric|min:0',
-            'items' => 'required|array|min:1',
-            'items.*.producto_id' => 'required|exists:productos,id_producto',
-            'items.*.cantidad' => 'required|integer|min:1',
-            'items.*.precio' => 'required|numeric|min:0',
-            'items.*.subtotal' => 'required|numeric|min:0'
+   public function procesarVenta(Request $request)
+{
+    // Validar datos de entrada CORREGIDOS
+    $validator = Validator::make($request->all(), [
+        'numero_factura' => 'required|string|max:50',
+        'cliente_id' => 'nullable|exists:clientes,id_cliente', // CORREGIDO
+        'subtotal' => 'required|numeric|min:0',
+        'iva' => 'required|numeric|min:0',
+        'total' => 'required|numeric|min:0',
+        'metodo_pago' => 'required|string|in:efectivo,tarjeta,transferencia,mixto,credito,cheque',
+        'tipo_comprobante' => 'required|string|in:ticket,factura,factura_fiscal',
+        'referencia_pago' => 'nullable|string|max:100',
+        'efectivo_recibido' => 'nullable|numeric|min:0',
+        'cambio' => 'nullable|numeric|min:0',
+        'items' => 'required|array|min:1',
+        'items.*.producto_id' => 'required|exists:productos,id_producto',
+        'items.*.cantidad' => 'required|integer|min:1',
+        'items.*.precio' => 'required|numeric|min:0',
+        'items.*.subtotal' => 'required|numeric|min:0'
+    ]);
+    
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Errores de validación',
+            'errors' => $validator->errors()
+        ], 422);
+    }
+    
+    DB::beginTransaction();
+    
+    try {
+        // 1. VERIFICAR STOCK DE TODOS LOS PRODUCTOS
+        foreach ($request->items as $item) {
+            $producto = Producto::find($item['producto_id']);
+            
+            if (!$producto) {
+                throw new \Exception("Producto ID {$item['producto_id']} no encontrado");
+            }
+            
+            if ($producto->stock < $item['cantidad']) {
+                throw new \Exception("Stock insuficiente para {$producto->nombre}. Disponible: {$producto->stock}, Solicitado: {$item['cantidad']}");
+            }
+        }
+        
+        // 2. CREAR LA VENTA
+        $venta = new Venta();
+        $venta->numero_factura = $request->numero_factura;
+        $venta->cliente_id = $request->cliente_id;
+        $venta->subtotal = $request->subtotal;
+        $venta->iva = $request->iva;
+        $venta->total = $request->total;
+        $venta->metodo_pago = $request->metodo_pago;
+        $venta->tipo_comprobante = $request->tipo_comprobante;
+        $venta->referencia_pago = $request->referencia_pago;
+        $venta->efectivo_recibido = $request->efectivo_recibido;
+        $venta->cambio = $request->cambio;
+        $venta->userId = auth()->id() ?? 1;
+        $venta->fecha_venta = Carbon::now();
+        $venta->estado = 'completada';
+        $venta->save();
+        
+        // 3. CREAR DETALLES DE VENTA Y ACTUALIZAR STOCK
+        foreach ($request->items as $item) {
+            // Crear detalle de venta
+            $detalle = new DetalleVenta();
+            $detalle->venta_id = $venta->id_venta;
+            $detalle->producto_id = $item['producto_id'];
+            $detalle->cantidad = $item['cantidad'];
+            $detalle->precio_unitario = $item['precio'];
+            $detalle->subtotal = $item['subtotal'];
+            $detalle->save();
+            
+            // Actualizar stock del producto
+            $producto = Producto::find($item['producto_id']);
+            $producto->stock -= $item['cantidad'];
+            $producto->ultima_venta = Carbon::now();
+            
+            if ($producto->stock <= $producto->stock_minimo) {
+                $producto->needs_restock = true;
+            }
+            
+            $producto->save();
+        }
+        
+        // 4. CREAR REGISTRO DE PAGO
+        $pago = new Pago();
+        $pago->venta_id = $venta->id_venta;
+        $pago->metodo_pago = $request->metodo_pago;
+        $pago->monto = $request->total;
+        $pago->referencia = $request->referencia_pago;
+        $pago->estado = 'completado';
+        $pago->save();
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Venta procesada exitosamente',
+            'venta_id' => $venta->id_venta,
+            'numero_factura' => $venta->numero_factura,
+            'timestamp' => Carbon::now()->toDateTimeString()
         ]);
         
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Errores de validación',
-                'errors' => $validator->errors()
-            ], 422);
-        }
+    } catch (\Exception $e) {
+        DB::rollBack();
         
-        DB::beginTransaction();
-        
-        try {
-            // 1. VERIFICAR STOCK DE TODOS LOS PRODUCTOS
-            foreach ($request->items as $item) {
-                $producto = Producto::find($item['producto_id']);
-                
-                if (!$producto) {
-                    throw new \Exception("Producto ID {$item['producto_id']} no encontrado");
-                }
-                
-                if ($producto->stock < $item['cantidad']) {
-                    throw new \Exception("Stock insuficiente para {$producto->nombre}. Disponible: {$producto->stock}, Solicitado: {$item['cantidad']}");
-                }
-            }
-            
-            // 2. CREAR LA VENTA
-            $venta = new Venta();
-            $venta->numero_factura = $request->numero_factura;
-            $venta->cliente_id = $request->cliente_id;
-            $venta->subtotal = $request->subtotal;
-            $venta->iva = $request->iva;
-            $venta->total = $request->total;
-            $venta->metodo_pago = $request->metodo_pago;
-            $venta->tipo_comprobante = $request->tipo_comprobante;
-            $venta->referencia_pago = $request->referencia_pago;
-            $venta->efectivo_recibido = $request->efectivo_recibido;
-            $venta->cambio = $request->cambio;
-            $venta->userId = auth()->id() ?? 1; // Usuario autenticado o por defecto
-            $venta->fecha_venta = Carbon::now();
-            $venta->estado = 'completada';
-            $venta->save();
-            
-            // 3. CREAR DETALLES DE VENTA Y ACTUALIZAR STOCK
-            foreach ($request->items as $item) {
-                // Crear detalle de venta
-                $detalle = new DetalleVenta();
-                $detalle->venta_id = $venta->id_venta;
-                $detalle->producto_id = $item['producto_id'];
-                $detalle->cantidad = $item['cantidad'];
-                $detalle->precio_unitario = $item['precio'];
-                $detalle->subtotal = $item['subtotal'];
-                $detalle->save();
-                
-                // Actualizar stock del producto
-                $producto = Producto::find($item['producto_id']);
-                $producto->stock -= $item['cantidad'];
-                
-                // Actualizar última venta
-                $producto->ultima_venta = Carbon::now();
-                
-                // Si el stock está bajo el mínimo, registrar alerta (opcional)
-                if ($producto->stock <= $producto->stock_minimo) {
-                    // Aquí podrías crear una alerta o registro de stock bajo
-                    $producto->needs_restock = true;
-                }
-                
-                $producto->save();
-            }
-            
-            // 4. CREAR REGISTRO DE PAGO
-            $pago = new Pago();
-            $pago->venta_id = $venta->id_venta;
-            $pago->metodo_pago = $request->metodo_pago;
-            $pago->monto = $request->total;
-            $pago->referencia = $request->referencia_pago;
-            $pago->estado = 'completado';
-            $pago->save();
-            
-            DB::commit();
-            
-            // Obtener venta completa con relaciones
-            $ventaCompleta = Venta::with(['cliente', 'detalles.producto', 'pago'])
-                ->find($venta->id_venta);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Venta procesada exitosamente',
-                'venta_id' => $venta->id_venta,
-                'numero_factura' => $venta->numero_factura,
-                'venta' => $ventaCompleta,
-                'timestamp' => Carbon::now()->toDateTimeString()
-            ]);
-            
-        } catch (\Exception $e) {
-            DB::rollBack();
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al procesar la venta: ' . $e->getMessage(),
-                'error' => env('APP_DEBUG') ? $e->getTraceAsString() : null
-            ], 500);
-        }
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al procesar la venta: ' . $e->getMessage(),
+            'error' => env('APP_DEBUG') ? $e->getTraceAsString() : null
+        ], 500);
     }
+}
     
     /**
      * Obtener datos de venta para comprobante

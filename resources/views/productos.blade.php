@@ -133,15 +133,14 @@
 
                               <div class="form-group row mb-3">
                                 <label for="imagen" class="col-sm-4 col-form-label">Imagen</label>
-                              
-                                    <input type="file" id="imagen" name="imagen"class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif" 
-                                        onchange="manejarSeleccionArchivo(this, document.getElementById('preview'), document.getElementById('mensaje-archivo'))">
+
+                                <input type="file" id="imagen" name="imagen" class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif" 
+                                            onchange="manejarSeleccionArchivo(this, document.getElementById('preview'), document.getElementById('mensaje-archivo'))">
+                                        <small class="form-text text-muted">
+                                            Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
+                                            <div id="mensaje-archivo"></div> 
+                                        </small>                   
                                     
-                                         <small class="form-text text-muted">
-                                                    Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
-                                                      <div id="mensaje-archivo"></div> 
-                                          </small>                                           
-                                   
                                
                             </div>
 

@@ -69,77 +69,76 @@ class ProductoController extends Controller
     }
 
     public function store(Request $request)
-    {
-        $validatedData = $request->validate([
-            'codigo'        => 'required|string|max:50|unique:productos',
-            'nombre'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'precio_compra' => 'required|numeric|min:0',
-            'precio_venta'  => 'required|numeric|min:0',
-            'unidad_medida' => 'required|string|max:50',
-            'ubicacion'     => 'nullable|string|max:100',
-            'proveedor'     => 'nullable|string|max:100',
-            'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',   
-            'cantidad'      => 'required|integer|min:0',
-            'stock_minimo'  => 'required|integer|min:0',
-            'stock'         => 'nullable|integer|min:0',
-        ]);
+{
+    $validatedData = $request->validate([
+        'codigo'        => 'required|string|max:50|unique:productos',
+        'nombre'        => 'required|string|max:255',
+        'descripcion'   => 'nullable|string',
+        'precio_compra' => 'required|numeric|min:0',
+        'precio_venta'  => 'required|numeric|min:0',
+        'unidad_medida' => 'required|string|max:50',
+        'ubicacion'     => 'nullable|string|max:100',
+        'proveedor'     => 'nullable|string|max:100',
+        'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',   
+        'cantidad'      => 'required|integer|min:0',
+        'stock_minimo'  => 'required|integer|min:0',
+        'stock'         => 'nullable|integer|min:0',
+    ]);
 
-        // Calcular margen de ganancia
-        $margenGanancia = (($request->precio_venta - $request->precio_compra) / $request->precio_compra) * 100;
+    // Calcular margen de ganancia
+    $margenGanancia = (($request->precio_venta - $request->precio_compra) / $request->precio_compra) * 100;
 
-        try {
-            $data = new Producto;
+    try {
+        $data = new Producto;
 
-            // Validar la imagen
-            $request->validate([
-                'imagen' => 'required|image|mimes:webp,jpeg,png,jpg,gif,svg|max:2048',
-                'id_producto' => 'nullable|integer'
-            ]);
-
-            $rutaPublica = null;
-            if ($request->hasFile('imagen')) {
-                $imagen = $request->file('imagen');
-                
-                // Generar nombre único para la imagen
-                $nombreImagen = Str::random(20) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
-                
-                // Guardar imagen en storage/app/public/images
-                $ruta = $imagen->storeAs('public/images', $nombreImagen);
-                
-                // Ruta pública para la base de datos
-                $rutaPublica = 'storage/images/' . $nombreImagen;
-            } 
-
-            // Asignar campos correctamente
-            $data->userId = $request->userId;
-            $data->codigo = $request->codigo;
-            $data->nombre = $request->nombre;
-            $data->descripcion = $request->descripcion;
-            $data->precio_compra = $request->precio_compra;
-            $data->precio_venta = $request->precio_venta;
-            $data->unidad_medida = $request->unidad_medida; 
-            $data->ubicacion = $request->ubicacion;
-            $data->marca = $request->marca;
-            $data->proveedor = $request->proveedor;
-            $data->categoria = $request->categoria;
-            $data->id_categoria = $request->id_categoria;
-            $data->id_proveedor = $request->id_proveedor;
-            $data->cantidad = $request->cantidad; 
-            $data->stock = $request->cantidad; // Asumiendo que stock es igual a cantidad inicial
-            $data->stock_minimo = $request->stock_minimo; 
-            $data->stock = $request->stock;
-            $data->imagen = $rutaPublica;
+        // Manejo de la imagen
+        $rutaPublica = null;
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            // Si se sube una imagen, guardarla normalmente
+            $imagen = $request->file('imagen');
             
-        } catch (\Exception  $exception) {
-            return back()->withError($exception->getMessage())->withInput();
+            // Generar nombre único para la imagen
+            $nombreImagen = Str::random(20) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
+            
+            // Guardar imagen en storage/app/public/images
+            $ruta = $imagen->storeAs('public/images', $nombreImagen);
+            
+            // Ruta pública para la base de datos
+            $rutaPublica = 'storage/images/' . $nombreImagen;
+        } else {
+            // Si no se sube imagen, usar imagen por defecto
+            $rutaPublica = 'storage/images/default-product.png'; // Ruta de la imagen por defecto
         }
-        
-        $data->save();
 
-        // Respuesta de éxito con el mensaje deseado
-        return response()->json(['success'=>'Successfully']);
+        // Asignar campos correctamente
+        $data->userId = $request->userId;
+        $data->codigo = $request->codigo;
+        $data->nombre = $request->nombre;
+        $data->descripcion = $request->descripcion;
+        $data->precio_compra = $request->precio_compra;
+        $data->precio_venta = $request->precio_venta;
+        $data->unidad_medida = $request->unidad_medida; 
+        $data->ubicacion = $request->ubicacion;
+        $data->marca = $request->marca;
+        $data->proveedor = $request->proveedor;
+        $data->categoria = $request->categoria;
+        $data->id_categoria = $request->id_categoria;
+        $data->id_proveedor = $request->id_proveedor;
+        $data->cantidad = $request->cantidad; 
+        $data->stock = $request->cantidad; // Asumiendo que stock es igual a cantidad inicial
+        $data->stock_minimo = $request->stock_minimo; 
+        $data->stock = $request->stock;
+        $data->imagen = $rutaPublica;
+        
+    } catch (\Exception  $exception) {
+        return back()->withError($exception->getMessage())->withInput();
     }
+    
+    $data->save();
+
+    // Respuesta de éxito con el mensaje deseado
+    return response()->json(['success'=>'Successfully']);
+}
 
     public function obtenerCategorias()
     {

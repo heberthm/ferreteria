@@ -101,7 +101,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title"><i class="fas fa-search"></i> Buscar Productos</h3>
                 <div class="card-tools">
-                    <button class="btn btn-sm btn-outline-primary" id="btnScanner">
+                    <button class="btn btn-sm btn-outline-primary" id="btnOpenScanner">
                         <i class="fas fa-camera"></i> Escanear
                     </button>
                 </div>
@@ -415,7 +415,7 @@
 
 
 
-<!-- Modal Scanner - VERSIÓN TOTALMENTE CORREGIDA -->
+<!-- Modal Scanner  -->
 <div class="modal fade" id="modalScanner" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-sm" role="document">
         <div class="modal-content">
@@ -885,7 +885,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 
 
-<script>// ENVOLVER TODO EL CÓDIGO EN UNA FUNCIÓN QUE ESPERE A QUE JQUERY ESTÉ CARGADO
+<script>
 (function($) {
     'use strict';
     
@@ -897,6 +897,7 @@
     let numeroFactura = generarNumeroFactura();
     let clienteSeleccionado = null;
     let timeoutBusqueda = null;
+    let scannerModalActive = false; 
 
     // Configurar toastr
     toastr.options = {
@@ -1797,118 +1798,143 @@
         });
     }
 
-    // =============================================
-    // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL MODIFICADA
-    // =============================================
-    $(document).on('click', '#btnProcesarVenta', function(e) {
-        e.preventDefault();
-        
-        if (carrito.length === 0) {
-            toastr.error('El carrito está vacío', 'Error');
-            return;
+   // =============================================
+// 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
+// =============================================
+$(document).on('click', '#btnProcesarVenta', function(e) {
+    e.preventDefault();
+    
+    if (carrito.length === 0) {
+        toastr.error('El carrito está vacío', 'Error');
+        return;
+    }
+    
+    // Validar stock antes de procesar
+    let stockValido = true;
+    carrito.forEach(function(item) {
+        const producto = productos[item.id];
+        if (producto.stock < item.cantidad) {
+            toastr.error('Stock insuficiente para ' + item.nombre + '. Disponible: ' + producto.stock);
+            stockValido = false;
         }
-        
-        // Validar stock antes de procesar
-        let stockValido = true;
-        carrito.forEach(function(item) {
-            const producto = productos[item.id];
-            if (producto.stock < item.cantidad) {
-                toastr.error('Stock insuficiente para ' + item.nombre + '. Disponible: ' + producto.stock);
-                stockValido = false;
-            }
-        });
-        
-        if (!stockValido) {
-            return;
-        }
-        
-        // Preparar datos de la venta
-        const ventaData = {
-            numero_factura: numeroFactura,
-            cliente_id: clienteSeleccionado ? clienteSeleccionado.id : null,
-            cliente_nombre: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
-            cliente_cedula: clienteSeleccionado ? clienteSeleccionado.cedula : null,
-            subtotal: window.ventaSubtotalNumerico || 0,
-            iva: window.ventaIvaNumerico || 0,
-            total: window.ventaTotalNumerico || 0,
-            metodo_pago: $('#metodoPago').val() || 'efectivo',
-            tipo_comprobante: $('#tipoComprobante').val() || 'ticket',
-            porcentaje_iva: parseFloat($('#selectIva').val()) || 16,
-            referencia_pago: obtenerReferenciaPago(),
-            efectivo_recibido: parseFloat($('#efectivoRecibido').val()) || 0,
-            cambio: parseFloat($('#cambioVenta').text().replace(/[^\d.-]/g, '')) || 0,
-            productos: carrito.map(function(item) {
-                return {
-                    producto_id: item.id,
-                    codigo: item.codigo,
-                    nombre: item.nombre,
-                    cantidad: item.cantidad,
-                    precio_unitario: item.precio,
-                    subtotal: item.precio * item.cantidad
-                };
-            })
-        };
-        
-        console.log('📤 Datos de venta a enviar:', ventaData);
-        
-        // Mostrar loading
-        const $btn = $(this);
-        $btn.prop('disabled', true)
-            .html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
-        
-        // Enviar al servidor
-        $.ajax({
-            url: '{{ route("procesar-venta}',
-            method: 'POST',
-            data: JSON.stringify(ventaData),
-            contentType: 'application/json',
-            dataType: 'json',
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
-                'Accept': 'application/json'
-            },
-            success: function(response) {
-                console.log('✅ Respuesta del servidor:', response);
+    });
+    
+    if (!stockValido) {
+        return;
+    }
+    
+    // Preparar datos de la venta
+    const ventaData = {
+        numero_factura: numeroFactura,
+        cliente_id: clienteSeleccionado ? clienteSeleccionado.id : null,
+        cliente_nombre: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
+        cliente_cedula: clienteSeleccionado ? clienteSeleccionado.cedula : null,
+        subtotal: window.ventaSubtotalNumerico || 0,
+        iva: window.ventaIvaNumerico || 0,
+        total: window.ventaTotalNumerico || 0,
+        metodo_pago: $('#metodoPago').val() || 'efectivo',
+        tipo_comprobante: $('#tipoComprobante').val() || 'ticket',
+        porcentaje_iva: parseFloat($('#selectIva').val()) || 16,
+        referencia_pago: obtenerReferenciaPago(),
+        efectivo_recibido: parseFloat($('#efectivoRecibido').val()) || 0,
+        cambio: parseFloat($('#cambioVenta').text().replace(/[^\d.-]/g, '')) || 0,
+        productos: carrito.map(function(item) {
+            return {
+                producto_id: item.id,
+                codigo: item.codigo,
+                nombre: item.nombre,
+                cantidad: item.cantidad,
+                precio_unitario: item.precio,
+                subtotal: item.precio * item.cantidad
+            };
+        })
+    };
+    
+    console.log('📤 Datos de venta a enviar:', ventaData);
+    
+    // Mostrar loading
+    const $btn = $(this);
+    $btn.prop('disabled', true)
+        .html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+    
+    // CORRECCIÓN: Obtener URL y token CSRF correctamente
+    const csrfToken = $('meta[name="csrf-token"]').attr('content');
+    
+    // Verificar que tenemos el token CSRF
+    if (!csrfToken) {
+        toastr.error('Token de seguridad no encontrado. Recarga la página.', 'Error');
+        $btn.prop('disabled', false).html('<i class="fas fa-check"></i> COBRAR');
+        return;
+    }
+    
+    // Usar URL directa en lugar de route() de Blade
+    const urlProcesarVenta = '/procesar-venta'; 
+    
+    console.log('📤 Enviando a:', urlProcesarVenta);
+    console.log('🔐 Token CSRF:', csrfToken ? 'Presente' : 'Ausente');
+    
+    // Enviar al servidor
+    $.ajax({
+        url: urlProcesarVenta,
+        method: 'POST',
+        data: JSON.stringify(ventaData),
+        contentType: 'application/json',
+        dataType: 'json',
+        headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            console.log('✅ Respuesta del servidor:', response);
+            
+            if (response.success) {
+                toastr.success(response.message, '¡Venta Exitosa!');
                 
-                if (response.success) {
-                    toastr.success(response.message, '¡Venta Exitosa!');
-                    
-                    // Actualizar stock localmente
-                    carrito.forEach(function(item) {
-                        if (productos[item.id]) {
-                            productos[item.id].stock -= item.cantidad;
-                        }
-                    });
-                    
-                    // Mostrar vista previa
-                    mostrarVistaPrevia();
-                    
-                    // Reiniciar para nueva venta después de 2 segundos
-                    setTimeout(function() {
-                        reiniciarVenta();
-                        $('#modalVistaPrevia').modal('hide');
-                    }, 2000);
-                    
-                } else {
-                    toastr.error(response.message || 'Error al procesar la venta', 'Error');
-                    
-                    if (response.errors) {
-                        Object.keys(response.errors).forEach(function(field) {
-                            response.errors[field].forEach(function(error) {
-                                toastr.error(error);
-                            });
-                        });
+                // Actualizar stock localmente
+                carrito.forEach(function(item) {
+                    if (productos[item.id]) {
+                        productos[item.id].stock -= item.cantidad;
                     }
+                });
+                
+                // Mostrar vista previa
+                mostrarVistaPrevia();
+                
+                // Reiniciar para nueva venta después de 2 segundos
+                setTimeout(function() {
+                    reiniciarVenta();
+                    $('#modalVistaPrevia').modal('hide');
+                }, 2000);
+                
+            } else {
+                toastr.error(response.message || 'Error al procesar la venta', 'Error');
+                
+                if (response.errors) {
+                    Object.keys(response.errors).forEach(function(field) {
+                        response.errors[field].forEach(function(error) {
+                            toastr.error(error);
+                        });
+                    });
                 }
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error en AJAX:', xhr);
-                
-                let errorMessage = 'Error al procesar la venta';
-                
-                try {
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error en AJAX:', {
+                status: status,
+                error: error,
+                responseText: xhr.responseText,
+                statusText: xhr.statusText
+            });
+            
+            let errorMessage = 'Error al procesar la venta';
+            
+            try {
+                // Intentar parsear la respuesta como JSON
+                if (xhr.responseText && xhr.responseText.trim().startsWith('{')) {
                     const errorResponse = JSON.parse(xhr.responseText);
-                    if (errorResponse.message) errorMessage = errorResponse.message;
+                    if (errorResponse.message) {
+                        errorMessage = errorResponse.message;
+                    }
                     
                     if (errorResponse.errors) {
                         Object.keys(errorResponse.errors).forEach(function(field) {
@@ -1918,38 +1944,50 @@
                         });
                         return;
                     }
-                } catch (e) {
-                    console.error('Error parsing response:', e);
                 }
-                
-                toastr.error(errorMessage, 'Error');
-            },
-            complete: function() {
-                $btn.prop('disabled', false)
-                    .html('<i class="fas fa-check"></i> COBRAR');
+                // Si es HTML (error 403, 404, 500, etc.)
+                else if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
+                    errorMessage = 'Error del servidor: ' + xhr.statusText;
+                    console.error('Respuesta HTML recibida:', xhr.responseText.substring(0, 200));
+                }
+            } catch (e) {
+                console.error('Error parsing response:', e);
+                errorMessage = 'Error en la respuesta del servidor: ' + xhr.statusText;
             }
-        });
-    });
-
-    function obtenerReferenciaPago() {
-        const metodo = $('#metodoPago').val();
-        
-        switch(metodo) {
-            case 'efectivo':
-                return null;
-            case 'tarjeta':
-                return $('#numeroTarjeta').val() || 'Tarjeta';
-            case 'transferencia':
-                return $('#referenciaTransaccion').val() || 'Transferencia';
-            case 'cheque':
-                return $('#referenciaTransaccion').val() || 'Cheque';
-            case 'mixto':
-                return 'Mixto: Efectivo ' + ($('#montoEfectivoMixto').val() || 0) + ', Tarjeta ' + ($('#montoTarjetaMixto').val() || 0);
-            default:
-                return null;
+            
+            toastr.error(errorMessage, 'Error');
+            
+            // Si es error 403, probablemente problema con CSRF
+            if (xhr.status === 403) {
+                toastr.warning('Error de autenticación. Intenta recargar la página.', 'Token CSRF');
+            }
+        },
+        complete: function() {
+            $btn.prop('disabled', false)
+                .html('<i class="fas fa-check"></i> COBRAR');
         }
-    }
+    });
+});
 
+// Función auxiliar para obtener referencia de pago
+function obtenerReferenciaPago() {
+    const metodo = $('#metodoPago').val();
+    
+    switch(metodo) {
+        case 'efectivo':
+            return null;
+        case 'tarjeta':
+            return $('#numeroTarjeta').val() || 'Tarjeta';
+        case 'transferencia':
+            return $('#referenciaTransaccion').val() || 'Transferencia';
+        case 'cheque':
+            return $('#referenciaTransaccion').val() || 'Cheque';
+        case 'mixto':
+            return 'Mixto: Efectivo ' + ($('#montoEfectivoMixto').val() || 0) + ', Tarjeta ' + ($('#montoTarjetaMixto').val() || 0);
+        default:
+            return null;
+    }
+}
     // =============================================
     // 9. VISTA PREVIA Y COMPROBANTES
     // =============================================
@@ -2242,6 +2280,179 @@
         mostrarVistaPrevia();
         toastr.info('Generando vista previa para impresión', 'Impresión');
     });
+
+
+   // =============================================
+    // NUEVA SECCIÓN: CONFIGURACIÓN DEL ESCÁNER MODAL
+    // =============================================
+
+    function configurarScannerModal() {
+        console.log('📷 Configurando modal de escáner...');
+        
+        // Configurar apertura del modal con el botón "Escaner"
+        $('#btnOpenScanner').on('click', function() {
+            console.log('🟢 Botón escáner clickeado');
+            $('#modalScanner').modal('show');
+            
+            // Enfocar el input después de que el modal se muestre
+            setTimeout(function() {
+                $('#inputCodigoManual').focus();
+                console.log('🔍 Input de código enfocado');
+            }, 500);
+        });
+        
+        // Configurar el input para procesar código cuando se presiona Enter
+        $('#inputCodigoManual').on('keydown', function(e) {
+            // Detectar cuando se presiona Enter (generalmente después de leer código de barras)
+            if (e.key === 'Enter' || e.keyCode === 13) {
+                e.preventDefault();
+                console.log('⏎ Enter presionado en input de código');
+                procesarCodigoEscaneado();
+            }
+        });
+        
+        // Configurar botón de procesar manual
+        $('#btnProcesarCodigo').on('click', function() {
+            console.log('🟡 Botón procesar código clickeado');
+            procesarCodigoEscaneado();
+        });
+        
+        // Configurar cierre del modal
+        $('#modalScanner').on('hidden.bs.modal', function() {
+            console.log('🔴 Modal escáner cerrado');
+            $('#inputCodigoManual').val(''); // Limpiar input
+        });
+        
+        // Configurar apertura del modal
+        $('#modalScanner').on('shown.bs.modal', function() {
+            console.log('🟢 Modal escáner abierto');
+            $('#inputCodigoManual').focus(); // Enfocar automáticamente
+        });
+        
+        // Permitir también la tecla Tab para procesar
+        $('#inputCodigoManual').on('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                console.log('↹ Tab presionado en input de código');
+                procesarCodigoEscaneado();
+            }
+        });
+        
+        // Botón para cerrar el modal con Escape
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
+                $('#modalScanner').modal('hide');
+            }
+        });
+    }
+    
+    function procesarCodigoEscaneado() {
+        const codigo = $('#inputCodigoManual').val().trim();
+        
+        if (!codigo) {
+            toastr.warning('Ingrese un código para escanear', 'Escáner');
+            $('#inputCodigoManual').focus();
+            return;
+        }
+        
+        console.log('🔍 Procesando código escaneado:', codigo);
+        
+        // Buscar producto por código
+        buscarProductoPorCodigo(codigo);
+    }
+    
+    function buscarProductoPorCodigo(codigo) {
+        console.log('🔎 Buscando producto con código:', codigo);
+        
+        // Buscar en los productos cargados
+        const productoEncontrado = Object.values(productos).find(function(producto) {
+            const codigoProducto = producto.codigo ? producto.codigo.toString().trim() : '';
+            const codigoBuscado = codigo.toString().trim();
+            
+            return codigoProducto === codigoBuscado;
+        });
+        
+        if (productoEncontrado) {
+            console.log('✅ Producto encontrado:', productoEncontrado);
+            
+            // Verificar stock
+            if (productoEncontrado.stock <= 0) {
+                toastr.error('Producto sin stock disponible', 'Stock');
+                $('#inputCodigoManual').val('').focus();
+                return;
+            }
+            
+            // Verificar si ya está en el carrito
+            const productoEnCarrito = carrito.find(item => item.id === productoEncontrado.id);
+            const cantidadActual = productoEnCarrito ? productoEnCarrito.cantidad : 0;
+            
+            // Si ya está en el carrito, verificar stock disponible
+            if (cantidadActual >= productoEncontrado.stock) {
+                toastr.error(`Stock máximo alcanzado. Disponible: ${productoEncontrado.stock}`, 'Stock');
+                $('#inputCodigoManual').val('').focus();
+                return;
+            }
+            
+            // Agregar al carrito
+            if (productoEnCarrito) {
+                productoEnCarrito.cantidad += 1;
+                toastr.success(`"${productoEncontrado.nombre}" - Cantidad aumentada a ${productoEnCarrito.cantidad}`, 'Carrito');
+            } else {
+                carrito.push({
+                    id: productoEncontrado.id,
+                    nombre: productoEncontrado.nombre,
+                    precio: productoEncontrado.precio,
+                    cantidad: 1,
+                    stock: productoEncontrado.stock,
+                    codigo: productoEncontrado.codigo,
+                    categoria: productoEncontrado.categoria
+                });
+                toastr.success(`"${productoEncontrado.nombre}" agregado al carrito`, 'Carrito');
+            }
+            
+            // Actualizar la interfaz
+            actualizarCarrito();
+            actualizarMetricas();
+            
+            // Limpiar input y mantener foco para siguiente escaneo
+            $('#inputCodigoManual').val('').focus();
+            
+            // No cerrar el modal automáticamente para permitir escanear múltiples productos
+            // toastr.info('Puede continuar escaneando más productos', 'Escáner');
+            
+        } else {
+            // Producto no encontrado
+            console.log('❌ Producto no encontrado con código:', codigo);
+            
+            toastr.error(`No se encontró producto con código: "${codigo}"`, 'Producto no encontrado');
+            
+            // Enfocar y seleccionar el texto para fácil edición
+            $('#inputCodigoManual').focus().select();
+        }
+    }
+
+    // =============================================
+    // 12. EVENTOS DE TECLADO GLOBALES PARA ESCÁNER (OPCIONAL)
+    // =============================================
+    
+    // Opcional: Atajo de teclado para abrir el escáner (Ctrl+E)
+    $(document).on('keydown', function(e) {
+        // Ctrl + E para abrir escáner (solo si no estamos en un input/textarea)
+        if (e.ctrlKey && e.key === 'e' && !$(e.target).is('input, textarea, select')) {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+E presionado');
+            $('#modalScanner').modal('show');
+        }
+        
+        // También permitir abrir con F2
+        if (e.key === 'F2') {
+            e.preventDefault();
+            console.log('⌨️ Tecla F2 presionada');
+            $('#modalScanner').modal('show');
+        }
+    });
+
+
     
     // =============================================
     // 11. INICIALIZACIÓN
@@ -2254,6 +2465,7 @@
         cargarProductosDesdeDB();
         configurarMetodosPago();
         configurarBusquedaTiempoReal();
+        configurarScannerModal(); 
 
         $('#selectIva').on('change', function() {
             const subtotal = parseFloat($('#subtotalVenta').text()) || 0;
@@ -2287,6 +2499,247 @@
         cargarProductosFrecuentes();
         toastr.info('Productos frecuentes actualizados');
     };
+
+// =============================================
+// CONFIGURACIÓN DEL ESCÁNER MODAL (CORREGIDO)
+// =============================================
+
+// Configurar apertura del modal escáner
+$(document).on('click', '#btnOpenScanner', function() {
+    console.log('🟢 Botón escáner clickeado');
+    $('#modalScanner').modal('show');
+    
+    // Enfocar el input después de que el modal se muestre
+    setTimeout(function() {
+        $('#inputCodigoManual').focus();
+        console.log('🔍 Input de código enfocado');
+    }, 500);
+});
+
+// Configurar el input para procesar código cuando se presiona Enter - SOLO UNA VEZ
+$(document).on('keydown', '#inputCodigoManual', function(e) {
+    // Detectar cuando se presiona Enter
+    if (e.key === 'Enter' || e.keyCode === 13) {
+        e.preventDefault();
+        console.log('⏎ Enter presionado en input de código');
+        
+        // Pequeño delay para asegurar que el valor esté actualizado
+        setTimeout(function() {
+            procesarCodigoEscaneado();
+        }, 10);
+    }
+    
+    // También procesar con Tab si se desea
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        console.log('↹ Tab presionado en input de código');
+        
+        setTimeout(function() {
+            procesarCodigoEscaneado();
+        }, 10);
+    }
+});
+
+// Configurar botón de procesar manual
+$(document).on('click', '#btnProcesarCodigo', function() {
+    console.log('🟡 Botón procesar código clickeado');
+    procesarCodigoEscaneado();
+});
+
+// Configurar cierre del modal
+$('#modalScanner').on('hidden.bs.modal', function() {
+    console.log('🔴 Modal escáner cerrado');
+    $('#inputCodigoManual').val(''); // Limpiar input
+});
+
+// Configurar apertura del modal
+$('#modalScanner').on('shown.bs.modal', function() {
+    console.log('🟢 Modal escáner abierto');
+    $('#inputCodigoManual').focus(); // Enfocar automáticamente
+});
+
+// Función para procesar el código escaneado - CON VALIDACIÓN MEJORADA
+function procesarCodigoEscaneado() {
+    const codigo = $('#inputCodigoManual').val().trim();
+    
+    console.log('📋 Código a procesar:', codigo);
+    
+    if (!codigo) {
+        toastr.warning('Ingrese un código para escanear', 'Escáner');
+        $('#inputCodigoManual').focus();
+        return;
+    }
+    
+    console.log('🔍 Procesando código escaneado:', codigo);
+    
+    // Deshabilitar temporalmente el input para evitar múltiples ejecuciones
+    $('#inputCodigoManual').prop('disabled', true);
+    
+    // Buscar producto por código
+    buscarProductoPorCodigo(codigo);
+    
+    // Rehabilitar después de un breve momento
+    setTimeout(function() {
+        $('#inputCodigoManual').prop('disabled', false).focus();
+    }, 100);
+}
+
+// Función para buscar producto por código - CON PREVENCIÓN DE DUPLICADOS
+function buscarProductoPorCodigo(codigo) {
+    console.log('🔎 Buscando producto con código:', codigo);
+    
+    // Verificar si hay productos cargados
+    if (Object.keys(productos).length === 0) {
+        toastr.error('No hay productos cargados en el sistema', 'Error');
+        $('#inputCodigoManual').focus();
+        return;
+    }
+    
+    // Buscar en los productos cargados
+    const productoEncontrado = Object.values(productos).find(function(producto) {
+        const codigoProducto = producto.codigo ? producto.codigo.toString().trim() : '';
+        const codigoBuscado = codigo.toString().trim();
+        
+        return codigoProducto === codigoBuscado;
+    });
+    
+    if (productoEncontrado) {
+        console.log('✅ Producto encontrado:', productoEncontrado);
+        
+        // Verificar stock
+        if (productoEncontrado.stock <= 0) {
+            toastr.error('Producto sin stock disponible', 'Stock');
+            $('#inputCodigoManual').val('').focus();
+            return;
+        }
+        
+        // Verificar si ya está en el carrito
+        const productoEnCarrito = carrito.find(item => item.id === productoEncontrado.id);
+        const cantidadActual = productoEnCarrito ? productoEnCarrito.cantidad : 0;
+        
+        // Si ya está en el carrito, verificar stock disponible
+        if (cantidadActual >= productoEncontrado.stock) {
+            toastr.error(`Stock máximo alcanzado. Disponible: ${productoEncontrado.stock}`, 'Stock');
+            $('#inputCodigoManual').val('').focus();
+            return;
+        }
+        
+        // Agregar al carrito
+        if (productoEnCarrito) {
+            productoEnCarrito.cantidad += 1;
+          //  toastr.success(`"${productoEncontrado.nombre}" - Cantidad aumentada a ${productoEnCarrito.cantidad}`, 'Carrito');
+        } else {
+            carrito.push({
+                id: productoEncontrado.id,
+                nombre: productoEncontrado.nombre,
+                precio: productoEncontrado.precio,
+                cantidad: 1,
+                stock: productoEncontrado.stock,
+                codigo: productoEncontrado.codigo,
+                categoria: productoEncontrado.categoria
+            });
+            toastr.success(`"${productoEncontrado.nombre}" agregado al carrito`, 'Carrito');
+        }
+        
+        // Actualizar la interfaz
+        actualizarCarrito();
+        actualizarMetricas();
+        
+        // Limpiar input para siguiente escaneo
+        setTimeout(function() {
+            $('#inputCodigoManual').val('').focus();
+        }, 100);
+        
+    } else {
+        // Producto no encontrado
+        console.log('❌ Producto no encontrado con código:', codigo);
+        
+        toastr.error(`No se encontró producto con código: "${codigo}"`, 'Producto no encontrado');
+        
+        // Enfocar y seleccionar el texto para fácil edición
+        setTimeout(function() {
+            $('#inputCodigoManual').focus().select();
+        }, 100);
+    }
+}
+
+// Opcional: Atajo de teclado para abrir el escáner (Ctrl+E)
+$(document).on('keydown', function(e) {
+    // Ctrl + E para abrir escáner (solo si no estamos en un input/textarea)
+    if (e.ctrlKey && e.key === 'e' && !$(e.target).is('input, textarea, select')) {
+        e.preventDefault();
+        console.log('⌨️ Atajo Ctrl+E presionado');
+        $('#modalScanner').modal('show');
+    }
+    
+    // También permitir abrir con F2
+    if (e.key === 'F2') {
+        e.preventDefault();
+        console.log('⌨️ Tecla F2 presionada');
+        $('#modalScanner').modal('show');
+    }
+    
+    // Cerrar modal con Escape
+    if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
+        $('#modalScanner').modal('hide');
+    }
+});
+
+
+// =============================================
+// CERRAR MODAL ESCANER - SOLUCIÓN
+// =============================================
+
+// Forzar el cierre del modal con los botones de Bootstrap
+$(document).on('click', '#modalScanner .close, #modalScanner [data-dismiss="modal"]', function(e) {
+    e.preventDefault();
+    console.log('🔴 Intentando cerrar modal escáner');
+    
+    // Ocultar el modal inmediatamente
+    $('#modalScanner').modal('hide');
+    
+    // Remover la clase de backdrop si existe
+    $('.modal-backdrop').remove();
+    
+    // Remover la clase modal-open del body
+    $('body').removeClass('modal-open');
+});
+
+// También agregar funcionalidad manual para el botón Cancelar
+$(document).on('click', function(e) {
+    // Si se hace clic en el botón Cancelar del modal escáner
+    if ($(e.target).closest('#modalScanner .btn-secondary').length) {
+        console.log('🟡 Botón Cancelar clickeado');
+        $('#modalScanner').modal('hide');
+    }
+});
+
+// Función alternativa para cerrar el modal
+function cerrarModalScanner() {
+    console.log('🔄 Ejecutando cerrarModalScanner()');
+    
+    // Método 1: Usar Bootstrap
+    $('#modalScanner').modal('hide');
+    
+    // Método 2: Manipulación manual del DOM
+    setTimeout(function() {
+        // Remover clases de Bootstrap
+        $('#modalScanner').removeClass('show');
+        $('#modalScanner').css('display', 'none');
+        
+        // Remover backdrop
+        $('.modal-backdrop').remove();
+        
+        // Restaurar scroll del body
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '');
+        
+        console.log('✅ Modal cerrado manualmente');
+    }, 100);
+}
+
+
+ 
 
 })(jQuery); // Pasar jQuery como parámetro para evitar conflictos
 </script>
