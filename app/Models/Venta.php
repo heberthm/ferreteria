@@ -9,47 +9,70 @@ class Venta extends Model
 {
     use HasFactory;
 
- protected $fillable = [
+    protected $table = 'ventas';
+    
+    protected $primaryKey = 'id_venta';
+    
+    protected $fillable = [
         'numero_factura',
-        'fecha_venta',
-        'total',
-        'iva', 
-        'descuento',       
-        'metodo_pago', 
-        'observaciones',
         'id_cliente',
-        'userId',
+        'subtotal',
+        'iva',
         'total',
         'metodo_pago',
         'tipo_comprobante',
-        'vendedor'
+        'referencia_pago',
+        'efectivo_recibido',
+        'cambio',
+        'userId',
+        'fecha_venta',
+        'estado'
     ];
+    
+    public $timestamps = true;
 
-    protected $dates = ['fecha_venta'];
 
-     public function cliente()
+    // ← AGREGAR ESTA PROPIEDAD PARA CASTING AUTOMÁTICO
+    protected $casts = [
+        'productos' => 'array', // Convierte automáticamente JSON ↔ Array
+        'fecha_venta' => 'datetime',
+        'subtotal' => 'string',
+        'iva' => 'string',
+        'total' => 'string',
+        'efectivo_recibido' => 'string',
+        'cambio' => 'string'
+    ];
+    
+    /**
+     * Relación con cliente
+     */
+    public function cliente()
     {
-        // Si la clave foránea en ventas es 'cliente_id' y la primaria en clientes es 'id_cliente'
-        return $this->belongsTo(Cliente::class, 'cliente_id', 'id_cliente');
+        return $this->belongsTo(Cliente::class, 'id_cliente', 'id_cliente');
     }
-
-    public function user()
+    
+    /**
+     * Relación con detalles de venta - CORREGIDO
+     */
+    public function detalles()
     {
-        return $this->belongsTo(User::class);
+      
+        return $this->hasMany(DetalleVenta::class, 'id_venta', 'id_venta');
     }
-
-    public function detalleVenta()
+    
+    /**
+     * Relación con pago
+     */
+    public function pago()
     {
-        return $this->hasMany(detalleVenta::class);
+        return $this->hasOne(Pago::class, 'id_venta', 'id_venta');
     }
-
-    // Generar número de factura automático
-    public static function generateInvoiceNumber()
+    
+    /**
+     * Relación con usuario
+     */
+    public function usuario()
     {
-        $lastSale = static::latest()->first();
-        $number = $lastSale ? (int) substr($lastSale->numero_factura, 3) + 1 : 1;
-        return  str_pad($number, 6, '0', STR_PAD_LEFT);
+        return $this->belongsTo(User::class, 'userId', 'id');
     }
-
-
 }

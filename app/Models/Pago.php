@@ -2,24 +2,32 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Pago extends Model
 {
+    use HasFactory;
+
     protected $table = 'pagos';
-
+    
+    protected $primaryKey = 'id_pago';
+    
     protected $fillable = [
-        'venta_id', 'metodo_pago', 'monto', 'datos_pago', 'fecha_pago'
+        'id_venta',
+        'metodo_pago',
+        'monto',
+        'referencia',
+        'estado'
     ];
-
-    protected $casts = [
-        'monto' => 'decimal:2',
-        'datos_pago' => 'array',
-        'fecha_pago' => 'datetime'
-    ];
-
+    
+    public $timestamps = true;
+    
+    /**
+     * Relación con venta
+     */
     public function venta()
     {
-        return $this->belongsTo(Venta::class);
+        return $this->belongsTo(Venta::class, 'id_venta', 'id_venta');
     }
 }

@@ -9,6 +9,7 @@ use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
 use App\Http\Controllers\ClienteController;
 use App\http\Controllers\ventaController;
+use App\Http\Controllers\DashboardController;
 
 
 
@@ -49,6 +50,25 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
 
 
+// ======================================================
+
+//  RUTAS PARA DASHBOARD
+
+// ======================================================
+
+
+ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Rutas API del dashboard - SIN el prefijo 'api/'
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/estadisticas', [DashboardController::class, 'getEstadisticas'])->name('estadisticas');
+        Route::get('/productos-vendidos', [DashboardController::class, 'getProductosVendidos'])->name('productos-vendidos');
+        Route::get('/stock-bajo', [DashboardController::class, 'getStockBajo'])->name('stock-bajo');
+        Route::get('/ventas-recientes', [DashboardController::class, 'getVentasRecientes'])->name('ventas-recientes');
+    });
+
+
+
 
 // ======================================================
 
@@ -60,6 +80,8 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
 Route::get('venta', [App\Http\Controllers\VentaController::class, 'index'])->name('venta');
 Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
+ Route::get('/ventas/create', [VentaController::class, 'create'])->name('ventas.create');
+ Route::get('/ventas/{venta}', [VentaController::class, 'show'])->name('ventas.show');
 
 
 // ======================================================
@@ -139,8 +161,6 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
 
 
     Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
-    Route::post('/guardar-venta', [ventaController::class, 'store'])->name('guardar-venta');
-
     Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
     Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
     Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');

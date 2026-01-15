@@ -26,6 +26,7 @@ return new class extends Migration
             $table->integer('precio_venta');
             $table->integer('stock');
             $table->integer('stock_minimo')->default(5);
+            $table->timestamp('ultima_venta')->nullable();
             $table->string('unidad_medida');
             $table->string('ubicacion')->nullable();
             $table->string('proveedor')->nullable();

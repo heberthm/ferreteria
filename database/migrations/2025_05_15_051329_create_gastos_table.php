@@ -17,7 +17,7 @@ return new class extends Migration
             $table->bigIncrements('id_gasto');
             $table->string('userId')->required();
             $table->string('concepto');
-            $table->decimal('monto', 10, 2);
+            $table->string('monto', 10);
             $table->date('fecha');
             $table->text('descripcion')->nullable();
              $table->string('comprobante')->nullable();

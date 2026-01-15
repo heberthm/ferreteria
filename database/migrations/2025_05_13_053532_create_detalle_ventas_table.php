@@ -4,52 +4,43 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
+class CreateDetalleVentasTable extends Migration
 {
-    /**
-     * Run the migrations.
-     *
-     * @return void
-     */
     public function up()
     {
         Schema::create('detalle_ventas', function (Blueprint $table) {
-            $table->bigIncrements('id_detalle');
+            $table->id('id_detalle_venta');
             
-            // Asegúrate que el nombre de columna sea consistente
+            // Relación con venta
             $table->unsignedBigInteger('id_venta');
-            $table->unsignedBigInteger('id_producto'); // Este nombre debe coincidir con la FK
-            
-            $table->integer('cantidad');
-            $table->decimal('precio_unitario', 10, 2);
-            $table->decimal('subtotal', 10, 2);
-            $table->timestamps();
-            
-            // Foreign keys
             $table->foreign('id_venta')
-                  ->references('id_venta') // Asegúrate que ventas tenga id_venta
+                  ->references('id_venta')
                   ->on('ventas')
                   ->onDelete('cascade');
             
+            // Relación con producto
+            $table->unsignedBigInteger('id_producto');
             $table->foreign('id_producto')
-                  ->references('id_producto') // Esto debe coincidir con productos
+                  ->references('id_producto')
                   ->on('productos')
                   ->onDelete('restrict');
+            
+            // Detalles
+            $table->integer('cantidad');
+            $table->string('precio_unitario', 15);
+            $table->string('subtotal', 15);
+            
+            $table->timestamps();
+            
+            // Índices
+            $table->index('id_venta');
+            $table->index('id_producto');
+            $table->index(['id_venta', 'id_producto']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     *
-     * @return void
-     */
     public function down()
     {
-        Schema::table('detalle_ventas', function (Blueprint $table) {
-            $table->dropForeign(['venta_id']);
-            $table->dropForeign(['producto_id']);
-        });
-        
         Schema::dropIfExists('detalle_ventas');
     }
-};
+}

@@ -23,18 +23,19 @@ return new class extends Migration
             // Luego el resto de las columnas
             $table->dateTime('fecha_venta');
             $table->string('numero_factura')->unique();
-            $table->decimal('subtotal', 10, 2)->default(0.00);
-            $table->decimal('descuento', 8, 2)->default(0.00);
-            $table->decimal('iva', 8, 2)->default(0.00); // Corregí: agregué 2 decimales
-            $table->decimal('total', 10, 2)->default(0.00);
+            $table->json('productos')->nullable();
+            $table->string('subtotal', 10);
+            $table->string('iva', 8);
+            $table->string('total', 10);
+            $table->string('descuento', 10)->default(0);
             $table->enum('estado', ['pendiente', 'pagado', 'cancelado', 'completada'])->default('pendiente');
             $table->text('notas')->nullable();
             $table->string('metodo_pago');
             $table->string('tipo_comprobante');
             $table->string('vendedor')->default('Sistema');
             $table->string('referencia_pago')->nullable();
-            $table->decimal('efectivo_recibido', 10, 2)->default(0.00)->nullable();
-            $table->decimal('cambio', 10, 2)->default(0.00)->nullable();
+            $table->string('efectivo_recibido', 10)->nullable();
+            $table->string('cambio', 10)->nullable();
             $table->timestamps();
             
             // Luego definimos las foreign keys

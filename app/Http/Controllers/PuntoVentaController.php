@@ -99,8 +99,8 @@ class PuntoVentaController extends Controller
             $fechaInicio = Carbon::now()->subDays(30);
             
             $productos = DB::table('productos as p')
-                ->leftJoin('detalle_ventas as dv', 'p.id_producto', '=', 'dv.producto_id')
-                ->leftJoin('ventas as v', 'dv.venta_id', '=', 'v.id_venta')
+                ->leftJoin('detalle_ventas as dv', 'p.id_producto', '=', 'dv.id_producto')
+                ->leftJoin('ventas as v', 'dv.id_venta', '=', 'v.id_venta')
                 ->select('p.*', DB::raw('COALESCE(SUM(dv.cantidad), 0) as total_vendido'))
                 ->where(function($query) use ($fechaInicio) {
                     $query->where('v.fecha_venta', '>=', $fechaInicio)
@@ -161,54 +161,36 @@ class PuntoVentaController extends Controller
     /**
      * Generar número de factura automático
      */
-    public function generarNumeroFactura()
+   private function generarNumeroFacturaAutomatico()
     {
-        try {
-            $year = date('Y');
-            $mes = date('m');
-            
-            // Buscar última factura del mes
-            $ultimaFactura = Venta::whereYear('created_at', $year)
-                ->whereMonth('created_at', $mes)
-                ->orderBy('id_venta', 'desc')
-                ->first();
-            
-            if ($ultimaFactura) {
-                // Extraer número y aumentar
-                $ultimoNumero = (int) substr($ultimaFactura->numero_factura, -5);
-                $nuevoNumero = str_pad($ultimoNumero + 1, 5, '0', STR_PAD_LEFT);
-            } else {
-                $nuevoNumero = '00001';
-            }
-            
-            $numeroFactura = "FAC-{$year}{$mes}-{$nuevoNumero}";
-            
-            return response()->json([
-                'success' => true,
-                'numero_factura' => $numeroFactura
-            ]);
-            
-        } catch (\Exception $e) {
-            // En caso de error, generar número simple
-            $contador = Venta::count() + 1;
-            $numeroFactura = "F-" . str_pad($contador, 5, '0', STR_PAD_LEFT);
-            
-            return response()->json([
-                'success' => true,
-                'numero_factura' => $numeroFactura
-            ]);
+        // Buscar la última venta del día actual
+        $fechaHoy = Carbon::today()->format('Y-m-d');
+        
+        $ultimaVenta = Venta::whereDate('created_at', $fechaHoy)
+            ->orderBy('id_venta', 'desc')
+            ->first();
+        
+        if ($ultimaVenta && preg_match('/F-(\d+)/', $ultimaVenta->numero_factura, $matches)) {
+            $ultimoNumero = (int) $matches[1];
+            $nuevoNumero = $ultimoNumero + 1;
+        } else {
+            $nuevoNumero = 1;
         }
+        
+        return 'F-' . str_pad($nuevoNumero, 5, '0', STR_PAD_LEFT);
     }
     
     /**
-     * Procesar venta (VERSIÓN COMPLETA)
+     * Procesar venta (VERSIÓN COMPLETA Y CORREGIDA)
      */
-   public function procesarVenta(Request $request)
+   
+public function procesarVenta(Request $request)
 {
-    // Validar datos de entrada CORREGIDOS
+    \Log::info('📥 Datos recibidos en procesarVenta:', $request->all());
+    
+    // Validar datos de entrada
     $validator = Validator::make($request->all(), [
-        'numero_factura' => 'required|string|max:50',
-        'cliente_id' => 'nullable|exists:clientes,id_cliente', // CORREGIDO
+        'cliente_id' => 'nullable|exists:clientes,id_cliente',
         'subtotal' => 'required|numeric|min:0',
         'iva' => 'required|numeric|min:0',
         'total' => 'required|numeric|min:0',
@@ -235,23 +217,40 @@ class PuntoVentaController extends Controller
     DB::beginTransaction();
     
     try {
-        // 1. VERIFICAR STOCK DE TODOS LOS PRODUCTOS
+        // 1. VERIFICAR STOCK
         foreach ($request->items as $item) {
             $producto = Producto::find($item['producto_id']);
             
             if (!$producto) {
-                throw new \Exception("Producto ID {$item['producto_id']} no encontrado");
+                throw new \Exception("Producto no encontrado");
             }
             
             if ($producto->stock < $item['cantidad']) {
-                throw new \Exception("Stock insuficiente para {$producto->nombre}. Disponible: {$producto->stock}, Solicitado: {$item['cantidad']}");
+                throw new \Exception("Stock insuficiente para {$producto->nombre}");
             }
         }
         
-        // 2. CREAR LA VENTA
+        // 2. GENERAR NÚMERO DE FACTURA
+        $numeroFactura = $this->generarNumeroFacturaAutomatico();
+        
+        // 3. PREPARAR DATOS DE PRODUCTOS PARA JSON
+        $productosJson = [];
+        foreach ($request->items as $item) {
+            $producto = Producto::find($item['producto_id']);
+            $productosJson[] = [
+                'id_producto' => $producto->id_producto,
+                'codigo' => $producto->codigo,
+                'nombre' => $producto->nombre,
+                'cantidad' => $item['cantidad'],
+                'precio_unitario' => $item['precio'],
+                'subtotal' => $item['subtotal']
+            ];
+        }
+        
+        // 4. CREAR LA VENTA (CON PRODUCTOS EN JSON)
         $venta = new Venta();
-        $venta->numero_factura = $request->numero_factura;
-        $venta->cliente_id = $request->cliente_id;
+        $venta->numero_factura = $numeroFactura;
+        $venta->id_cliente = $request->cliente_id;
         $venta->subtotal = $request->subtotal;
         $venta->iva = $request->iva;
         $venta->total = $request->total;
@@ -263,34 +262,29 @@ class PuntoVentaController extends Controller
         $venta->userId = auth()->id() ?? 1;
         $venta->fecha_venta = Carbon::now();
         $venta->estado = 'completada';
+        $venta->productos = $productosJson; // ← GUARDAR PRODUCTOS EN JSON
+        
         $venta->save();
         
-        // 3. CREAR DETALLES DE VENTA Y ACTUALIZAR STOCK
+        // 5. CREAR DETALLES DE VENTA
         foreach ($request->items as $item) {
-            // Crear detalle de venta
             $detalle = new DetalleVenta();
-            $detalle->venta_id = $venta->id_venta;
-            $detalle->producto_id = $item['producto_id'];
+            $detalle->id_venta = $venta->id_venta;
+            $detalle->id_producto = $item['producto_id'];
             $detalle->cantidad = $item['cantidad'];
             $detalle->precio_unitario = $item['precio'];
             $detalle->subtotal = $item['subtotal'];
             $detalle->save();
             
-            // Actualizar stock del producto
+            // Actualizar stock
             $producto = Producto::find($item['producto_id']);
             $producto->stock -= $item['cantidad'];
-            $producto->ultima_venta = Carbon::now();
-            
-            if ($producto->stock <= $producto->stock_minimo) {
-                $producto->needs_restock = true;
-            }
-            
             $producto->save();
         }
         
-        // 4. CREAR REGISTRO DE PAGO
+        // 6. CREAR PAGO
         $pago = new Pago();
-        $pago->venta_id = $venta->id_venta;
+        $pago->id_venta = $venta->id_venta;
         $pago->metodo_pago = $request->metodo_pago;
         $pago->monto = $request->total;
         $pago->referencia = $request->referencia_pago;
@@ -299,54 +293,74 @@ class PuntoVentaController extends Controller
         
         DB::commit();
         
+        // 7. CARGAR DATOS PARA LA RESPUESTA
+        $venta->load(['cliente', 'detalles.producto', 'pago']);
+        
+        \Log::info('✅ Venta guardada con productos JSON:', [
+            'venta_id' => $venta->id_venta,
+            'productos_json' => $venta->productos
+        ]);
+        
         return response()->json([
             'success' => true,
             'message' => 'Venta procesada exitosamente',
             'venta_id' => $venta->id_venta,
             'numero_factura' => $venta->numero_factura,
+            'venta_completa' => $venta,
             'timestamp' => Carbon::now()->toDateTimeString()
         ]);
         
     } catch (\Exception $e) {
         DB::rollBack();
         
+        \Log::error('❌ Error al procesar venta:', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
         return response()->json([
             'success' => false,
-            'message' => 'Error al procesar la venta: ' . $e->getMessage(),
-            'error' => env('APP_DEBUG') ? $e->getTraceAsString() : null
+            'message' => 'Error al procesar la venta: ' . $e->getMessage()
         ], 500);
     }
 }
+   
     
     /**
      * Obtener datos de venta para comprobante
      */
-    public function obtenerVenta($id)
-    {
-        try {
-            $venta = Venta::with([
-                'cliente',
-                'detalles.producto' => function($query) {
-                    $query->select('id_producto', 'codigo', 'nombre', 'descripcion', 'precio');
-                },
-                'pago',
-                'usuario' => function($query) {
-                    $query->select('id', 'name', 'email');
-                }
-            ])->findOrFail($id);
-            
-            return response()->json([
-                'success' => true,
-                'venta' => $venta
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Venta no encontrada: ' . $e->getMessage()
-            ], 404);
-        }
+  /**
+ * Obtener datos de venta para comprobante
+ */
+public function obtenerVenta($id)
+{
+    try {
+        // Especificar explícitamente las claves foráneas en la carga
+        $venta = Venta::with([
+            'cliente',
+            'detalles' => function($query) {
+                $query->with(['producto' => function($q) {
+                    $q->select('id_producto', 'codigo', 'nombre', 'descripcion', 'precio');
+                }]);
+            },
+            'pago',
+            'usuario' => function($query) {
+                $query->select('id', 'name', 'email');
+            }
+        ])->findOrFail($id);
+        
+        return response()->json([
+            'success' => true,
+            'venta' => $venta
+        ]);
+        
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Venta no encontrada: ' . $e->getMessage()
+        ], 404);
     }
+}
     
     /**
      * Actualizar stock individual (para uso en tiempo real)
@@ -405,7 +419,7 @@ class PuntoVentaController extends Controller
             
             // Revertir stock de productos
             foreach ($venta->detalles as $detalle) {
-                $producto = Producto::find($detalle->producto_id);
+                $producto = Producto::find($detalle->id_producto);
                 if ($producto) {
                     $producto->stock += $detalle->cantidad;
                     $producto->save();

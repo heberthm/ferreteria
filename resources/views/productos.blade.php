@@ -749,6 +749,73 @@ $.ajaxSetup({
 
 //======================================
 
+
+  // =============================================
+    // 1. LIMPIAR TODOS LOS EVENTOS ANTERIORES
+    // =============================================
+    $(document).off('click', '#btnRegistrarProducto');
+    $(document).off('submit', '#formAgregarProducto');
+    $(document).off('hidden.bs.modal', '#modalAgregarProducto');
+    $(document).off('shown.bs.modal', '#modalAgregarProducto');
+    $(document).off('change', '#imagen');
+    
+    // =============================================
+    // 2. FUNCIÓN PARA ABRIR MODAL (SIMPLE Y DIRECTA)
+    // =============================================
+    function abrirModalProducto() {
+        console.log('📤 Abriendo modal de producto...');
+        
+        // 1. Resetear formulario COMPLETAMENTE
+        $('#formAgregarProducto')[0].reset();
+        
+        // 2. Limpiar vista previa de imagen
+        $('#previewImagen').attr('src', '').hide();
+        $('.custom-file-label').text('Seleccionar imagen...');
+        
+        // 3. Limpiar errores
+        $('.text-danger').remove();
+        $('.is-invalid').removeClass('is-invalid');
+        
+        // 4. Mostrar modal
+        $('#modalAgregarProducto').modal('show');
+        
+        // 5. Forzar focus después de 300ms
+        setTimeout(function() {
+            $('#nombre').focus().select();
+            console.log('🔍 Foco puesto en campo Nombre');
+        }, 300);
+    }
+    
+    // =============================================
+    // 3. BOTÓN PARA ABRIR MODAL (UN SOLO CLIC)
+    // =============================================
+    $(document).on('click', '#btnRegistrarProducto', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation(); // IMPORTANTE: Detiene otros eventos
+        console.log('🖱️ Clic en Registrar Producto');
+        
+        abrirModalProducto();
+        return false;
+    });
+    
+
+
+// =============================================
+    // 4. AL MOSTRAR EL MODAL (ENFOCAR AUTOMÁTICAMENTE)
+    // =============================================
+    $('#modalAgregarProducto').on('shown.bs.modal', function() {
+        console.log('👁️ Modal mostrado, enfocando campo...');
+        
+        // Pequeño retraso para asegurar que el modal esté completamente visible
+        setTimeout(function() {
+            $('#nombre').focus().select();
+            
+            // Forzar visualmente el foco (estilo)
+            $('#nombre').addClass('focused-field');
+            
+            console.log('✅ Campo Nombre enfocado');
+        }, 100);
+    });
  
 $('#form_guardar_productos').off('submit').on('submit', function (event) {
 

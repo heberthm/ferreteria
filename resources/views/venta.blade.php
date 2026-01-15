@@ -537,27 +537,30 @@
 
 <!-- Modal Vista Previa de Impresión  -->
 
-<div class="modal fade" id="modalVistaPrevia" tabindex="-1" role="dialog" aria-labelledby="modalVistaPreviaLabel" aria-hidden="true">
+<div class="modal fade" id="modalVistaPrevia" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header bg-info">
-                <h5 class="modal-title" id="modalVistaPreviaLabel">
-                    <i class="fas fa-print"></i> Vista Previa - Comprobante
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-receipt mr-2"></i> Comprobante de Venta
                 </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close" id="btnCerrarModalX">
-                    <span aria-hidden="true">&times;</span>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
                 </button>
             </div>
             <div class="modal-body">
+                <!-- CONTENEDOR PARA EL COMPROBANTE -->
                 <div id="vistaPreviaComprobante"></div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal" id="btnCerrarModal">Cerrar</button>
-                <button type="button" class="btn btn-primary" id="btnImprimir">
-                    <i class="fas fa-print"></i> Imprimir
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times mr-1"></i> Cerrar
                 </button>
-                <button type="button" class="btn btn-success" id="btnNuevaVenta">
-                    <i class="fas fa-plus"></i> Nueva Venta
+                <button type="button" class="btn btn-success" id="btnImprimir">
+                    <i class="fas fa-print mr-1"></i> Imprimir
+                </button>
+                <button type="button" class="btn btn-primary" id="btnNuevaVenta">
+                    <i class="fas fa-plus-circle mr-1"></i> Nueva Venta
                 </button>
             </div>
         </div>
@@ -885,8 +888,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
 
 
-<script>
-(function($) {
+<script>(function($) {
     'use strict';
     
     console.log('🚀 Punto de Venta - Sistema cargado');
@@ -919,7 +921,7 @@
     };
 
     // =============================================
-    // 1. FUNCIONES AUXILIARES
+    // 1. FUNCIONES AUXILIARES CORREGIDAS
     // =============================================
     
     function generarNumeroFactura() {
@@ -929,9 +931,10 @@
         return `F-${contador.toString().padStart(5, '0')}`;
     }
     
+    // MODIFICADA: Sin decimales, solo puntos de miles
     function formatoPuntosMil(numero) {
-        const entero = Math.round(parseFloat(numero) || 0);
-        return entero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        const num = Math.round(parseFloat(numero) || 0);
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     }
     
     function formatoDinero(numero) {
@@ -1687,14 +1690,16 @@
         const iva = subtotal * (ivaPorcentaje / 100);
         const total = subtotal + iva;
         
-        window.ventaSubtotalNumerico = subtotal;
-        window.ventaIvaNumerico = iva;
-        window.ventaTotalNumerico = total;
+        // Redondear todos los valores
+        window.ventaSubtotalNumerico = Math.round(subtotal);
+        window.ventaIvaNumerico = Math.round(iva);
+        window.ventaTotalNumerico = Math.round(total);
         
-        $('#subtotalVenta').text(formatoPuntosMil(subtotal));
-        $('#ivaVenta').text(formatoPuntosMil(iva));
-        $('#totalVenta').text(formatoDinero(total));
-        $('#porcentajeIva').text(ivaPorcentaje);
+        // Usar formato sin decimales
+        $('#subtotalVenta').text(formatoPuntosMil(Math.round(subtotal)));
+        $('#ivaVenta').text(formatoPuntosMil(Math.round(iva)));
+        $('#totalVenta').text(formatoDinero(Math.round(total)));
+        $('#porcentajeIva').text(ivaPorcentaje + '%');
         
         if ($('#metodoPago').val() === 'efectivo') {
             calcularCambio();
@@ -1715,27 +1720,88 @@
         });
         
         $('#metricTotalProductos').text(totalProductos);
-        $('#metricVentaActual').text(formatoDinero(totalVenta));
+        $('#metricVentaActual').text(formatoDinero(Math.round(totalVenta)));
     }
 
+    // =============================================
+    // FUNCIONES NUEVAS PARA CORREGIR PROBLEMAS
+    // =============================================
+
+    // FUNCIÓN CALCULAR CAMBIO CORREGIDA
     function calcularCambio() {
-        const total = parseFloat($('#totalVenta').text()) || 0;
-        const efectivo = parseFloat($('#efectivoRecibido').val()) || 0;
-        const cambio = efectivo - total;
+        const total = parseFloat(window.ventaTotalNumerico) || 0;
         
-        if (cambio >= 0) {
-            $('#cambioVenta').text('$' + cambio);
+        // Obtener valor del input de efectivo
+        let efectivoInput = $('#efectivoRecibido').val();
+        
+        // Si hay valor, limpiar puntos de mil para cálculo
+        if (efectivoInput && efectivoInput !== '0') {
+            // Convertir a número para cálculo
+            efectivoInput = efectivoInput.toString().replace(/\./g, '').replace(',', '.');
         } else {
-            $('#cambioVenta').text('-$' + Math.abs(cambio));
+            efectivoInput = '0';
         }
+        
+        const efectivo = parseFloat(efectivoInput) || 0;
+        
+        // Calcular cambio
+        const cambio = Math.round(efectivo - total);
+        
+        // Mostrar cambio CON FORMATO (con puntos de mil)
+        if (cambio >= 0) {
+            $('#cambioVenta').text(formatoDinero(cambio));
+        } else {
+            $('#cambioVenta').text('-$' + formatoPuntosMil(Math.abs(cambio)));
+        }
+        
+        // Guardar valor numérico para enviar al servidor
+        window.cambioNumerico = cambio;
+        
+        return cambio;
+    }
+
+    // CONFIGURAR INPUT EFECTIVO MEJORADO
+    function configurarInputEfectivo() {
+        $('#efectivoRecibido').on('input', function() {
+            // Obtener valor actual
+            let valor = $(this).val();
+            
+            // Remover todo excepto números
+            valor = valor.replace(/[^\d]/g, '');
+            
+            // Formatear con puntos de mil
+            if (valor && valor !== '0') {
+                const valorNumerico = parseInt(valor);
+                $(this).val(formatoPuntosMil(valorNumerico));
+            } else {
+                $(this).val('0');
+            }
+            
+            // Calcular cambio
+            calcularCambio();
+        });
+        
+        // Al enfocar, seleccionar todo el texto
+        $('#efectivoRecibido').on('focus', function() {
+            $(this).select();
+        });
+        
+        // Al perder el foco, asegurar formato
+        $('#efectivoRecibido').on('blur', function() {
+            let valor = $(this).val();
+            if (!valor || valor === '0') {
+                $(this).val('0');
+                calcularCambio();
+            }
+        });
     }
 
     function calcularTotalMixto() {
         const efectivo = parseFloat($('#montoEfectivoMixto').val()) || 0;
         const tarjeta = parseFloat($('#montoTarjetaMixto').val()) || 0;
-        const totalMixto = efectivo + tarjeta;
+        const totalMixto = Math.round(efectivo + tarjeta);
         
-        $('#totalMixto').text('$' + totalMixto.toFixed(2));
+        $('#totalMixto').text(formatoDinero(totalMixto));
     }
 
     function configurarMetodosPago() {
@@ -1798,84 +1864,88 @@
         });
     }
 
-   // =============================================
-// 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
-// =============================================
+    // =============================================
+    // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
+    // =============================================
+
+
 $(document).on('click', '#btnProcesarVenta', function(e) {
     e.preventDefault();
+    console.log('🖱️ Clic en botón COBRAR');
     
+    // Verificar que hay productos en el carrito
     if (carrito.length === 0) {
         toastr.error('El carrito está vacío', 'Error');
         return;
     }
     
+    console.log('📋 Productos en carrito:', carrito.length);
+    
     // Validar stock antes de procesar
     let stockValido = true;
+    let erroresStock = [];
+    
     carrito.forEach(function(item) {
         const producto = productos[item.id];
-        if (producto.stock < item.cantidad) {
-            toastr.error('Stock insuficiente para ' + item.nombre + '. Disponible: ' + producto.stock);
+        if (!producto) {
+            erroresStock.push('Producto ' + item.nombre + ' no encontrado');
+            stockValido = false;
+        } else if (producto.stock < item.cantidad) {
+            erroresStock.push('Stock insuficiente para ' + item.nombre + '. Disponible: ' + producto.stock);
             stockValido = false;
         }
     });
     
     if (!stockValido) {
+        erroresStock.forEach(function(error) {
+            toastr.error(error, 'Error de stock');
+        });
         return;
     }
     
-    // Preparar datos de la venta
+    // Preparar datos de venta
     const ventaData = {
-        numero_factura: numeroFactura,
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : null,
-        cliente_nombre: clienteSeleccionado ? clienteSeleccionado.nombre : 'Consumidor Final',
-        cliente_cedula: clienteSeleccionado ? clienteSeleccionado.cedula : null,
-        subtotal: window.ventaSubtotalNumerico || 0,
-        iva: window.ventaIvaNumerico || 0,
-        total: window.ventaTotalNumerico || 0,
+        subtotal: Math.round(window.ventaSubtotalNumerico || 0),
+        iva: Math.round(window.ventaIvaNumerico || 0),
+        total: Math.round(window.ventaTotalNumerico || 0),
         metodo_pago: $('#metodoPago').val() || 'efectivo',
         tipo_comprobante: $('#tipoComprobante').val() || 'ticket',
-        porcentaje_iva: parseFloat($('#selectIva').val()) || 16,
         referencia_pago: obtenerReferenciaPago(),
-        efectivo_recibido: parseFloat($('#efectivoRecibido').val()) || 0,
-        cambio: parseFloat($('#cambioVenta').text().replace(/[^\d.-]/g, '')) || 0,
-        productos: carrito.map(function(item) {
+        efectivo_recibido: Math.round(parseFloat($('#efectivoRecibido').val().replace(/\./g, '')) || 0),
+        cambio: Math.round(parseFloat(window.cambioNumerico) || 0),
+        items: carrito.map(function(item) {
             return {
                 producto_id: item.id,
-                codigo: item.codigo,
-                nombre: item.nombre,
                 cantidad: item.cantidad,
-                precio_unitario: item.precio,
-                subtotal: item.precio * item.cantidad
+                precio: Math.round(item.precio),
+                subtotal: Math.round(item.precio * item.cantidad)
             };
         })
     };
     
-    console.log('📤 Datos de venta a enviar:', ventaData);
+    console.log('📤 Datos de venta preparados:', ventaData);
     
     // Mostrar loading
     const $btn = $(this);
+    const textoOriginal = $btn.html();
     $btn.prop('disabled', true)
         .html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
     
-    // CORRECCIÓN: Obtener URL y token CSRF correctamente
+    // Obtener token CSRF
     const csrfToken = $('meta[name="csrf-token"]').attr('content');
     
-    // Verificar que tenemos el token CSRF
     if (!csrfToken) {
-        toastr.error('Token de seguridad no encontrado. Recarga la página.', 'Error');
-        $btn.prop('disabled', false).html('<i class="fas fa-check"></i> COBRAR');
+        toastr.error('Token de seguridad no encontrado', 'Error');
+        $btn.prop('disabled', false).html(textoOriginal);
         return;
     }
     
-    // Usar URL directa en lugar de route() de Blade
-    const urlProcesarVenta = '/procesar-venta'; 
-    
-    console.log('📤 Enviando a:', urlProcesarVenta);
     console.log('🔐 Token CSRF:', csrfToken ? 'Presente' : 'Ausente');
     
     // Enviar al servidor
     $.ajax({
-        url: urlProcesarVenta,
+        url: '/procesar-venta',
         method: 'POST',
         data: JSON.stringify(ventaData),
         contentType: 'application/json',
@@ -1888,7 +1958,8 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             console.log('✅ Respuesta del servidor:', response);
             
             if (response.success) {
-                toastr.success(response.message, '¡Venta Exitosa!');
+                // MOSTRAR MENSAJE DE ÉXITO
+                toastr.success('Venta guardada con éxito', '¡Éxito!');
                 
                 // Actualizar stock localmente
                 carrito.forEach(function(item) {
@@ -1897,22 +1968,29 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
                     }
                 });
                 
-                // Mostrar vista previa
-                mostrarVistaPrevia();
+                // MOSTRAR TICKET AUTOMÁTICAMENTE
+                if (response.venta_completa) {
+                    console.log('🎫 Mostrando ticket con datos del servidor');
+                    mostrarTicketAutomatico(response.venta_completa);
+                } else {
+                    console.log('🎫 Mostrando ticket con datos locales');
+                    mostrarVistaPrevia(response.numero_factura);
+                }
                 
-                // Reiniciar para nueva venta después de 2 segundos
+                // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
                 setTimeout(function() {
-                    reiniciarVenta();
-                    $('#modalVistaPrevia').modal('hide');
-                }, 2000);
+                    console.log('🔄 Reiniciando formulario...');
+                    reiniciarFormularioVenta();
+                }, 1000);
                 
             } else {
+                console.error('❌ Error en respuesta:', response);
                 toastr.error(response.message || 'Error al procesar la venta', 'Error');
                 
                 if (response.errors) {
                     Object.keys(response.errors).forEach(function(field) {
                         response.errors[field].forEach(function(error) {
-                            toastr.error(error);
+                            toastr.error(error, 'Error de validación');
                         });
                     });
                 }
@@ -1920,39 +1998,35 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         },
         error: function(xhr, status, error) {
             console.error('❌ Error en AJAX:', {
-                status: status,
+                status: xhr.status,
+                statusText: xhr.statusText,
                 error: error,
-                responseText: xhr.responseText,
-                statusText: xhr.statusText
+                responseText: xhr.responseText
             });
             
             let errorMessage = 'Error al procesar la venta';
             
             try {
-                // Intentar parsear la respuesta como JSON
-                if (xhr.responseText && xhr.responseText.trim().startsWith('{')) {
-                    const errorResponse = JSON.parse(xhr.responseText);
-                    if (errorResponse.message) {
-                        errorMessage = errorResponse.message;
-                    }
-                    
-                    if (errorResponse.errors) {
-                        Object.keys(errorResponse.errors).forEach(function(field) {
-                            errorResponse.errors[field].forEach(function(err) {
-                                toastr.error(err);
+                if (xhr.responseText) {
+                    if (xhr.responseText.trim().startsWith('{')) {
+                        const errorResponse = JSON.parse(xhr.responseText);
+                        if (errorResponse.message) {
+                            errorMessage = errorResponse.message;
+                        }
+                        if (errorResponse.errors) {
+                            Object.keys(errorResponse.errors).forEach(function(field) {
+                                errorResponse.errors[field].forEach(function(err) {
+                                    toastr.error(err, 'Error');
+                                });
                             });
-                        });
-                        return;
+                            return;
+                        }
+                    } else if (xhr.responseText.includes('CSRF')) {
+                        errorMessage = 'Error de token CSRF. Recarga la página.';
                     }
-                }
-                // Si es HTML (error 403, 404, 500, etc.)
-                else if (xhr.responseText && xhr.responseText.includes('<!DOCTYPE')) {
-                    errorMessage = 'Error del servidor: ' + xhr.statusText;
-                    console.error('Respuesta HTML recibida:', xhr.responseText.substring(0, 200));
                 }
             } catch (e) {
                 console.error('Error parsing response:', e);
-                errorMessage = 'Error en la respuesta del servidor: ' + xhr.statusText;
             }
             
             toastr.error(errorMessage, 'Error');
@@ -1963,35 +2037,220 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             }
         },
         complete: function() {
-            $btn.prop('disabled', false)
-                .html('<i class="fas fa-check"></i> COBRAR');
+            $btn.prop('disabled', false).html(textoOriginal);
         }
     });
 });
 
-// Función auxiliar para obtener referencia de pago
-function obtenerReferenciaPago() {
-    const metodo = $('#metodoPago').val();
+
+   
+   function mostrarTicketAutomatico(datosVenta) {
+    console.log('🎫 Mostrando ticket automático...', datosVenta);
     
-    switch(metodo) {
-        case 'efectivo':
-            return null;
-        case 'tarjeta':
-            return $('#numeroTarjeta').val() || 'Tarjeta';
-        case 'transferencia':
-            return $('#referenciaTransaccion').val() || 'Transferencia';
-        case 'cheque':
-            return $('#referenciaTransaccion').val() || 'Cheque';
-        case 'mixto':
-            return 'Mixto: Efectivo ' + ($('#montoEfectivoMixto').val() || 0) + ', Tarjeta ' + ($('#montoTarjetaMixto').val() || 0);
-        default:
-            return null;
+    // Verificar que el modal existe
+    if (!$('#modalVistaPrevia').length) {
+        console.error('❌ Modal de vista previa no encontrado');
+        toastr.error('No se pudo mostrar el ticket', 'Error');
+        return;
+    }
+    
+    // Si no hay datos de venta, usar los locales
+    if (!datosVenta) {
+        console.log('⚠️ No hay datos de venta, usando datos locales');
+        mostrarVistaPrevia();
+        return;
+    }
+    
+    // Extraer datos de la venta
+    const ventaData = {
+        numeroFactura: datosVenta.numero_factura || numeroFactura,
+        cliente: datosVenta.cliente ? datosVenta.cliente.nombre : 'Consumidor Final',
+        cedula: datosVenta.cliente ? datosVenta.cliente.cedula : 'N/A',
+        telefono: datosVenta.cliente ? datosVenta.cliente.telefono : 'N/A',
+        items: [],
+        subtotal: datosVenta.subtotal || window.ventaSubtotalNumerico || 0,
+        iva: datosVenta.iva || window.ventaIvaNumerico || 0,
+        total: datosVenta.total || window.ventaTotalNumerico || 0,
+        tipo: datosVenta.tipo_comprobante || $('#tipoComprobante').val() || 'ticket',
+        fecha: datosVenta.fecha_venta || new Date().toLocaleString(),
+        metodoPago: datosVenta.metodo_pago || $('#metodoPago').val(),
+        porcentajeIva: parseFloat($('#selectIva').val()) || 16,
+        cambio: datosVenta.cambio || 0,
+        efectivoRecibido: datosVenta.efectivo_recibido || 0
+    };
+    
+    // Obtener items
+    if (datosVenta.detalles && datosVenta.detalles.length > 0) {
+        ventaData.items = datosVenta.detalles.map(function(detalle) {
+            return {
+                id: detalle.id_producto,
+                nombre: detalle.producto ? detalle.producto.nombre : 'Producto',
+                cantidad: detalle.cantidad,
+                precio: detalle.precio_unitario,
+                subtotal: detalle.subtotal,
+                codigo: detalle.producto ? detalle.producto.codigo : '',
+                categoria: detalle.producto ? detalle.producto.categoria : ''
+            };
+        });
+    } else {
+        ventaData.items = carrito;
+    }
+    
+    // Generar HTML del comprobante
+    const comprobanteHTML = generarComprobanteHTML(ventaData);
+    
+    // Verificar que el contenedor existe
+    if (!$('#vistaPreviaComprobante').length) {
+        console.error('❌ Contenedor de vista previa no encontrado');
+        return;
+    }
+    
+    // Insertar HTML
+    $('#vistaPreviaComprobante').html(comprobanteHTML);
+    
+    // Mostrar modal
+    try {
+        $('#modalVistaPrevia').modal('show');
+        console.log('✅ Modal de vista previa mostrado');
+    } catch (e) {
+        console.error('❌ Error al mostrar modal:', e);
+        toastr.error('Error al mostrar el ticket', 'Error');
     }
 }
+
+    // Función auxiliar para obtener referencia de pago
+    function obtenerReferenciaPago() {
+        const metodo = $('#metodoPago').val();
+        
+        switch(metodo) {
+            case 'efectivo':
+                return null;
+            case 'tarjeta':
+                return $('#numeroTarjeta').val() || 'Tarjeta';
+            case 'transferencia':
+                return $('#referenciaTransaccion').val() || 'Transferencia';
+            case 'cheque':
+                return $('#referenciaTransaccion').val() || 'Cheque';
+            case 'mixto':
+                return 'Mixto: Efectivo ' + ($('#montoEfectivoMixto').val() || 0) + ', Tarjeta ' + ($('#montoTarjetaMixto').val() || 0);
+            default:
+                return null;
+        }
+    }
+    
     // =============================================
-    // 9. VISTA PREVIA Y COMPROBANTES
+    // 9. FUNCIÓN PARA MOSTRAR TICKET AUTOMÁTICAMENTE
     // =============================================
-    function mostrarVistaPrevia() {
+    function mostrarTicketAutomatico(datosVenta) {
+        console.log('🎫 Mostrando ticket automático...');
+        
+        // Si no hay datos de venta, usar los locales
+        if (!datosVenta) {
+            mostrarVistaPrevia();
+            return;
+        }
+        
+        // Extraer datos de la venta
+        const ventaData = {
+            numeroFactura: datosVenta.numero_factura || numeroFactura,
+            cliente: datosVenta.cliente ? datosVenta.cliente.nombre : 'Consumidor Final',
+            cedula: datosVenta.cliente ? datosVenta.cliente.cedula : 'N/A',
+            telefono: datosVenta.cliente ? datosVenta.cliente.telefono : 'N/A',
+            items: [],
+            subtotal: datosVenta.subtotal || window.ventaSubtotalNumerico || 0,
+            iva: datosVenta.iva || window.ventaIvaNumerico || 0,
+            total: datosVenta.total || window.ventaTotalNumerico || 0,
+            tipo: datosVenta.tipo_comprobante || $('#tipoComprobante').val() || 'ticket',
+            fecha: datosVenta.fecha_venta || new Date().toLocaleString(),
+            metodoPago: datosVenta.metodo_pago || $('#metodoPago').val(),
+            porcentajeIva: parseFloat($('#selectIva').val()) || 16,
+            cambio: datosVenta.cambio || 0,
+            efectivoRecibido: datosVenta.efectivo_recibido || 0
+        };
+        
+        // Si hay detalles de venta del servidor, usarlos
+        if (datosVenta.detalles && datosVenta.detalles.length > 0) {
+            ventaData.items = datosVenta.detalles.map(function(detalle) {
+                return {
+                    id: detalle.id_producto,
+                    nombre: detalle.producto ? detalle.producto.nombre : 'Producto',
+                    cantidad: detalle.cantidad,
+                    precio: detalle.precio_unitario,
+                    subtotal: detalle.subtotal,
+                    codigo: detalle.producto ? detalle.producto.codigo : '',
+                    categoria: detalle.producto ? detalle.producto.categoria : ''
+                };
+            });
+        } else {
+            // Si no hay detalles del servidor, usar el carrito local
+            ventaData.items = carrito;
+        }
+        
+        // Generar y mostrar el comprobante
+        $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
+        $('#modalVistaPrevia').modal('show');
+    }
+
+    // =============================================
+    // 10. FUNCIÓN REINICIAR FORMULARIO VENTA
+    // =============================================
+    function reiniciarFormularioVenta() {
+        console.log('🔄 Reiniciando formulario de venta...');
+        
+        // 1. Limpiar carrito
+        carrito = [];
+        actualizarCarrito();
+        actualizarMetricas();
+        
+        // 2. Resetear cliente
+        $('#selectCliente').val(null).trigger('change');
+        clienteSeleccionado = null;
+        $('#btnQuitarCliente').hide();
+        
+        // 3. Resetear montos
+        $('#subtotalVenta').text('0');
+        $('#ivaVenta').text('0');
+        $('#totalVenta').text('$0');
+        $('#porcentajeIva').text('16%');
+        
+        // 4. Resetear métodos de pago
+        $('#metodoPago').val('efectivo');
+        $('#efectivoRecibido').val('0');
+        $('#cambioVenta').text('$0');
+        
+        // 5. Resetear otros inputs
+        $('#tipoComprobante').val('ticket');
+        $('#selectIva').val('16');
+        
+        // 6. Resetear campos de otros métodos de pago
+        $('#numeroTarjeta').val('');
+        $('#fechaVencimiento').val('');
+        $('#cvvTarjeta').val('');
+        $('#nombreTitular').val('');
+        $('#montoEfectivoMixto').val('0');
+        $('#montoTarjetaMixto').val('0');
+        $('#referenciaTransaccion').val('');
+        
+        // 7. Mostrar solo pago efectivo
+        $('.metodo-pago-detalle').addClass('d-none');
+        $('#pagoEfectivo').removeClass('d-none');
+        
+        // 8. Generar nuevo número de factura
+        numeroFactura = generarNumeroFactura();
+        $('#numeroFactura').text(numeroFactura);
+        
+        console.log('✅ Formulario de venta reiniciado');
+    }
+
+    // =============================================
+    // 11. VISTA PREVIA Y COMPROBANTES
+    // =============================================
+    function mostrarVistaPrevia(numeroFacturaServidor = null) {
+        if (carrito.length === 0) {
+            console.log('Carrito vacío, no se puede mostrar vista previa');
+            return;
+        }
+        
         const tipoComprobante = $('#tipoComprobante').val();
         
         let subtotal = window.ventaSubtotalNumerico || 0;
@@ -2003,8 +2262,8 @@ function obtenerReferenciaPago() {
                 return sum + (item.precio * item.cantidad);
             }, 0);
             const ivaPorcentaje = parseFloat($('#selectIva').val()) || 0;
-            iva = subtotal * (ivaPorcentaje / 100);
-            total = subtotal + iva;
+            iva = Math.round(subtotal * (ivaPorcentaje / 100));
+            total = Math.round(subtotal + iva);
         }
         
         const ventaData = {
@@ -2013,13 +2272,15 @@ function obtenerReferenciaPago() {
             cedula: clienteSeleccionado ? clienteSeleccionado.cedula : 'N/A',
             telefono: clienteSeleccionado ? clienteSeleccionado.telefono : 'N/A',
             items: carrito,
-            subtotal: subtotal,
-            iva: iva,
-            total: total,
+            subtotal: Math.round(subtotal),
+            iva: Math.round(iva),
+            total: Math.round(total),
             tipo: tipoComprobante,
             fecha: new Date().toLocaleString(),
             metodoPago: $('#metodoPago').val(),
-            porcentajeIva: parseFloat($('#selectIva').val()) || 0
+            porcentajeIva: parseFloat($('#selectIva').val()) || 0,
+            cambio: Math.round(parseFloat(window.cambioNumerico) || 0),
+            efectivoRecibido: Math.round(parseFloat($('#efectivoRecibido').val().replace(/\./g, '')) || 0)
         };
         
         $('#vistaPreviaComprobante').html(generarComprobanteHTML(ventaData));
@@ -2029,7 +2290,11 @@ function obtenerReferenciaPago() {
     function generarComprobanteHTML(ventaData) {
         const esFactura = ventaData.tipo !== 'ticket';
         const esTicket = ventaData.tipo === 'ticket';
-        const cedulaCliente = clienteSeleccionado ? (clienteSeleccionado.cedula || 'N/A') : 'N/A';
+        const cedulaCliente = ventaData.cedula || (clienteSeleccionado ? clienteSeleccionado.cedula : 'N/A');
+        
+        // Formatear valores de pago
+        const cambio = ventaData.cambio || 0;
+        const efectivoRecibido = ventaData.efectivoRecibido || 0;
         
         if (esTicket) {
             return `
@@ -2046,10 +2311,9 @@ function obtenerReferenciaPago() {
                 
                 <div style="margin: 5px 0;">
                     <strong>TICKET:</strong> ${ventaData.numeroFactura}<br>
-                    <strong>FECHA:</strong> ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}<br>
+                    <strong>FECHA:</strong> ${ventaData.fecha}<br>
                     <strong>CLIENTE:</strong> ${ventaData.cliente}<br>
-                     <strong>CEDULA:</strong> ${cedulaCliente}
-                    
+                    <strong>CEDULA:</strong> ${cedulaCliente}
                 </div>
                 
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
@@ -2069,7 +2333,7 @@ function obtenerReferenciaPago() {
                                         ${item.cantidad} x ${item.nombre.substring(0, 20)}
                                     </td>
                                     <td style="text-align: right; padding: 2px 0;">
-                                         ${formatoDinero(item.precio * item.cantidad)}
+                                        ${formatoDinero(item.precio * item.cantidad)}
                                     </td>
                                 </tr>
                             `;
@@ -2080,7 +2344,7 @@ function obtenerReferenciaPago() {
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
                 
                 <table style="width: 100%;">
-                  <tr>
+                    <tr>
                         <td>SUBTOTAL:</td>
                         <td style="text-align: right;">${formatoDinero(ventaData.subtotal)}</td>
                     </tr>
@@ -2091,7 +2355,17 @@ function obtenerReferenciaPago() {
                     <tr style="font-weight: bold;">
                         <td>TOTAL:</td>
                         <td style="text-align: right;">${formatoDinero(ventaData.total)}</td>
-                  </tr>
+                    </tr>
+                    ${ventaData.metodoPago === 'efectivo' ? `
+                    <tr>
+                        <td>EFECTIVO:</td>
+                        <td style="text-align: right;">${formatoDinero(efectivoRecibido)}</td>
+                    </tr>
+                    <tr>
+                        <td>CAMBIO:</td>
+                        <td style="text-align: right;">${formatoDinero(cambio)}</td>
+                    </tr>
+                    ` : ''}
                 </table>
                 
                 <hr style="border-top: 1px dashed #000; margin: 8px 0;">
@@ -2168,6 +2442,16 @@ function obtenerReferenciaPago() {
                         <td><strong>TOTAL:</strong></td>
                        <td style="text-align: right;">${formatoDinero(ventaData.total)}</td>
                     </tr>
+                    ${ventaData.metodoPago === 'efectivo' ? `
+                    <tr>
+                        <td><strong>Efectivo Recibido:</strong></td>
+                        <td style="text-align: right;">${formatoDinero(efectivoRecibido)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cambio:</strong></td>
+                        <td style="text-align: right;">${formatoDinero(cambio)}</td>
+                    </tr>
+                    ` : ''}
                 </table>
                 
                 <div class="clearfix"></div>
@@ -2238,7 +2522,7 @@ function obtenerReferenciaPago() {
     }
     
     // =============================================
-    // 10. EVENTOS DE BOTONES
+    // 12. EVENTOS DE BOTONES
     // =============================================
     $(document).on('click', '#btnQuitarClienteInfo', function(e) {
         e.preventDefault();
@@ -2274,80 +2558,67 @@ function obtenerReferenciaPago() {
     
     $(document).on('click', '#btnImprimirDirecto', function() {
         if (carrito.length === 0) {
-            toastr.error('No hay productos en el carrito para imprimir', 'Impresión');
+            // SOLO muestra mensaje informativo, NO error
+            toastr.info('No hay productos en el carrito para imprimir', 'Información');
             return;
         }
         mostrarVistaPrevia();
         toastr.info('Generando vista previa para impresión', 'Impresión');
     });
 
-
-   // =============================================
-    // NUEVA SECCIÓN: CONFIGURACIÓN DEL ESCÁNER MODAL
     // =============================================
-
-    function configurarScannerModal() {
-        console.log('📷 Configurando modal de escáner...');
+    // CONFIGURACIÓN DEL ESCÁNER MODAL
+    // =============================================
+    
+    $(document).on('click', '#btnOpenScanner', function() {
+        console.log('🟢 Botón escáner clickeado');
+        $('#modalScanner').modal('show');
         
-        // Configurar apertura del modal con el botón "Escaner"
-        $('#btnOpenScanner').on('click', function() {
-            console.log('🟢 Botón escáner clickeado');
-            $('#modalScanner').modal('show');
+        setTimeout(function() {
+            $('#inputCodigoManual').focus();
+            console.log('🔍 Input de código enfocado');
+        }, 500);
+    });
+    
+    $(document).on('keydown', '#inputCodigoManual', function(e) {
+        if (e.key === 'Enter' || e.keyCode === 13) {
+            e.preventDefault();
+            console.log('⏎ Enter presionado en input de código');
             
-            // Enfocar el input después de que el modal se muestre
             setTimeout(function() {
-                $('#inputCodigoManual').focus();
-                console.log('🔍 Input de código enfocado');
-            }, 500);
-        });
-        
-        // Configurar el input para procesar código cuando se presiona Enter
-        $('#inputCodigoManual').on('keydown', function(e) {
-            // Detectar cuando se presiona Enter (generalmente después de leer código de barras)
-            if (e.key === 'Enter' || e.keyCode === 13) {
-                e.preventDefault();
-                console.log('⏎ Enter presionado en input de código');
                 procesarCodigoEscaneado();
-            }
-        });
+            }, 10);
+        }
         
-        // Configurar botón de procesar manual
-        $('#btnProcesarCodigo').on('click', function() {
-            console.log('🟡 Botón procesar código clickeado');
-            procesarCodigoEscaneado();
-        });
-        
-        // Configurar cierre del modal
-        $('#modalScanner').on('hidden.bs.modal', function() {
-            console.log('🔴 Modal escáner cerrado');
-            $('#inputCodigoManual').val(''); // Limpiar input
-        });
-        
-        // Configurar apertura del modal
-        $('#modalScanner').on('shown.bs.modal', function() {
-            console.log('🟢 Modal escáner abierto');
-            $('#inputCodigoManual').focus(); // Enfocar automáticamente
-        });
-        
-        // Permitir también la tecla Tab para procesar
-        $('#inputCodigoManual').on('keydown', function(e) {
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                console.log('↹ Tab presionado en input de código');
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            console.log('↹ Tab presionado en input de código');
+            
+            setTimeout(function() {
                 procesarCodigoEscaneado();
-            }
-        });
-        
-        // Botón para cerrar el modal con Escape
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
-                $('#modalScanner').modal('hide');
-            }
-        });
-    }
+            }, 10);
+        }
+    });
+    
+    $(document).on('click', '#btnProcesarCodigo', function() {
+        console.log('🟡 Botón procesar código clickeado');
+        procesarCodigoEscaneado();
+    });
+    
+    $('#modalScanner').on('hidden.bs.modal', function() {
+        console.log('🔴 Modal escáner cerrado');
+        $('#inputCodigoManual').val('');
+    });
+    
+    $('#modalScanner').on('shown.bs.modal', function() {
+        console.log('🟢 Modal escáner abierto');
+        $('#inputCodigoManual').focus();
+    });
     
     function procesarCodigoEscaneado() {
         const codigo = $('#inputCodigoManual').val().trim();
+        
+        console.log('📋 Código a procesar:', codigo);
         
         if (!codigo) {
             toastr.warning('Ingrese un código para escanear', 'Escáner');
@@ -2357,14 +2628,24 @@ function obtenerReferenciaPago() {
         
         console.log('🔍 Procesando código escaneado:', codigo);
         
-        // Buscar producto por código
+        $('#inputCodigoManual').prop('disabled', true);
+        
         buscarProductoPorCodigo(codigo);
+        
+        setTimeout(function() {
+            $('#inputCodigoManual').prop('disabled', false).focus();
+        }, 100);
     }
     
     function buscarProductoPorCodigo(codigo) {
         console.log('🔎 Buscando producto con código:', codigo);
         
-        // Buscar en los productos cargados
+        if (Object.keys(productos).length === 0) {
+            toastr.error('No hay productos cargados en el sistema', 'Error');
+            $('#inputCodigoManual').focus();
+            return;
+        }
+        
         const productoEncontrado = Object.values(productos).find(function(producto) {
             const codigoProducto = producto.codigo ? producto.codigo.toString().trim() : '';
             const codigoBuscado = codigo.toString().trim();
@@ -2375,25 +2656,21 @@ function obtenerReferenciaPago() {
         if (productoEncontrado) {
             console.log('✅ Producto encontrado:', productoEncontrado);
             
-            // Verificar stock
             if (productoEncontrado.stock <= 0) {
                 toastr.error('Producto sin stock disponible', 'Stock');
                 $('#inputCodigoManual').val('').focus();
                 return;
             }
             
-            // Verificar si ya está en el carrito
             const productoEnCarrito = carrito.find(item => item.id === productoEncontrado.id);
             const cantidadActual = productoEnCarrito ? productoEnCarrito.cantidad : 0;
             
-            // Si ya está en el carrito, verificar stock disponible
             if (cantidadActual >= productoEncontrado.stock) {
                 toastr.error(`Stock máximo alcanzado. Disponible: ${productoEncontrado.stock}`, 'Stock');
                 $('#inputCodigoManual').val('').focus();
                 return;
             }
             
-            // Agregar al carrito
             if (productoEnCarrito) {
                 productoEnCarrito.cantidad += 1;
                 toastr.success(`"${productoEncontrado.nombre}" - Cantidad aumentada a ${productoEnCarrito.cantidad}`, 'Carrito');
@@ -2410,52 +2687,80 @@ function obtenerReferenciaPago() {
                 toastr.success(`"${productoEncontrado.nombre}" agregado al carrito`, 'Carrito');
             }
             
-            // Actualizar la interfaz
             actualizarCarrito();
             actualizarMetricas();
             
-            // Limpiar input y mantener foco para siguiente escaneo
-            $('#inputCodigoManual').val('').focus();
-            
-            // No cerrar el modal automáticamente para permitir escanear múltiples productos
-            // toastr.info('Puede continuar escaneando más productos', 'Escáner');
+            setTimeout(function() {
+                $('#inputCodigoManual').val('').focus();
+            }, 100);
             
         } else {
-            // Producto no encontrado
             console.log('❌ Producto no encontrado con código:', codigo);
             
             toastr.error(`No se encontró producto con código: "${codigo}"`, 'Producto no encontrado');
             
-            // Enfocar y seleccionar el texto para fácil edición
-            $('#inputCodigoManual').focus().select();
+            setTimeout(function() {
+                $('#inputCodigoManual').focus().select();
+            }, 100);
         }
     }
-
-    // =============================================
-    // 12. EVENTOS DE TECLADO GLOBALES PARA ESCÁNER (OPCIONAL)
-    // =============================================
     
-    // Opcional: Atajo de teclado para abrir el escáner (Ctrl+E)
     $(document).on('keydown', function(e) {
-        // Ctrl + E para abrir escáner (solo si no estamos en un input/textarea)
         if (e.ctrlKey && e.key === 'e' && !$(e.target).is('input, textarea, select')) {
             e.preventDefault();
             console.log('⌨️ Atajo Ctrl+E presionado');
             $('#modalScanner').modal('show');
         }
         
-        // También permitir abrir con F2
         if (e.key === 'F2') {
             e.preventDefault();
             console.log('⌨️ Tecla F2 presionada');
             $('#modalScanner').modal('show');
         }
+        
+        if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
+            $('#modalScanner').modal('hide');
+        }
     });
-
-
+    
+    $(document).on('click', '#modalScanner .close, #modalScanner [data-dismiss="modal"]', function(e) {
+        e.preventDefault();
+        console.log('🔴 Intentando cerrar modal escáner');
+        
+        $('#modalScanner').modal('hide');
+        
+        $('.modal-backdrop').remove();
+        
+        $('body').removeClass('modal-open');
+    });
+    
+    $(document).on('click', function(e) {
+        if ($(e.target).closest('#modalScanner .btn-secondary').length) {
+            console.log('🟡 Botón Cancelar clickeado');
+            $('#modalScanner').modal('hide');
+        }
+    });
+    
+    function cerrarModalScanner() {
+        console.log('🔄 Ejecutando cerrarModalScanner()');
+        
+        $('#modalScanner').modal('hide');
+        
+        setTimeout(function() {
+            $('#modalScanner').removeClass('show');
+            $('#modalScanner').css('display', 'none');
+            
+            $('.modal-backdrop').remove();
+            
+            $('body').removeClass('modal-open');
+            $('body').css('padding-right', '');
+            
+            console.log('✅ Modal cerrado manualmente');
+        }, 100);
+    }
     
     // =============================================
-    // 11. INICIALIZACIÓN
+    // 13. INICIALIZACIÓN CORREGIDA
     // =============================================
     function inicializarSistema() {
         console.log('🚀 Inicializando sistema...');
@@ -2465,10 +2770,12 @@ function obtenerReferenciaPago() {
         cargarProductosDesdeDB();
         configurarMetodosPago();
         configurarBusquedaTiempoReal();
-        configurarScannerModal(); 
-
+        
+        // AGREGAR ESTAS LÍNEAS:
+        configurarInputEfectivo();
+        
         $('#selectIva').on('change', function() {
-            const subtotal = parseFloat($('#subtotalVenta').text()) || 0;
+            const subtotal = parseFloat(window.ventaSubtotalNumerico) || 0;
             actualizarTotales(subtotal);
         });
         
@@ -2477,14 +2784,14 @@ function obtenerReferenciaPago() {
         console.log('✅ Sistema inicializado');
         toastr.success('Sistema de punto de venta listo');
     }
-
+    
     // Iniciar sistema cuando el documento esté listo
     $(document).ready(function() {
         setTimeout(inicializarSistema, 500);
     });
     
     // =============================================
-    // 12. FUNCIONES GLOBALES
+    // 14. FUNCIONES GLOBALES
     // =============================================
     window.agregarProductoFrecuente = function(id) {
         const producto = productos[id];
@@ -2494,254 +2801,13 @@ function obtenerReferenciaPago() {
             toastr.error('Producto no encontrado');
         }
     };
-
+    
     window.recargarFrecuentes = function() {
         cargarProductosFrecuentes();
         toastr.info('Productos frecuentes actualizados');
     };
-
-// =============================================
-// CONFIGURACIÓN DEL ESCÁNER MODAL (CORREGIDO)
-// =============================================
-
-// Configurar apertura del modal escáner
-$(document).on('click', '#btnOpenScanner', function() {
-    console.log('🟢 Botón escáner clickeado');
-    $('#modalScanner').modal('show');
     
-    // Enfocar el input después de que el modal se muestre
-    setTimeout(function() {
-        $('#inputCodigoManual').focus();
-        console.log('🔍 Input de código enfocado');
-    }, 500);
-});
-
-// Configurar el input para procesar código cuando se presiona Enter - SOLO UNA VEZ
-$(document).on('keydown', '#inputCodigoManual', function(e) {
-    // Detectar cuando se presiona Enter
-    if (e.key === 'Enter' || e.keyCode === 13) {
-        e.preventDefault();
-        console.log('⏎ Enter presionado en input de código');
-        
-        // Pequeño delay para asegurar que el valor esté actualizado
-        setTimeout(function() {
-            procesarCodigoEscaneado();
-        }, 10);
-    }
-    
-    // También procesar con Tab si se desea
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        console.log('↹ Tab presionado en input de código');
-        
-        setTimeout(function() {
-            procesarCodigoEscaneado();
-        }, 10);
-    }
-});
-
-// Configurar botón de procesar manual
-$(document).on('click', '#btnProcesarCodigo', function() {
-    console.log('🟡 Botón procesar código clickeado');
-    procesarCodigoEscaneado();
-});
-
-// Configurar cierre del modal
-$('#modalScanner').on('hidden.bs.modal', function() {
-    console.log('🔴 Modal escáner cerrado');
-    $('#inputCodigoManual').val(''); // Limpiar input
-});
-
-// Configurar apertura del modal
-$('#modalScanner').on('shown.bs.modal', function() {
-    console.log('🟢 Modal escáner abierto');
-    $('#inputCodigoManual').focus(); // Enfocar automáticamente
-});
-
-// Función para procesar el código escaneado - CON VALIDACIÓN MEJORADA
-function procesarCodigoEscaneado() {
-    const codigo = $('#inputCodigoManual').val().trim();
-    
-    console.log('📋 Código a procesar:', codigo);
-    
-    if (!codigo) {
-        toastr.warning('Ingrese un código para escanear', 'Escáner');
-        $('#inputCodigoManual').focus();
-        return;
-    }
-    
-    console.log('🔍 Procesando código escaneado:', codigo);
-    
-    // Deshabilitar temporalmente el input para evitar múltiples ejecuciones
-    $('#inputCodigoManual').prop('disabled', true);
-    
-    // Buscar producto por código
-    buscarProductoPorCodigo(codigo);
-    
-    // Rehabilitar después de un breve momento
-    setTimeout(function() {
-        $('#inputCodigoManual').prop('disabled', false).focus();
-    }, 100);
-}
-
-// Función para buscar producto por código - CON PREVENCIÓN DE DUPLICADOS
-function buscarProductoPorCodigo(codigo) {
-    console.log('🔎 Buscando producto con código:', codigo);
-    
-    // Verificar si hay productos cargados
-    if (Object.keys(productos).length === 0) {
-        toastr.error('No hay productos cargados en el sistema', 'Error');
-        $('#inputCodigoManual').focus();
-        return;
-    }
-    
-    // Buscar en los productos cargados
-    const productoEncontrado = Object.values(productos).find(function(producto) {
-        const codigoProducto = producto.codigo ? producto.codigo.toString().trim() : '';
-        const codigoBuscado = codigo.toString().trim();
-        
-        return codigoProducto === codigoBuscado;
-    });
-    
-    if (productoEncontrado) {
-        console.log('✅ Producto encontrado:', productoEncontrado);
-        
-        // Verificar stock
-        if (productoEncontrado.stock <= 0) {
-            toastr.error('Producto sin stock disponible', 'Stock');
-            $('#inputCodigoManual').val('').focus();
-            return;
-        }
-        
-        // Verificar si ya está en el carrito
-        const productoEnCarrito = carrito.find(item => item.id === productoEncontrado.id);
-        const cantidadActual = productoEnCarrito ? productoEnCarrito.cantidad : 0;
-        
-        // Si ya está en el carrito, verificar stock disponible
-        if (cantidadActual >= productoEncontrado.stock) {
-            toastr.error(`Stock máximo alcanzado. Disponible: ${productoEncontrado.stock}`, 'Stock');
-            $('#inputCodigoManual').val('').focus();
-            return;
-        }
-        
-        // Agregar al carrito
-        if (productoEnCarrito) {
-            productoEnCarrito.cantidad += 1;
-          //  toastr.success(`"${productoEncontrado.nombre}" - Cantidad aumentada a ${productoEnCarrito.cantidad}`, 'Carrito');
-        } else {
-            carrito.push({
-                id: productoEncontrado.id,
-                nombre: productoEncontrado.nombre,
-                precio: productoEncontrado.precio,
-                cantidad: 1,
-                stock: productoEncontrado.stock,
-                codigo: productoEncontrado.codigo,
-                categoria: productoEncontrado.categoria
-            });
-            toastr.success(`"${productoEncontrado.nombre}" agregado al carrito`, 'Carrito');
-        }
-        
-        // Actualizar la interfaz
-        actualizarCarrito();
-        actualizarMetricas();
-        
-        // Limpiar input para siguiente escaneo
-        setTimeout(function() {
-            $('#inputCodigoManual').val('').focus();
-        }, 100);
-        
-    } else {
-        // Producto no encontrado
-        console.log('❌ Producto no encontrado con código:', codigo);
-        
-        toastr.error(`No se encontró producto con código: "${codigo}"`, 'Producto no encontrado');
-        
-        // Enfocar y seleccionar el texto para fácil edición
-        setTimeout(function() {
-            $('#inputCodigoManual').focus().select();
-        }, 100);
-    }
-}
-
-// Opcional: Atajo de teclado para abrir el escáner (Ctrl+E)
-$(document).on('keydown', function(e) {
-    // Ctrl + E para abrir escáner (solo si no estamos en un input/textarea)
-    if (e.ctrlKey && e.key === 'e' && !$(e.target).is('input, textarea, select')) {
-        e.preventDefault();
-        console.log('⌨️ Atajo Ctrl+E presionado');
-        $('#modalScanner').modal('show');
-    }
-    
-    // También permitir abrir con F2
-    if (e.key === 'F2') {
-        e.preventDefault();
-        console.log('⌨️ Tecla F2 presionada');
-        $('#modalScanner').modal('show');
-    }
-    
-    // Cerrar modal con Escape
-    if (e.key === 'Escape' && $('#modalScanner').hasClass('show')) {
-        $('#modalScanner').modal('hide');
-    }
-});
-
-
-// =============================================
-// CERRAR MODAL ESCANER - SOLUCIÓN
-// =============================================
-
-// Forzar el cierre del modal con los botones de Bootstrap
-$(document).on('click', '#modalScanner .close, #modalScanner [data-dismiss="modal"]', function(e) {
-    e.preventDefault();
-    console.log('🔴 Intentando cerrar modal escáner');
-    
-    // Ocultar el modal inmediatamente
-    $('#modalScanner').modal('hide');
-    
-    // Remover la clase de backdrop si existe
-    $('.modal-backdrop').remove();
-    
-    // Remover la clase modal-open del body
-    $('body').removeClass('modal-open');
-});
-
-// También agregar funcionalidad manual para el botón Cancelar
-$(document).on('click', function(e) {
-    // Si se hace clic en el botón Cancelar del modal escáner
-    if ($(e.target).closest('#modalScanner .btn-secondary').length) {
-        console.log('🟡 Botón Cancelar clickeado');
-        $('#modalScanner').modal('hide');
-    }
-});
-
-// Función alternativa para cerrar el modal
-function cerrarModalScanner() {
-    console.log('🔄 Ejecutando cerrarModalScanner()');
-    
-    // Método 1: Usar Bootstrap
-    $('#modalScanner').modal('hide');
-    
-    // Método 2: Manipulación manual del DOM
-    setTimeout(function() {
-        // Remover clases de Bootstrap
-        $('#modalScanner').removeClass('show');
-        $('#modalScanner').css('display', 'none');
-        
-        // Remover backdrop
-        $('.modal-backdrop').remove();
-        
-        // Restaurar scroll del body
-        $('body').removeClass('modal-open');
-        $('body').css('padding-right', '');
-        
-        console.log('✅ Modal cerrado manualmente');
-    }, 100);
-}
-
-
- 
-
-})(jQuery); // Pasar jQuery como parámetro para evitar conflictos
+})(jQuery);
 </script>
 
 @stop

@@ -11,6 +11,23 @@ use Illuminate\Support\Facades\Log;
 
 class VentaController extends Controller
 {
+
+ public function index()
+    {
+        // Aquí obtienes las ventas de la base de datos
+        $ventas = \App\Models\Venta::with('cliente')->latest()->paginate(10);
+        
+        return view('ventas', compact('ventas'));
+    }
+    
+    public function show($id)
+    {
+        $venta = \App\Models\Venta::with(['cliente', 'detalles.producto'])->findOrFail($id);
+        
+        return view('ventas.show', compact('venta'));
+    }
+
+
     public function store(Request $request)
     {
         DB::beginTransaction();

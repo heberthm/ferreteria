@@ -5,25 +5,39 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class detalleVenta extends Model
+class DetalleVenta extends Model
 {
     use HasFactory;
 
-     protected $fillable = [
+    protected $table = 'detalle_ventas';
+    
+    protected $primaryKey = 'id_detalle_venta';
+
+    
+    
+    protected $fillable = [
         'id_venta',
         'id_producto',
-        'cantidad', 
+        'cantidad',
         'precio_unitario',
-        'total',
+        'subtotal'
     ];
-
+    
+    public $timestamps = true;
+    
+    /**
+     * Relación con venta
+     */
     public function venta()
     {
-        return $this->belongsTo(Venta::class);
+        return $this->belongsTo(Venta::class, 'id_venta', 'id_venta');
     }
-
+    
+    /**
+     * Relación con producto
+     */
     public function producto()
     {
-        return $this->belongsTo(Producto::class);
+        return $this->belongsTo(Producto::class, 'id_producto', 'id_producto');
     }
 }
