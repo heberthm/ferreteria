@@ -128,6 +128,63 @@
                 font-size: 1.1rem !important;
             }
         }
+
+/* Estilos para el dashboard */
+.updating {
+    color: #3498db !important;
+    transition: color 0.3s ease;
+}
+
+.alert-pulse {
+    animation: alertPulse 2s ease-in-out;
+}
+
+@keyframes alertPulse {
+    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.loading tr {
+    opacity: 0.6;
+}
+
+.product-rank {
+    width: 24px;
+    height: 24px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+}
+
+.card-dashboard {
+    transition: all 0.3s ease;
+}
+
+.card-dashboard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* Animación para números */
+@keyframes countUp {
+    from { opacity: 0.5; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.card-title {
+    animation: countUp 0.5s ease-out;
+}
+
     </style>
 
     <div class="container-fluid">
@@ -346,412 +403,365 @@
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-    $(document).ready(function() {
-        // Cargar datos iniciales
-        actualizarDashboard();
-        
-        // Actualizar automáticamente cada 30 segundos
-        setInterval(actualizarDashboard, 30000);
-        
-        // Evento para cambiar el periodo del filtro
-        $('#filtroPeriodo').change(function() {
-            cargarProductosVendidos($(this).val());
-        });
-        
-        // Actualizar hora actual
-        actualizarHora();
-        setInterval(actualizarHora, 1000);
+    <script>// dashboard-fixed.js
+$(document).ready(function() {
+    console.log('Dashboard iniciado');
+    
+    // Primero cargar datos locales inmediatamente
+    loadLocalData();
+    
+    // Luego intentar cargar datos del servidor
+    setTimeout(loadServerData, 1000);
+    
+    // Configurar actualización periódica
+    setInterval(loadServerData, 30000); // Cada 30 segundos
+});
+
+function loadLocalData() {
+    console.log('Cargando datos locales...');
+    
+    // Datos locales de respaldo
+    const localData = {
+        estadisticas: {
+            total_ventas_hoy: 0,
+            ingresos_totales: 0,
+            promedio_venta: 0,
+            alertas_stock: 0
+        },
+        productos_vendidos: [
+            {nombre: 'Esperando datos...', codigo: '', cantidad_vendida: 0, total_vendido: 0}
+        ],
+        stock_bajo: [
+            {nombre: 'Esperando datos...', categoria: 'General', stock_actual: 0, stock_minimo: 5}
+        ],
+        ventas_recientes: [
+            {numero_factura: 'Cargando...', fecha_venta: new Date(), total: 0, nombre_cliente: '...', estado: '...'}
+        ]
+    };
+    
+    updateUI(localData);
+}
+
+function loadServerData() {
+    console.log('Intentando cargar datos del servidor...');
+    
+    // Mostrar indicador de carga
+    showLoadingIndicator();
+    
+    $.ajax({
+        url: '/api/dashboard/data', // Ruta CORREGIDA
+        type: 'GET',
+        dataType: 'json',
+        timeout: 5000, // 5 segundos máximo
+        success: function(response) {
+            console.log('Datos recibidos del servidor:', response);
+            
+            if (response.success && response.data) {
+                updateUI(response.data);
+                hideLoadingIndicator();
+                showSuccessMessage('Datos actualizados');
+            } else {
+                console.warn('Respuesta no válida:', response);
+                showWarningMessage('Formato de datos incorrecto');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al cargar datos:', status, error);
+            
+            if (status === 'timeout') {
+                showErrorMessage('El servidor tardó en responder');
+            } else if (xhr.status === 404) {
+                showErrorMessage('Ruta no encontrada');
+                // Intentar con ruta alternativa
+                tryAlternativeRoute();
+            } else if (xhr.status === 500) {
+                showErrorMessage('Error del servidor');
+            } else {
+                showErrorMessage('Error de conexión: ' + error);
+            }
+            
+            hideLoadingIndicator();
+        }
     });
+}
 
-    function actualizarHora() {
-        const ahora = new Date();
-        const hora = ahora.getHours().toString().padStart(2, '0');
-        const minutos = ahora.getMinutes().toString().padStart(2, '0');
-        const segundos = ahora.getSeconds().toString().padStart(2, '0');
-        const horaStr = `${hora}:${minutos}:${segundos}`;
+function tryAlternativeRoute() {
+    console.log('Intentando ruta alternativa...');
+    
+    // Intentar diferentes rutas posibles
+    const routes = [
+        '/dashboard/data',
+        '/admin/dashboard/data',
+        '/data/dashboard'
+    ];
+    
+    let tried = 0;
+    
+    routes.forEach(route => {
+        $.ajax({
+            url: route,
+            type: 'GET',
+            timeout: 3000,
+            success: function(response) {
+                if (response.success && response.data) {
+                    console.log('Éxito con ruta:', route);
+                    updateUI(response.data);
+                    showSuccessMessage('Conectado usando ruta alternativa');
+                }
+            }
+        });
+    });
+}
+
+function updateUI(data) {
+    console.log('Actualizando interfaz con:', data);
+    
+    // 1. Actualizar cards
+    updateCards(data.estadisticas);
+    
+    // 2. Actualizar tablas
+    updateTable('#cuerpoProductosVendidos', data.productos_vendidos, 'producto');
+    updateTable('#cuerpoStockBajo', data.stock_bajo, 'stock');
+    updateTable('#cuerpoVentasRecientes', data.ventas_recientes, 'venta');
+}
+
+function updateCards(stats) {
+    // Total ventas hoy
+    $('#totalVentasHoy').html(stats?.total_ventas_hoy !== undefined ? 
+        '<span class="number">' + stats.total_ventas_hoy + '</span>' : 
+        '<span class="text-muted">0</span>');
+    
+    // Ingresos totales
+    $('#ingresosTotales').html(stats?.ingresos_totales !== undefined ? 
+        '<span class="number">$' + parseFloat(stats.ingresos_totales).toFixed(2) + '</span>' : 
+        '<span class="text-muted">$0.00</span>');
+    
+    // Promedio por venta
+    $('#promedioVenta').html(stats?.promedio_venta !== undefined ? 
+        '<span class="number">$' + parseFloat(stats.promedio_venta).toFixed(2) + '</span>' : 
+        '<span class="text-muted">$0.00</span>');
+    
+    // Alertas stock
+    $('#alertasStock').html(stats?.alertas_stock !== undefined ? 
+        '<span class="number">' + stats.alertas_stock + '</span>' : 
+        '<span class="text-muted">0</span>');
+    
+    // Actualizar texto descriptivo
+    if (stats?.alertas_stock > 0) {
+        $('#productosBajoStock').html('<span class="text-danger">' + stats.alertas_stock + ' productos críticos</span>');
+    } else {
+        $('#productosBajoStock').html('<span class="text-success">Stock óptimo</span>');
+    }
+}
+
+function updateTable(selector, data, type) {
+    let html = '';
+    
+    if (!data || data.length === 0) {
+        // Mensaje cuando no hay datos
+        const messages = {
+            'producto': 'No hay productos vendidos',
+            'stock': 'Todo el stock está en niveles adecuados',
+            'venta': 'No hay ventas recientes'
+        };
         
-        $('#fechaUltimaActualizacion').text(horaStr);
-    }
-
-    function actualizarDashboard() {
-        const horaActualizacion = new Date().toLocaleTimeString('es-ES');
-        $('#fechaActualizacionProductos').text(horaActualizacion);
+        const icons = {
+            'producto': 'fa-chart-line',
+            'stock': 'fa-check-circle',
+            'venta': 'fa-receipt'
+        };
         
-        cargarEstadisticas();
-        cargarProductosVendidos($('#filtroPeriodo').val());
-        cargarStockBajo();
-        cargarVentasRecientes();
+        const colors = {
+            'producto': 'muted',
+            'stock': 'success',
+            'venta': 'muted'
+        };
         
-        // Mostrar notificación de actualización
-        toastr.success('Datos actualizados correctamente', 'Actualización', {
-            timeOut: 2000,
-            progressBar: true
-        });
-    }
-
-    function cargarEstadisticas() {
-        $.ajax({
-            url: '{{ route("dashboard.estadisticas") }}',
-            type: 'GET',
-            dataType: 'json',
-            beforeSend: function() {
-                // Mostrar loaders
-                $('#totalVentasHoy, #ingresosTotales, #promedioVenta, #alertasStock')
-                    .html('<span class="loader"></span>');
-            },
-            success: function(response) {
-                if(response.success) {
-                    // Actualizar total ventas hoy
-                    $('#totalVentasHoy').html(response.total_ventas_hoy);
-                    $('#comparativaVentas').html(
-                        response.comparativa_ventas > 0 ? 
-                        `<span class="text-success"><i class="fas fa-arrow-up"></i> ${response.comparativa_ventas}% vs ayer</span>` :
-                        `<span class="text-danger"><i class="fas fa-arrow-down"></i> ${Math.abs(response.comparativa_ventas)}% vs ayer</span>`
-                    );
-                    
-                    // Actualizar ingresos totales
-                    $('#ingresosTotales').html('$' + response.ingresos_totales.toLocaleString('es-ES', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }));
-                    $('#tendenciaIngresos').html(
-                        response.tendencia_ingresos.includes('↑') ? 
-                        `<span class="text-success">${response.tendencia_ingresos}</span>` :
-                        `<span class="text-danger">${response.tendencia_ingresos}</span>`
-                    );
-                    
-                    // Actualizar promedio por venta
-                    $('#promedioVenta').html('$' + response.promedio_venta.toLocaleString('es-ES', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    }));
-                    
-                    // Actualizar alertas de stock
-                    $('#alertasStock').html(response.alertas_stock);
-                    $('#productosBajoStock').html(response.alertas_stock > 0 ? 
-                        `<span class="text-danger">${response.alertas_stock} productos críticos</span>` :
-                        '<span class="text-success">Stock óptimo</span>'
-                    );
-                    
-                    // Aplicar animación si hay alertas
-                    const cardAlerta = $('#alertasStock').closest('.card-dashboard');
-                    if(response.alertas_stock > 0) {
-                        cardAlerta.addClass('stock-bajo');
-                    } else {
-                        cardAlerta.removeClass('stock-bajo');
-                    }
-                }
-            },
-            error: function() {
-                $('#totalVentasHoy').html('<span class="text-danger">Error</span>');
-                $('#ingresosTotales').html('<span class="text-danger">Error</span>');
-                $('#promedioVenta').html('<span class="text-danger">Error</span>');
-                $('#alertasStock').html('<span class="text-danger">Error</span>');
+        html = `
+        <tr>
+            <td colspan="6" class="text-center py-4 text-${colors[type]}">
+                <i class="fas ${icons[type]} fa-2x mb-3"></i>
+                <div class="font-weight-bold">${messages[type]}</div>
+            </td>
+        </tr>
+        `;
+    } else {
+        // Generar filas con datos
+        data.forEach((item, index) => {
+            if (type === 'producto') {
+                html += `
+                <tr>
+                    <td>
+                        <div class="font-weight-bold">${safeText(item.nombre)}</div>
+                        <small class="text-muted">${safeText(item.codigo)}</small>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge badge-primary">${item.cantidad_vendida || 0}</span>
+                    </td>
+                    <td class="text-right">
+                        $${(item.total_vendido || 0).toFixed(2)}
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar" style="width: ${Math.min((index + 1) * 20, 100)}%"></div>
+                        </div>
+                    </td>
+                </tr>
+                `;
+            } else if (type === 'stock') {
+                const esBajo = (item.stock_actual || 0) <= (item.stock_minimo || 5);
+                const esCritico = (item.stock_actual || 0) <= 2;
+                
+                html += `
+                <tr>
+                    <td>
+                        <div class="font-weight-bold">${safeText(item.nombre)}</div>
+                        <small class="text-muted">${safeText(item.codigo)}</small>
+                    </td>
+                    <td>
+                        <span class="badge badge-light">${safeText(item.categoria)}</span>
+                    </td>
+                    <td class="text-center ${esCritico ? 'text-danger font-weight-bold' : esBajo ? 'text-warning' : ''}">
+                        ${item.stock_actual || 0}
+                    </td>
+                    <td class="text-center">${item.stock_minimo || 5}</td>
+                    <td>
+                        <span class="badge badge-${esCritico ? 'danger' : esBajo ? 'warning' : 'success'}">
+                            ${esCritico ? 'CRÍTICO' : esBajo ? 'BAJO' : 'OK'}
+                        </span>
+                    </td>
+                </tr>
+                `;
+            } else if (type === 'venta') {
+                const fecha = item.fecha_venta ? 
+                    formatDateTime(item.fecha_venta) : 
+                    '--:--';
+                
+                html += `
+                <tr>
+                    <td>
+                        <div class="font-weight-bold">${safeText(item.numero_factura)}</div>
+                        <small class="text-muted">${fecha}</small>
+                    </td>
+                    <td>${safeText(item.nombre_cliente)}</td>
+                    <td class="text-center">
+                        <span class="badge badge-info">${item.cantidad_productos || 1}</span>
+                    </td>
+                    <td class="text-right font-weight-bold">
+                        $${(item.total || 0).toFixed(2)}
+                    </td>
+                    <td>
+                        <span class="badge badge-success">${safeText(item.estado)}</span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary" onclick="viewSale(${item.id || 0})">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                `;
             }
         });
-    }
-
-    function cargarProductosVendidos(periodo) {
-        $.ajax({
-            url: '{{ route("dashboard.productos-vendidos") }}',
-            type: 'GET',
-            data: { periodo: periodo },
-            dataType: 'json',
-            success: function(response) {
-                if(response.success && response.productos.length > 0) {
-                    let html = '';
-                    let totalVentas = response.productos.reduce((sum, p) => sum + p.cantidad_vendida, 0);
-                    
-                    response.productos.forEach(function(producto, index) {
-                        let porcentaje = totalVentas > 0 ? ((producto.cantidad_vendida / totalVentas) * 100).toFixed(1) : 0;
-                        
-                        html += `
-                        <tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <div class="mr-2" style="width: 24px; height: 24px; background-color: ${getColor(index)}; border-radius: 4px;"></div>
-                                    <div>
-                                        <strong>${producto.nombre}</strong>
-                                        <br>
-                                        <small class="text-muted">${producto.codigo || 'N/A'}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge badge-primary" style="font-size: 0.9rem;">
-                                    ${producto.cantidad_vendida}
-                                </span>
-                            </td>
-                            <td>
-                                <strong>$${parseFloat(producto.total_vendido).toLocaleString('es-ES', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong>
-                            </td>
-                            <td>
-                                <div class="progress" style="height: 20px;">
-                                    <div class="progress-bar" role="progressbar" 
-                                         style="width: ${porcentaje}%; background-color: ${getColor(index)};"
-                                         aria-valuenow="${porcentaje}" aria-valuemin="0" aria-valuemax="100">
-                                        ${porcentaje}%
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        `;
-                    });
-                    
-                    $('#cuerpoProductosVendidos').html(html);
-                } else {
-                    $('#cuerpoProductosVendidos').html(`
-                        <tr>
-                            <td colspan="4" class="text-center py-4 text-muted">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                No hay datos de ventas para el periodo seleccionado
-                            </td>
-                        </tr>
-                    `);
-                }
-            },
-            error: function() {
-                $('#cuerpoProductosVendidos').html(`
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-danger">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            Error al cargar los datos
-                        </td>
-                    </tr>
-                `);
-            }
-        });
-    }
-
-    function cargarStockBajo() {
-        $.ajax({
-            url: '{{ route("dashboard.stock-bajo") }}',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if(response.success) {
-                    let html = '';
-                    
-                    if(response.productos.length > 0) {
-                        response.productos.forEach(function(producto) {
-                            let estado = '';
-                            let claseEstado = '';
-                            let iconoEstado = '';
-                            
-                            if(producto.stock_actual <= producto.stock_minimo * 0.5) {
-                                estado = 'CRÍTICO';
-                                claseEstado = 'danger';
-                                iconoEstado = 'fa-exclamation-circle';
-                            } else if(producto.stock_actual <= producto.stock_minimo) {
-                                estado = 'BAJO';
-                                claseEstado = 'warning';
-                                iconoEstado = 'fa-exclamation-triangle';
-                            } else if(producto.stock_actual <= producto.stock_minimo * 1.5) {
-                                estado = 'MEDIO';
-                                claseEstado = 'info';
-                                iconoEstado = 'fa-info-circle';
-                            }
-                            
-                            let porcentaje = (producto.stock_actual / producto.stock_minimo) * 100;
-                            let colorBarra = '';
-                            
-                            if(porcentaje <= 50) colorBarra = 'danger';
-                            else if(porcentaje <= 100) colorBarra = 'warning';
-                            else colorBarra = 'success';
-                            
-                            html += `
-                            <tr>
-                                <td>
-                                    <strong>${producto.nombre}</strong>
-                                </td>
-                                <td>
-                                    <span class="badge badge-secondary">${producto.categoria || 'Sin categoría'}</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="${producto.stock_actual <= producto.stock_minimo ? 'text-danger font-weight-bold' : 'text-warning'}">
-                                        ${producto.stock_actual}
-                                    </span>
-                                </td>
-                                <td class="text-center">${producto.stock_minimo}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <span class="badge badge-${claseEstado} badge-stock mr-2">
-                                            <i class="fas ${iconoEstado} mr-1"></i>${estado}
-                                        </span>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-${colorBarra}" 
-                                                 style="width: ${Math.min(porcentaje, 100)}%"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                            `;
-                        });
-                        
-                        // Mostrar alerta si hay productos críticos
-                        let productosCriticos = response.productos.filter(p => p.stock_actual <= p.stock_minimo * 0.5).length;
-                        if(productosCriticos > 0) {
-                            $('#mensajeAlerta').html(`<strong>¡Atención!</strong> Hay ${productosCriticos} producto(s) con stock crítico. Se recomienda realizar pedido urgente.`);
-                            $('#alertaStock').removeClass('d-none').removeClass('alert-warning').addClass('alert-danger');
-                        } else {
-                            $('#alertaStock').addClass('d-none');
-                        }
-                    } else {
-                        html = `
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-success">
-                                <i class="fas fa-check-circle mr-2"></i>
-                                Todo el stock está en niveles adecuados
-                            </td>
-                        </tr>
-                        `;
-                        $('#alertaStock').addClass('d-none');
-                    }
-                    
-                    $('#cuerpoStockBajo').html(html);
-                }
-            },
-            error: function() {
-                $('#cuerpoStockBajo').html(`
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-danger">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            Error al cargar los datos de stock
-                        </td>
-                    </tr>
-                `);
-            }
-        });
-    }
-
-    function cargarVentasRecientes() {
-        $.ajax({
-            url: '{{ route("dashboard.ventas-recientes") }}',
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if(response.success && response.ventas.length > 0) {
-                    let html = '';
-                    
-                    response.ventas.forEach(function(venta) {
-                        let fecha = new Date(venta.fecha_venta);
-                        let fechaFormateada = fecha.toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        });
-                        
-                        let claseEstado = '';
-                        let iconoEstado = '';
-                        
-                        switch(venta.estado) {
-                            case 'completada':
-                                claseEstado = 'success';
-                                iconoEstado = 'fa-check-circle';
-                                break;
-                            case 'pendiente':
-                                claseEstado = 'warning';
-                                iconoEstado = 'fa-clock';
-                                break;
-                            case 'cancelada':
-                                claseEstado = 'danger';
-                                iconoEstado = 'fa-times-circle';
-                                break;
-                            default:
-                                claseEstado = 'secondary';
-                                iconoEstado = 'fa-question-circle';
-                        }
-                        
-                        html += `
-                        <tr>
-                            <td>
-                                <strong>${venta.numero_factura}</strong>
-                            </td>
-                            <td>${fechaFormateada}</td>
-                            <td>${venta.nombre_cliente || 'Cliente no registrado'}</td>
-                            <td class="text-center">
-                                <span class="badge badge-info">
-                                    ${venta.cantidad_productos || 1}
-                                </span>
-                            </td>
-                            <td>
-                                <strong>$${parseFloat(venta.total).toLocaleString('es-ES', {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                })}</strong>
-                            </td>
-                            <td>
-                                <span class="badge badge-${claseEstado}">
-                                    <i class="fas ${iconoEstado} mr-1"></i>
-                                    ${venta.estado}
-                                </span>
-                            </td>
-                            <td class="text-center">
-                                <a href="{{ route('ventas.show', '') }}/${venta.id}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        `;
-                    });
-                    
-                    $('#cuerpoVentasRecientes').html(html);
-                } else {
-                    $('#cuerpoVentasRecientes').html(`
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                <i class="fas fa-info-circle mr-2"></i>
-                                No hay ventas recientes para mostrar
-                            </td>
-                        </tr>
-                    `);
-                }
-            },
-            error: function() {
-                $('#cuerpoVentasRecientes').html(`
-                    <tr>
-                        <td colspan="7" class="text-center py-4 text-danger">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>
-                            Error al cargar las ventas recientes
-                        </td>
-                    </tr>
-                `);
-            }
-        });
-    }
-
-    function getColor(index) {
-        const colors = [
-            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
-            '#9966FF', '#FF9F40', '#8AC926', '#1982C4',
-            '#6A4C93', '#FF595E', '#1982C4', '#8AC926'
-        ];
-        return colors[index % colors.length];
     }
     
-    // Inicializar toastr para notificaciones
-    toastr.options = {
-        "closeButton": true,
-        "debug": false,
-        "newestOnTop": false,
-        "progressBar": true,
-        "positionClass": "toast-top-right",
-        "preventDuplicates": false,
-        "onclick": null,
-        "showDuration": "300",
-        "hideDuration": "1000",
-        "timeOut": "5000",
-        "extendedTimeOut": "1000",
-        "showEasing": "swing",
-        "hideEasing": "linear",
-        "showMethod": "fadeIn",
-        "hideMethod": "fadeOut"
-    };
+    $(selector).html(html);
+}
+
+// Utilidades
+function safeText(text) {
+    if (text === undefined || text === null) return '';
+    return text.toString();
+}
+
+function formatDateTime(dateString) {
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('es-ES', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return '--:--';
+    }
+}
+
+function showLoadingIndicator() {
+    // Agregar spinner sutil a los títulos
+    $('.card-title').each(function() {
+        if (!$(this).find('.fa-spinner').length) {
+            $(this).prepend('<i class="fas fa-spinner fa-spin mr-2" style="font-size: 0.8em;"></i>');
+        }
+    });
+}
+
+function hideLoadingIndicator() {
+    $('.fa-spinner').remove();
+}
+
+function showSuccessMessage(text) {
+    // Mostrar mensaje sutil
+    const message = $(`
+        <div class="alert alert-success alert-dismissible fade show position-fixed" 
+             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
+            <i class="fas fa-check-circle mr-2"></i>
+            ${text}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(message);
+    
+    setTimeout(() => {
+        message.alert('close');
+    }, 3000);
+}
+
+function showWarningMessage(text) {
+    const message = $(`
+        <div class="alert alert-warning alert-dismissible fade show position-fixed" 
+             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            ${text}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(message);
+    
+    setTimeout(() => {
+        message.alert('close');
+    }, 4000);
+}
+
+function showErrorMessage(text) {
+    const message = $(`
+        <div class="alert alert-danger alert-dismissible fade show position-fixed" 
+             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
+            <i class="fas fa-times-circle mr-2"></i>
+            ${text}
+            <button type="button" class="close" data-dismiss="alert">
+                <span>&times;</span>
+            </button>
+        </div>
+    `);
+    
+    $('body').append(message);
+    
+    setTimeout(() => {
+        message.alert('close');
+    }, 5000);
+}
+
+// Función para ver venta (placeholder)
+function viewSale(id) {
+    alert('Ver venta #' + id + ' (función por implementar)');
+}
+
+// Forzar recarga desde consola
+window.refreshDashboard = loadServerData;
     </script>
 @stop

@@ -1954,34 +1954,30 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         },
-        success: function(response) {
-            console.log('✅ Respuesta del servidor:', response);
-            
-            if (response.success) {
-                // MOSTRAR MENSAJE DE ÉXITO
-                toastr.success('Venta guardada con éxito', '¡Éxito!');
-                
-                // Actualizar stock localmente
-                carrito.forEach(function(item) {
-                    if (productos[item.id]) {
-                        productos[item.id].stock -= item.cantidad;
-                    }
-                });
-                
-                // MOSTRAR TICKET AUTOMÁTICAMENTE
-                if (response.venta_completa) {
-                    console.log('🎫 Mostrando ticket con datos del servidor');
-                    mostrarTicketAutomatico(response.venta_completa);
-                } else {
-                    console.log('🎫 Mostrando ticket con datos locales');
-                    mostrarVistaPrevia(response.numero_factura);
-                }
-                
-                // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
-                setTimeout(function() {
-                    console.log('🔄 Reiniciando formulario...');
-                    reiniciarFormularioVenta();
-                }, 1000);
+       success: function(response) {
+    console.log('✅ Respuesta del servidor:', response);
+    
+    if (response.success) {
+        // MOSTRAR MENSAJE DE ÉXITO
+        toastr.success('Venta guardada con éxito', '¡Éxito!');
+        
+        // SOLO ESTA LÍNEA NUEVA - Actualizar tabla de productos
+        actualizarTablaProductosDespuesVenta();
+        
+        // MOSTRAR TICKET AUTOMÁTICAMENTE
+        if (response.venta_completa) {
+            console.log('🎫 Mostrando ticket con datos del servidor');
+            mostrarTicketAutomatico(response.venta_completa);
+        } else {
+            console.log('🎫 Mostrando ticket con datos locales');
+            mostrarVistaPrevia(response.numero_factura);
+        }
+        
+        // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
+        setTimeout(function() {
+            console.log('🔄 Reiniciando formulario...');
+            reiniciarFormularioVenta();
+        }, 1000);
                 
             } else {
                 console.error('❌ Error en respuesta:', response);
@@ -2806,6 +2802,35 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         cargarProductosFrecuentes();
         toastr.info('Productos frecuentes actualizados');
     };
+
+    // =============================================
+// FUNCIÓN PARA ACTUALIZAR TABLA DE PRODUCTOS DESPUÉS DE VENTA
+// =============================================
+function actualizarTablaProductosDespuesVenta() {
+    console.log('🔄 Actualizando tabla de productos...');
+    
+    // Obtener la categoría activa actual
+    const categoriaActual = $('#filtrosCategoria .btn-primary').data('categoria') || 'todas';
+    
+    // Si hay productos en el carrito que vendimos, actualizar sus stocks localmente
+    if (carrito.length > 0) {
+        carrito.forEach(function(item) {
+            if (productos[item.id]) {
+                // Actualizar stock localmente restando lo vendido
+                productos[item.id].stock = Math.max(0, productos[item.id].stock - item.cantidad);
+            }
+        });
+    }
+    
+    // Volver a mostrar los productos con la categoría actual
+    if (categoriaActual === 'todas') {
+        mostrarTodosLosProductos();
+    } else {
+        filtrarProductosPorCategoria(categoriaActual);
+    }
+    
+    console.log('✅ Tabla de productos actualizada');
+}
     
 })(jQuery);
 </script>

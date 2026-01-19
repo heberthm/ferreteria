@@ -59,15 +59,15 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
  Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // Rutas API del dashboard - SIN el prefijo 'api/'
-    Route::prefix('dashboard')->name('dashboard.')->group(function () {
-        Route::get('/estadisticas', [DashboardController::class, 'getEstadisticas'])->name('estadisticas');
-        Route::get('/productos-vendidos', [DashboardController::class, 'getProductosVendidos'])->name('productos-vendidos');
-        Route::get('/stock-bajo', [DashboardController::class, 'getStockBajo'])->name('stock-bajo');
-        Route::get('/ventas-recientes', [DashboardController::class, 'getVentasRecientes'])->name('ventas-recientes');
-    });
+   Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // API para datos del dashboard
+    Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');
+    Route::get('/dashboard/check-updates', [DashboardController::class, 'checkForUpdates'])->name('dashboard.check-updates');
 
-
+       
+    // Verificación liviana de cambios
+    Route::get('/dashboard/check-updates', [DashboardController::class, 'checkUpdates'])->name('dashboard.check-updates');
 
 
 // ======================================================
@@ -109,7 +109,7 @@ Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController
 
 Route::get('/obtener-categorias', [App\Http\Controllers\ProductoController::class, 'obtenerCategorias'])->name('categorias.obtener');
 Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('productos.por-categoria');
-Route::get('/buscar-productos', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-productos');
+//Route::get('/buscar-producto', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-producto');
 Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
 Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
 Route::get('/productos-frecuentes', [App\Http\Controllers\ProductoController::class, 'productosFrecuentes'])->name('productos.frecuentes');

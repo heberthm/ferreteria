@@ -161,24 +161,33 @@ class PuntoVentaController extends Controller
     /**
      * Generar número de factura automático
      */
-   private function generarNumeroFacturaAutomatico()
-    {
-        // Buscar la última venta del día actual
-        $fechaHoy = Carbon::today()->format('Y-m-d');
-        
-        $ultimaVenta = Venta::whereDate('created_at', $fechaHoy)
-            ->orderBy('id_venta', 'desc')
+  private function generarNumeroFactura()
+{
+    try {
+        // Intentar obtener el último número de factura
+        $ultimaFactura = DB::table('ventas')
+            ->select('numero_factura')
+            ->where('numero_factura', 'LIKE', 'F-%')
+            ->orderByRaw('CAST(SUBSTRING(numero_factura, 3) AS UNSIGNED) DESC')
             ->first();
         
-        if ($ultimaVenta && preg_match('/F-(\d+)/', $ultimaVenta->numero_factura, $matches)) {
-            $ultimoNumero = (int) $matches[1];
-            $nuevoNumero = $ultimoNumero + 1;
+        if ($ultimaFactura) {
+            // Extraer solo la parte numérica
+            $partes = explode('-', $ultimaFactura->numero_factura);
+            $ultimoNumero = end($partes);
+            $nuevoNumero = (int) $ultimoNumero + 1;
         } else {
             $nuevoNumero = 1;
         }
         
+        // Formatear con ceros a la izquierda
         return 'F-' . str_pad($nuevoNumero, 5, '0', STR_PAD_LEFT);
+        
+    } catch (\Exception $e) {
+        // Si hay error, generar número basado en timestamp
+        return 'F-' . date('Ymd') . '-' . rand(100, 999);
     }
+}
     
     /**
      * Procesar venta (VERSIÓN COMPLETA Y CORREGIDA)
@@ -231,7 +240,7 @@ public function procesarVenta(Request $request)
         }
         
         // 2. GENERAR NÚMERO DE FACTURA
-        $numeroFactura = $this->generarNumeroFacturaAutomatico();
+        $numeroFactura = $this->generarNumeroFactura();
         
         // 3. PREPARAR DATOS DE PRODUCTOS PARA JSON
         $productosJson = [];
