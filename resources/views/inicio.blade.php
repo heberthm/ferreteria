@@ -1,9 +1,9 @@
-@extends('adminlte::page')
+@extends('layouts.app')
 
-@section('title', 'Dashboard POS')
+@section('title', 'Ferreteria')
 
 @section('content_header')
-    <h1 class="m-0 text-dark">Dashboard - Sistema POS</h1>
+    <h1 class="m-0 text-dark">Datos de ventas</h1>
 @stop
 
 @section('content')
@@ -185,6 +185,38 @@
     animation: countUp 0.5s ease-out;
 }
 
+/* Estilos para el dashboard */
+.number {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+.subtle-notification {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 0.9;
+    }
+}
+
+/* Estilo para las tarjetas cuando se actualizan */
+.card-updating {
+    animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
     </style>
 
     <div class="container-fluid">
@@ -211,7 +243,7 @@
                 <div class="card card-dashboard success">
                     <div class="card-body d-flex justify-content-between align-items-center p-3">
                         <div>
-                            <h6 class="card-subtitle">Ingresos Totales</h6>
+                            <h6 class="card-subtitle">Ingresos Totales hoy</h6>
                             <h3 class="card-title" id="ingresosTotales">
                                 <span class="loader"></span>
                             </h3>
@@ -318,7 +350,7 @@
                                 <thead class="thead-light">
                                     <tr>
                                         <th style="width: 30%;">Producto</th>
-                                        <th style="width: 20%;">Categoría</th>
+                                        <th style="width: 20%;">Código</th>
                                         <th style="width: 15%;">Stock</th>
                                         <th style="width: 20%;">Mínimo</th>
                                         <th style="width: 15%;">Estado</th>
@@ -403,365 +435,348 @@
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>// dashboard-fixed.js
+    <script>// ============================================
+// DASHBOARD POS - SISTEMA DE ACTUALIZACIÓN
+// ============================================
+
+let dashboardInterval = null;
+let ultimaActualizacion = null;
+let periodoActual = 'mes';
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
 $(document).ready(function() {
-    console.log('Dashboard iniciado');
+    console.log('🚀 Iniciando Dashboard POS');
     
-    // Primero cargar datos locales inmediatamente
-    loadLocalData();
+    // Cargar datos inmediatamente
+    cargarDatosDashboard();
     
-    // Luego intentar cargar datos del servidor
-    setTimeout(loadServerData, 1000);
+    // Configurar actualización automática cada 30 segundos
+    dashboardInterval = setInterval(cargarDatosDashboard, 30000);
     
-    // Configurar actualización periódica
-    setInterval(loadServerData, 30000); // Cada 30 segundos
+    // Event listeners
+    $('#filtroPeriodo').on('change', function() {
+        periodoActual = $(this).val();
+        console.log('📊 Cambiando período a:', periodoActual);
+        cargarDatosDashboard();
+    });
+    
+    console.log('✅ Dashboard inicializado');
 });
 
-function loadLocalData() {
-    console.log('Cargando datos locales...');
+// ============================================
+// FUNCIÓN PRINCIPAL DE CARGA
+// ============================================
+function cargarDatosDashboard() {
+    const url = '/dashboard/data';
     
-    // Datos locales de respaldo
-    const localData = {
-        estadisticas: {
-            total_ventas_hoy: 0,
-            ingresos_totales: 0,
-            promedio_venta: 0,
-            alertas_stock: 0
-        },
-        productos_vendidos: [
-            {nombre: 'Esperando datos...', codigo: '', cantidad_vendida: 0, total_vendido: 0}
-        ],
-        stock_bajo: [
-            {nombre: 'Esperando datos...', categoria: 'General', stock_actual: 0, stock_minimo: 5}
-        ],
-        ventas_recientes: [
-            {numero_factura: 'Cargando...', fecha_venta: new Date(), total: 0, nombre_cliente: '...', estado: '...'}
-        ]
-    };
-    
-    updateUI(localData);
-}
-
-function loadServerData() {
-    console.log('Intentando cargar datos del servidor...');
-    
-    // Mostrar indicador de carga
-    showLoadingIndicator();
+    console.log('🔄 Cargando datos del dashboard...');
     
     $.ajax({
-        url: '/api/dashboard/data', // Ruta CORREGIDA
-        type: 'GET',
-        dataType: 'json',
-        timeout: 5000, // 5 segundos máximo
+        url: url,
+        method: 'GET',
+        data: { periodo: periodoActual },
         success: function(response) {
-            console.log('Datos recibidos del servidor:', response);
+            console.log('✅ Datos recibidos:', response);
             
-            if (response.success && response.data) {
-                updateUI(response.data);
-                hideLoadingIndicator();
-                showSuccessMessage('Datos actualizados');
+            if (response.success) {
+                actualizarEstadisticas(response.data.estadisticas);
+                actualizarProductosVendidos(response.data.productos_vendidos);
+                actualizarStockBajo(response.data.stock_bajo);
+                actualizarVentasRecientes(response.data.ventas_recientes);
+                actualizarTimestamps();
+                
+                ultimaActualizacion = new Date();
+                console.log('✨ Dashboard actualizado correctamente');
             } else {
-                console.warn('Respuesta no válida:', response);
-                showWarningMessage('Formato de datos incorrecto');
+                console.error('❌ Error en respuesta:', response.message);
+                mostrarError('No se pudieron cargar los datos');
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error al cargar datos:', status, error);
-            
-            if (status === 'timeout') {
-                showErrorMessage('El servidor tardó en responder');
-            } else if (xhr.status === 404) {
-                showErrorMessage('Ruta no encontrada');
-                // Intentar con ruta alternativa
-                tryAlternativeRoute();
-            } else if (xhr.status === 500) {
-                showErrorMessage('Error del servidor');
-            } else {
-                showErrorMessage('Error de conexión: ' + error);
-            }
-            
-            hideLoadingIndicator();
+            console.error('❌ Error AJAX:', {xhr, status, error});
+            mostrarError('Error de conexión con el servidor');
         }
     });
 }
 
-function tryAlternativeRoute() {
-    console.log('Intentando ruta alternativa...');
-    
-    // Intentar diferentes rutas posibles
-    const routes = [
-        '/dashboard/data',
-        '/admin/dashboard/data',
-        '/data/dashboard'
-    ];
-    
-    let tried = 0;
-    
-    routes.forEach(route => {
-        $.ajax({
-            url: route,
-            type: 'GET',
-            timeout: 3000,
-            success: function(response) {
-                if (response.success && response.data) {
-                    console.log('Éxito con ruta:', route);
-                    updateUI(response.data);
-                    showSuccessMessage('Conectado usando ruta alternativa');
-                }
-            }
-        });
-    });
-}
-
-function updateUI(data) {
-    console.log('Actualizando interfaz con:', data);
-    
-    // 1. Actualizar cards
-    updateCards(data.estadisticas);
-    
-    // 2. Actualizar tablas
-    updateTable('#cuerpoProductosVendidos', data.productos_vendidos, 'producto');
-    updateTable('#cuerpoStockBajo', data.stock_bajo, 'stock');
-    updateTable('#cuerpoVentasRecientes', data.ventas_recientes, 'venta');
-}
-
-function updateCards(stats) {
+// ============================================
+// ACTUALIZAR ESTADÍSTICAS PRINCIPALES
+// ============================================
+function actualizarEstadisticas(stats) {
     // Total ventas hoy
-    $('#totalVentasHoy').html(stats?.total_ventas_hoy !== undefined ? 
-        '<span class="number">' + stats.total_ventas_hoy + '</span>' : 
-        '<span class="text-muted">0</span>');
+    $('#totalVentasHoy').html(stats.ventas_hoy || 0);
+    $('#comparativaVentas').text(`${stats.ventas_hoy || 0} ventas realizadas`);
     
     // Ingresos totales
-    $('#ingresosTotales').html(stats?.ingresos_totales !== undefined ? 
-        '<span class="number">$' + parseFloat(stats.ingresos_totales).toFixed(2) + '</span>' : 
-        '<span class="text-muted">$0.00</span>');
+    const ingresos = parseFloat(stats.ingresos_hoy || 0);
+    $('#ingresosTotales').html(formatearMoneda(ingresos));
+    $('#tendenciaIngresos').text(`Total acumulado del día`);
     
     // Promedio por venta
-    $('#promedioVenta').html(stats?.promedio_venta !== undefined ? 
-        '<span class="number">$' + parseFloat(stats.promedio_venta).toFixed(2) + '</span>' : 
-        '<span class="text-muted">$0.00</span>');
+    const promedio = parseFloat(stats.promedio_venta || 0);
+    $('#promedioVenta').html(formatearMoneda(promedio));
     
-    // Alertas stock
-    $('#alertasStock').html(stats?.alertas_stock !== undefined ? 
-        '<span class="number">' + stats.alertas_stock + '</span>' : 
-        '<span class="text-muted">0</span>');
+    // Stock bajo
+    const stockBajo = parseInt(stats.productos_stock_bajo || 0);
+    $('#alertasStock').html(stockBajo);
     
-    // Actualizar texto descriptivo
-    if (stats?.alertas_stock > 0) {
-        $('#productosBajoStock').html('<span class="text-danger">' + stats.alertas_stock + ' productos críticos</span>');
+    if (stockBajo > 0) {
+        $('#productosBajoStock').html(`${stockBajo} producto${stockBajo !== 1 ? 's' : ''} requiere${stockBajo !== 1 ? 'n' : ''} atención`);
+        $('#alertasStock').closest('.card-dashboard').addClass('stock-bajo');
     } else {
-        $('#productosBajoStock').html('<span class="text-success">Stock óptimo</span>');
+        $('#productosBajoStock').html('Todos los productos OK');
+        $('#alertasStock').closest('.card-dashboard').removeClass('stock-bajo');
     }
+    
+    console.log('📊 Estadísticas actualizadas');
 }
 
-function updateTable(selector, data, type) {
+// ============================================
+// ACTUALIZAR PRODUCTOS MÁS VENDIDOS
+// ============================================
+function actualizarProductosVendidos(productos) {
     let html = '';
     
-    if (!data || data.length === 0) {
-        // Mensaje cuando no hay datos
-        const messages = {
-            'producto': 'No hay productos vendidos',
-            'stock': 'Todo el stock está en niveles adecuados',
-            'venta': 'No hay ventas recientes'
-        };
-        
-        const icons = {
-            'producto': 'fa-chart-line',
-            'stock': 'fa-check-circle',
-            'venta': 'fa-receipt'
-        };
-        
-        const colors = {
-            'producto': 'muted',
-            'stock': 'success',
-            'venta': 'muted'
-        };
-        
+    if (!productos || productos.length === 0) {
         html = `
-        <tr>
-            <td colspan="6" class="text-center py-4 text-${colors[type]}">
-                <i class="fas ${icons[type]} fa-2x mb-3"></i>
-                <div class="font-weight-bold">${messages[type]}</div>
-            </td>
-        </tr>
+            <tr>
+                <td colspan="4" class="text-center py-4">
+                    <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                    <div class="text-muted">No hay ventas en este período</div>
+                </td>
+            </tr>
         `;
     } else {
-        // Generar filas con datos
-        data.forEach((item, index) => {
-            if (type === 'producto') {
-                html += `
+        productos.forEach((producto, index) => {
+            const porcentaje = parseFloat(producto.porcentaje || 0).toFixed(1);
+            const cantidad = parseInt(producto.total_cantidad || 0);
+            const total = parseFloat(producto.total_vendido || 0);
+            
+            html += `
                 <tr>
                     <td>
-                        <div class="font-weight-bold">${safeText(item.nombre)}</div>
-                        <small class="text-muted">${safeText(item.codigo)}</small>
+                        <div class="d-flex align-items-center">
+                            <span class="badge badge-primary mr-2">${index + 1}</span>
+                            <div>
+                                <div class="font-weight-bold">${escapeHtml(producto.nombre)}</div>
+                                <small class="text-muted">${escapeHtml(producto.codigo)}</small>
+                            </div>
+                        </div>
                     </td>
-                    <td class="text-center">
-                        <span class="badge badge-primary">${item.cantidad_vendida || 0}</span>
-                    </td>
-                    <td class="text-right">
-                        $${(item.total_vendido || 0).toFixed(2)}
-                    </td>
+                    <td class="text-center font-weight-bold">${cantidad}</td>
+                    <td class="text-right">${formatearMoneda(total)}</td>
                     <td>
-                        <div class="progress" style="height: 6px;">
-                            <div class="progress-bar" style="width: ${Math.min((index + 1) * 20, 100)}%"></div>
+                        <div class="progress" style="height: 20px;">
+                            <div class="progress-bar bg-success" role="progressbar" 
+                                 style="width: ${porcentaje}%" 
+                                 aria-valuenow="${porcentaje}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                ${porcentaje}%
+                            </div>
                         </div>
                     </td>
                 </tr>
-                `;
-            } else if (type === 'stock') {
-                const esBajo = (item.stock_actual || 0) <= (item.stock_minimo || 5);
-                const esCritico = (item.stock_actual || 0) <= 2;
-                
-                html += `
-                <tr>
+            `;
+        });
+    }
+    
+    $('#cuerpoProductosVendidos').html(html);
+    console.log('📦 Productos vendidos actualizados');
+}
+
+// ============================================
+// ACTUALIZAR STOCK BAJO
+// ============================================
+function actualizarStockBajo(stockItems) {
+    let html = '';
+    
+    if (!stockItems || stockItems.length === 0) {
+        html = `
+            <tr>
+                <td colspan="5" class="text-center py-4">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <div class="text-success font-weight-bold">Todo el stock está en niveles adecuados</div>
+                </td>
+            </tr>
+        `;
+        $('#alertaStock').addClass('d-none');
+    } else {
+        stockItems.forEach((item) => {
+            const stock = parseInt(item.stock_actual || 0);
+            const minimo = parseInt(item.stock_minimo || 5);
+            const esCritico = stock <= 2;
+            const estadoBadge = esCritico ? 'danger' : 'warning';
+            
+            html += `
+                <tr class="${esCritico ? 'table-danger' : 'table-warning'}">
                     <td>
-                        <div class="font-weight-bold">${safeText(item.nombre)}</div>
-                        <small class="text-muted">${safeText(item.codigo)}</small>
+                        <div class="font-weight-bold">${escapeHtml(item.nombre)}</div>
                     </td>
                     <td>
-                        <span class="badge badge-light">${safeText(item.categoria)}</span>
+                        <small class="text-muted">${escapeHtml(item.codigo)}</small>
                     </td>
-                    <td class="text-center ${esCritico ? 'text-danger font-weight-bold' : esBajo ? 'text-warning' : ''}">
-                        ${item.stock_actual || 0}
+                    <td class="text-center">
+                        <span class="badge badge-${estadoBadge} font-weight-bold">${stock}</span>
                     </td>
-                    <td class="text-center">${item.stock_minimo || 5}</td>
+                    <td class="text-center">${minimo}</td>
                     <td>
-                        <span class="badge badge-${esCritico ? 'danger' : esBajo ? 'warning' : 'success'}">
-                            ${esCritico ? 'CRÍTICO' : esBajo ? 'BAJO' : 'OK'}
+                        <span class="badge badge-${estadoBadge}">
+                            <i class="fas fa-exclamation-triangle mr-1"></i>
+                            ${item.estado}
                         </span>
                     </td>
                 </tr>
-                `;
-            } else if (type === 'venta') {
-                const fecha = item.fecha_venta ? 
-                    formatDateTime(item.fecha_venta) : 
-                    '--:--';
-                
-                html += `
+            `;
+        });
+        
+        // Mostrar alerta
+        $('#mensajeAlerta').text(`${stockItems.length} producto${stockItems.length !== 1 ? 's necesitan' : ' necesita'} reabastecimiento`);
+        $('#alertaStock').removeClass('d-none');
+    }
+    
+    $('#cuerpoStockBajo').html(html);
+    console.log('📉 Stock bajo actualizado');
+}
+
+// ============================================
+// ACTUALIZAR VENTAS RECIENTES
+// ============================================
+function actualizarVentasRecientes(ventas) {
+    let html = '';
+    
+    if (!ventas || ventas.length === 0) {
+        html = `
+            <tr>
+                <td colspan="7" class="text-center py-4">
+                    <i class="fas fa-receipt fa-2x text-muted mb-2"></i>
+                    <div class="text-muted">No hay ventas recientes</div>
+                </td>
+            </tr>
+        `;
+    } else {
+        ventas.forEach((venta) => {
+            const estadoBadge = obtenerBadgeEstado(venta.estado);
+            const fecha = new Date(venta.fecha_venta);
+            const fechaFormateada = formatearFecha(fecha);
+            
+            html += `
                 <tr>
                     <td>
-                        <div class="font-weight-bold">${safeText(item.numero_factura)}</div>
-                        <small class="text-muted">${fecha}</small>
-                    </td>
-                    <td>${safeText(item.nombre_cliente)}</td>
-                    <td class="text-center">
-                        <span class="badge badge-info">${item.cantidad_productos || 1}</span>
-                    </td>
-                    <td class="text-right font-weight-bold">
-                        $${(item.total || 0).toFixed(2)}
+                        <span class="badge badge-info">${escapeHtml(venta.numero_factura)}</span>
                     </td>
                     <td>
-                        <span class="badge badge-success">${safeText(item.estado)}</span>
+                        <small>${fechaFormateada}</small>
+                    </td>
+                    <td>${escapeHtml(venta.cliente)}</td>
+                    <td class="text-center">
+                        <span class="badge badge-secondary">${venta.total_productos}</span>
+                    </td>
+                    <td class="text-right font-weight-bold">${formatearMoneda(venta.total)}</td>
+                    <td>
+                        <span class="badge badge-${estadoBadge.class}">
+                            <i class="fas ${estadoBadge.icon} mr-1"></i>
+                            ${estadoBadge.text}
+                        </span>
                     </td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewSale(${item.id || 0})">
+                        <a href="/ventas/${venta.id}" class="btn btn-sm btn-outline-primary" title="Ver detalle">
                             <i class="fas fa-eye"></i>
-                        </button>
+                        </a>
                     </td>
                 </tr>
-                `;
-            }
+            `;
         });
     }
     
-    $(selector).html(html);
+    $('#cuerpoVentasRecientes').html(html);
+    console.log('🧾 Ventas recientes actualizadas');
 }
 
-// Utilidades
-function safeText(text) {
-    if (text === undefined || text === null) return '';
-    return text.toString();
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
+function actualizarTimestamps() {
+    const ahora = new Date();
+    const horaFormateada = ahora.toLocaleTimeString('es-CO', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
+    
+    $('#fechaUltimaActualizacion').text(horaFormateada);
+    $('#fechaActualizacionProductos').text(horaFormateada);
 }
 
-function formatDateTime(dateString) {
-    try {
-        const date = new Date(dateString);
-        return date.toLocaleTimeString('es-ES', {
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    } catch (e) {
-        return '--:--';
-    }
+function formatearMoneda(valor) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(valor || 0);
 }
 
-function showLoadingIndicator() {
-    // Agregar spinner sutil a los títulos
-    $('.card-title').each(function() {
-        if (!$(this).find('.fa-spinner').length) {
-            $(this).prepend('<i class="fas fa-spinner fa-spin mr-2" style="font-size: 0.8em;"></i>');
-        }
+function formatearFecha(fecha) {
+    return fecha.toLocaleDateString('es-CO', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
     });
 }
 
-function hideLoadingIndicator() {
-    $('.fa-spinner').remove();
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
-function showSuccessMessage(text) {
-    // Mostrar mensaje sutil
-    const message = $(`
-        <div class="alert alert-success alert-dismissible fade show position-fixed" 
-             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
-            <i class="fas fa-check-circle mr-2"></i>
-            ${text}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-    `);
+function obtenerBadgeEstado(estado) {
+    const estados = {
+        'completada': { class: 'success', icon: 'fa-check-circle', text: 'Completada' },
+        'pendiente': { class: 'warning', icon: 'fa-clock', text: 'Pendiente' },
+        'cancelada': { class: 'danger', icon: 'fa-times-circle', text: 'Cancelada' }
+    };
     
-    $('body').append(message);
-    
-    setTimeout(() => {
-        message.alert('close');
-    }, 3000);
+    return estados[estado] || { class: 'secondary', icon: 'fa-question-circle', text: estado };
 }
 
-function showWarningMessage(text) {
-    const message = $(`
-        <div class="alert alert-warning alert-dismissible fade show position-fixed" 
-             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
-            <i class="fas fa-exclamation-triangle mr-2"></i>
-            ${text}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-    `);
-    
-    $('body').append(message);
-    
-    setTimeout(() => {
-        message.alert('close');
-    }, 4000);
+function mostrarError(mensaje) {
+    console.error('❌', mensaje);
+    // Podrías agregar un toast o notificación aquí
 }
 
-function showErrorMessage(text) {
-    const message = $(`
-        <div class="alert alert-danger alert-dismissible fade show position-fixed" 
-             style="bottom: 20px; right: 20px; z-index: 9999; max-width: 300px;">
-            <i class="fas fa-times-circle mr-2"></i>
-            ${text}
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
-        </div>
-    `);
-    
-    $('body').append(message);
-    
-    setTimeout(() => {
-        message.alert('close');
-    }, 5000);
-}
+// ============================================
+// FUNCIONES PÚBLICAS
+// ============================================
 
-// Función para ver venta (placeholder)
-function viewSale(id) {
-    alert('Ver venta #' + id + ' (función por implementar)');
-}
+// Función para actualizar manualmente
+window.actualizarDashboard = function() {
+    console.log('🔄 Actualización manual solicitada');
+    cargarDatosDashboard();
+};
 
-// Forzar recarga desde consola
-window.refreshDashboard = loadServerData;
+// Función para debug
+window.debugDashboard = function() {
+    console.log('🔍 Estado del Dashboard:', {
+        periodoActual,
+        ultimaActualizacion,
+        intervaloActivo: !!dashboardInterval
+    });
+};
+
+// Limpiar intervalo al salir
+$(window).on('beforeunload', function() {
+    if (dashboardInterval) {
+        clearInterval(dashboardInterval);
+        console.log('🛑 Intervalo de actualización detenido');
+    }
+});
     </script>
 @stop

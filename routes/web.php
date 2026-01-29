@@ -56,14 +56,16 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
 // ======================================================
 
+ 
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');
 
- Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-   Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    // API para datos del dashboard
-    Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');
-    Route::get('/dashboard/check-updates', [DashboardController::class, 'checkForUpdates'])->name('dashboard.check-updates');
+
+
+
+
+
+
 
        
     // Verificación liviana de cambios
@@ -112,8 +114,7 @@ Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'p
 //Route::get('/buscar-producto', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-producto');
 Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
 Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
-Route::get('/productos-frecuentes', [App\Http\Controllers\ProductoController::class, 'productosFrecuentes'])->name('productos.frecuentes');
-
+Route::get('/productos/frecuentes', [App\Http\Controllers\PuntoVentaController::class, 'productosFrecuentes'])->name('producto/frecuentes');
 
 
 

@@ -6,7 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1><i class="fas fa-cash-register"></i> Punto de Venta</h1>
         <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-outline-secondary btn-sm" id="btnAtajos">
+            <button id="btnAtajos" class="btn bg-ligth">
                 <i class="fas fa-keyboard"></i> Atajos (F1)
             </button>
             <span class="badge bg-info text-lg">Factura # <span id="numeroFactura">F-00001</span></span>
@@ -18,49 +18,7 @@
 <div class="row">
     <!-- COLUMNA IZQUIERDA: Búsqueda y Productos -->
     <div class="col-lg-7">
-        <!-- Dashboard Rápido -->
-        <div class="row mb-3" id="dashboardRapido">
-            <div class="col-md-3">
-                <div class="small-box bg-primary" style="cursor: pointer;" onclick="iniciarVentaRapida()">
-                    <div class="inner p-2 text-center">
-                       
-                            <i class="fas fa-bolt"></i>
-                       
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Venta Rápida</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-success" style="cursor: pointer;" onclick="activarBusquedaRapida()">
-                    <div class="inner p-2 text-center">
-                      
-                            <i class="fas fa-search"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Buscar</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-warning" style="cursor: pointer;" onclick="mostrarProductosFrecuentes()">
-                    <div class="inner p-2 text-center">
-                      
-                            <i class="fas fa-star"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Frecuentes</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-info" style="cursor: pointer;" onclick="mostrarMetricas()">
-                    <div class="inner p-2 text-center">
-                       
-                            <i class="fas fa-chart-bar"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Métricas</h6>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- Información del Cliente -->
         <div class="card card-primary card-outline">
@@ -172,29 +130,9 @@
 
     <!-- COLUMNA DERECHA: Carrito y Totales -->
     <div class="col-lg-5">
-        <!-- Métricas en Tiempo Real -->
-        <div class="row mb-3" id="metricasTiempoReal">
-            <div class="col-6">
-                <div class="info-box bg-light">
-                    <span class="info-box-icon bg-success"><i class="fas fa-shopping-cart"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Venta Actual</span>
-                        <span class="info-box-number" id="metricVentaActual">$0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="info-box bg-light">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-cubes"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Productos</span>
-                        <span class="info-box-number" id="metricTotalProductos">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
 
-       <!-- Carrito de Compras - CORREGIDO: Misma altura que cliente -->
+       <!-- Carrito de Compras -->
 <div class="card card-warning card-outline card-carrito-contenedor">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito</h3>
@@ -385,7 +323,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title"><i class="fas fa-keyboard"></i> Atajos de Teclado</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-bs-dismiss="modal"">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -423,7 +361,7 @@
                 <h5 class="modal-title">
                     <i class="fas fa-camera"></i> Escanear Código
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -443,7 +381,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="button" class="btn btn-primary" id="btnProcesarCodigo">
@@ -460,7 +398,7 @@
         <div class="modal-content">
             <div class="modal-header bg-success">
                 <h5 class="modal-title"><i class="fas fa-user-plus"></i> Nuevo Cliente</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
                 
@@ -544,7 +482,7 @@
                 <h5 class="modal-title">
                     <i class="fas fa-receipt mr-2"></i> Comprobante de Venta
                 </h5>
-                <button type="button" class="close text-white" data-dismiss="modal">
+                <button type="button" class="close text-white" data-bs-dismiss="modal">
                     <span>&times;</span>
                 </button>
             </div>
@@ -1822,65 +1760,747 @@
         $('#montoEfectivoMixto, #montoTarjetaMixto').on('input', calcularTotalMixto);
     }
 
-    function cargarProductosFrecuentes() {
-        $.ajax({
-            url: '{{ route("productos.frecuentes") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response.success && response.productos) {
-                    mostrarProductosFrecuentes(response.productos);
-                }
-            },
-            error: function(xhr) {
-                console.error('Error al cargar productos frecuentes:', xhr);
-            }
-        });
-    }
+ 
 
-    function mostrarProductosFrecuentes(productosFrecuentes) {
-        const contenedor = $('#productosFrecuentes');
-        contenedor.empty();
-        
-        if (productosFrecuentes.length === 0) {
-            contenedor.html('<p class="text-muted text-center">No hay productos frecuentes</p>');
-            return;
+
+// =============================================
+// FUNCIÓN MEJORADA CON DIAGNÓSTICO
+// =============================================
+
+function cargarProductosFrecuentes() {
+    console.log('⭐ Cargando productos frecuentes...');
+    
+    const url = window.location.origin + '/productos/frecuentes';
+    const debugUrl = window.location.origin + '/verificar-bd';
+    
+    console.log(`🔗 URL productos: ${url}`);
+    console.log(`🔗 URL debug: ${debugUrl}`);
+    
+    // Primero verificar el estado de la BD
+    fetch(debugUrl)
+        .then(response => response.json())
+        .then(debugData => {
+            console.log('📊 Estado de la BD:', debugData);
+            
+            if (debugData.success && debugData.estadisticas) {
+                const stats = debugData.estadisticas;
+                console.log(`📈 Estadísticas: ${stats.total_productos} productos totales, ${stats.productos_con_stock} con stock, ${stats.ventas_completadas} ventas`);
+                
+                // Mostrar estadísticas en UI
+                mostrarEstadisticasBD(stats);
+                
+                // Si no hay productos en absoluto
+                if (stats.total_productos === 0) {
+                    mostrarErrorBaseDatosVacia();
+                    return;
+                }
+            }
+            
+            // Ahora cargar productos frecuentes
+            cargarProductosDesdeAPI(url);
+        })
+        .catch(error => {
+            console.error('❌ Error al verificar BD:', error);
+            // Continuar intentando cargar productos de todas formas
+            cargarProductosDesdeAPI(url);
+        });
+}
+
+function cargarProductosDesdeAPI(url) {
+    console.log(`📥 Cargando desde API: ${url}`);
+    
+    const contenedor = $('#productosFrecuentes');
+    
+    // Mostrar loading específico
+    contenedor.html(`
+        <div class="col-12 text-center py-4">
+            <div class="spinner-border text-warning" role="status">
+                <span class="sr-only">Cargando...</span>
+            </div>
+            <p class="mt-2 text-muted">Consultando base de datos...</p>
+            <small class="text-info" id="contadorTiempo">Esperando respuesta...</small>
+        </div>
+    `);
+    
+    // Contador de tiempo
+    let tiempoInicio = Date.now();
+    let intervalo = setInterval(() => {
+        let segundos = Math.floor((Date.now() - tiempoInicio) / 1000);
+        $('#contadorTiempo').text(`Esperando... ${segundos}s`);
+    }, 1000);
+    
+    $.ajax({
+        url: url,
+        method: 'GET',
+        dataType: 'json',
+        timeout: 20000,
+        success: function(response) {
+            clearInterval(intervalo);
+            console.log('✅ Respuesta completa:', response);
+            
+            if (response && response.success) {
+                if (response.productos && response.productos.length > 0) {
+                    console.log(`📦 ${response.productos.length} productos cargados`);
+                    mostrarProductosFrecuentesUI(response.productos, response.message);
+                } else {
+                    console.warn('⚠️ Respuesta exitosa pero sin productos');
+                    mostrarSinProductosConOpciones(response.message);
+                }
+            } else {
+                console.error('❌ Respuesta sin éxito:', response);
+                mostrarErrorAPI(response);
+            }
+        },
+        error: function(xhr, status, error) {
+            clearInterval(intervalo);
+            console.error('❌ Error en AJAX:', {status, error, xhr});
+            mostrarErrorConexionCompleto(xhr, url);
         }
-        
-        productosFrecuentes.forEach(function(producto) {
-            const card = `
-                <div class="col-6 col-md-4 mb-3">
-                    <div class="producto-card" onclick="window.agregarProductoFrecuente(${producto.id})">
-                        <div class="text-center">
-                            <i class="fas fa-star text-warning mb-2"></i>
-                            <h6 class="mb-1">${producto.nombre}</h6>
-                            <small class="text-muted d-block">${producto.codigo}</small>
-                            <span class="badge badge-success">${formatoDinero(producto.precio)}</span>
-                            <small class="d-block mt-1">Stock: ${producto.stock}</small>
+    });
+}
+
+// =============================================
+// FUNCIONES DE UI MEJORADAS
+// =============================================
+
+function mostrarEstadisticasBD(stats) {
+    // Opcional: mostrar estadísticas en algún lugar de la UI
+    $('#estadisticasBD').remove();
+    
+    const html = `
+        <div id="estadisticasBD" class="alert alert-light border mb-3">
+            <div class="row text-center">
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="text-primary">
+                        <i class="fas fa-box fa-2x"></i>
+                        <div class="mt-1">
+                            <strong>${stats.total_productos}</strong>
+                            <div class="small">Productos</div>
                         </div>
                     </div>
                 </div>
-            `;
-            contenedor.append(card);
-        });
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="text-success">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                        <div class="mt-1">
+                            <strong>${stats.productos_activos}</strong>
+                            <div class="small">Activos</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="text-warning">
+                        <i class="fas fa-layer-group fa-2x"></i>
+                        <div class="mt-1">
+                            <strong>${stats.productos_con_stock}</strong>
+                            <div class="small">Con stock</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 mb-2">
+                    <div class="text-info">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                        <div class="mt-1">
+                            <strong>${stats.ventas_completadas}</strong>
+                            <div class="small">Ventas</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('#productosFrecuentes').before(html);
+}
+
+function mostrarProductosFrecuentesUI(productosArray, mensaje = '') {
+    const contenedor = $('#productosFrecuentes');
+    contenedor.empty();
+    
+    if (!productosArray || productosArray.length === 0) {
+        mostrarSinProductosConOpciones(mensaje);
+        return;
     }
+    
+    // Mostrar mensaje de origen
+    if (mensaje) {
+        contenedor.append(`
+            <div class="col-12 mb-3">
+                <div class="alert alert-info py-2">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    ${mensaje}
+                </div>
+            </div>
+        `);
+    }
+    
+    // Mostrar encabezado
+    contenedor.append(`
+        <div class="col-12 mb-3">
+            <h5 class="border-bottom pb-2">
+                <i class="fas fa-star text-warning mr-2"></i>
+                Productos Disponibles
+                <span class="badge badge-warning ml-2">${productosArray.length}</span>
+            </h5>
+        </div>
+    `);
+    
+    // Mostrar productos
+    productosArray.forEach((producto) => {
+        const cardHtml = crearCardProductoConTipo(producto);
+        contenedor.append(cardHtml);
+    });
+    
+    // Mostrar pie con opciones
+    contenedor.append(`
+        <div class="col-12 mt-4">
+            <div class="card bg-light">
+                <div class="card-body text-center py-3">
+                    
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+function crearCardProductoConTipo(producto) {
+    const id = producto.id || producto.id_producto;
+    const nombre = producto.nombre || 'Sin nombre';
+    const codigo = producto.codigo || 'N/A';
+    const precio = parseFloat(producto.precio) || 0;
+    const stock = parseInt(producto.stock) || 0;
+    const categoria = producto.categoria || 'General';
+    const tipo = producto.tipo || 'general';
+    const totalVendido = producto.total_vendido || 0;
+    
+    // Determinar badge según tipo
+    let tipoBadge = 'badge-secondary';
+    let tipoTexto = 'General';
+    let tipoIcono = 'fa-box';
+    
+    switch(tipo) {
+        case 'mas_vendido':
+            tipoBadge = 'badge-warning';
+            tipoTexto = 'Más Vendido';
+            tipoIcono = 'fa-fire';
+            break;
+        case 'con_stock':
+            tipoBadge = 'badge-success';
+            tipoTexto = 'Con Stock';
+            tipoIcono = 'fa-boxes';
+            break;
+        case 'activo':
+            tipoBadge = 'badge-info';
+            tipoTexto = 'Activo';
+            tipoIcono = 'fa-check-circle';
+            break;
+    }
+    
+    // Determinar estado del stock
+    let stockClass = 'text-success';
+    let stockIcon = 'fa-check';
+    let stockTexto = `${stock} unidades`;
+    
+    if (stock <= 0) {
+        stockClass = 'text-danger';
+        stockIcon = 'fa-times';
+        stockTexto = 'Agotado';
+    } else if (stock <= 5) {
+        stockClass = 'text-warning';
+        stockIcon = 'fa-exclamation-triangle';
+        stockTexto = `${stock} (Bajo)`;
+    }
+    
+    return `
+        <div class="col-6 col-md-4 col-lg-3 mb-3">
+            <div class="card h-100 shadow-sm">
+                <!-- Header con tipo -->
+                <div class="card-header py-2 bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge ${tipoBadge}">
+                            <i class="fas ${tipoIcono} mr-1"></i> ${tipoTexto}
+                        </span>
+                        ${totalVendido > 0 ? 
+                            `<span class="badge badge-dark">
+                                <i class="fas fa-chart-line mr-1"></i> ${totalVendido}
+                            </span>` : ''
+                        }
+                    </div>
+                </div>
+                
+                <!-- Cuerpo -->
+                <div class="card-body p-3">
+                    <!-- Nombre -->
+                    <h6 class="card-title font-weight-bold mb-2" style="font-size: 0.95rem; min-height: 50px;">
+                        ${nombre}
+                    </h6>
+                    
+                    <!-- Código y categoría -->
+                    <div class="mb-2">
+                        <small class="text-muted">
+                            <i class="fas fa-barcode mr-1"></i> ${codigo}
+                            <br>
+                            <i class="fas fa-tag mr-1"></i> ${categoria}
+                        </small>
+                    </div>
+                    
+                    <!-- Precio -->
+                    <div class="mb-2">
+                        <h5 class="text-success font-weight-bold mb-0">
+                            ${formatoDinero(precio)}
+                        </h5>
+                    </div>
+                    
+                    <!-- Stock -->
+                    <div class="mb-3">
+                        <small class="${stockClass}">
+                            <i class="fas ${stockIcon} mr-1"></i> ${stockTexto}
+                        </small>
+                    </div>
+                    
+                    <!-- Botón -->
+                    <button class="btn btn-sm btn-success btn-block" 
+                            onclick="agregarProductoDesdeFrecuentes(${id})"
+                            ${stock <= 0 ? 'disabled' : ''}>
+                        <i class="fas fa-cart-plus mr-1"></i>
+                        ${stock <= 0 ? 'Sin stock' : 'Agregar'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function mostrarSinProductosConOpciones(mensaje = '') {
+    const contenedor = $('#productosFrecuentes');
+    
+    contenedor.html(`
+        <div class="col-12">
+            <div class="alert alert-warning text-center py-5">
+                <i class="fas fa-database fa-3x mb-4 text-warning"></i>
+                <h4 class="mb-3">No hay productos disponibles</h4>
+                
+                ${mensaje ? `<p class="mb-3">${mensaje}</p>` : ''}
+                
+                <p class="text-muted mb-4">Puede ser que:</p>
+                
+                <div class="row text-left mb-4">
+                    <div class="col-md-6">
+                        <ul>
+                            <li>No hay productos en el sistema</li>
+                            <li>Todos los productos están inactivos</li>
+                            <li>No hay stock disponible</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul>
+                            <li>No se han registrado ventas</li>
+                            <li>Hay un problema con la base de datos</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary mr-2" onclick="verEstadoBD()">
+                        <i class="fas fa-chart-bar mr-1"></i> Ver estado de BD
+                    </button>
+                    <a href="/admin/productos" class="btn btn-success">
+                        <i class="fas fa-plus-circle mr-1"></i> Agregar productos
+                    </a>
+                </div>
+            </div>
+        </div>
+    `);
+}
+
+// =============================================
+// FUNCIONES AUXILIARES
+// =============================================
+
+window.verEstadoBD = function() {
+    const url = window.location.origin + '/verificar-bd';
+    
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Estado BD:', data);
+            
+            if (data.success && data.estadisticas) {
+                const stats = data.estadisticas;
+                let mensaje = `
+                    <strong>Estadísticas de la Base de Datos:</strong><br>
+                    • Productos totales: ${stats.total_productos}<br>
+                    • Productos activos: ${stats.productos_activos}<br>
+                    • Productos con stock: ${stats.productos_con_stock}<br>
+                    • Ventas completadas: ${stats.ventas_completadas}
+                `;
+                
+                toastr.info(mensaje, 'Estado de BD', { timeOut: 10000 });
+            }
+        })
+        .catch(error => {
+            toastr.error('Error al verificar BD: ' + error.message, 'Error');
+        });
+};
+
+window.mostrarTodosProductos = function() {
+    // Esta función podría cargar todos los productos sin filtro
+    const url = window.location.origin + '/productos/todos';
+    
+    // Implementar según tus necesidades
+    toastr.info('Función por implementar', 'Información');
+};
+
+
+// =============================================
+// CREAR CARD DE PRODUCTO
+// =============================================
+
+function crearCardProducto(producto, index) {
+    const id = producto.id || index;
+    const nombre = producto.nombre || 'Sin nombre';
+    const codigo = producto.codigo || 'N/A';
+    const precio = parseFloat(producto.precio) || 0;
+    const stock = parseInt(producto.stock) || 0;
+    const categoria = producto.categoria || 'General';
+    
+    // Determinar estilo según stock
+    let stockClass = 'badge-success';
+    let stockText = 'Disponible';
+    if (stock <= 0) {
+        stockClass = 'badge-danger';
+        stockText = 'Agotado';
+    } else if (stock <= 5) {
+        stockClass = 'badge-warning';
+        stockText = 'Bajo stock';
+    }
+    
+    return `
+        <div class="col-6 col-md-4 col-lg-3 mb-3">
+            <div class="card h-100 shadow-sm border-hover" 
+                 onclick="agregarProductoDesdeFrecuentes(${id})"
+                 style="cursor: pointer; transition: all 0.3s;">
+                <div class="card-body p-3 text-center">
+                    <div class="position-absolute top-0 start-0 m-2">
+                        <span class="badge bg-warning text-dark">
+                            <i class="fas fa-fire"></i> Popular
+                        </span>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center" 
+                             style="width: 60px; height: 60px;">
+                            <i class="fas fa-box fa-lg text-primary"></i>
+                        </div>
+                    </div>
+                    
+                    <h6 class="card-title font-weight-bold mb-1" style="font-size: 0.9rem; min-height: 40px;">
+                        ${nombre}
+                    </h6>
+                    
+                    <p class="text-muted mb-2" style="font-size: 0.8rem;">
+                        <small>${codigo} • ${categoria}</small>
+                    </p>
+                    
+                    <div class="mb-2">
+                        <h5 class="text-success font-weight-bold mb-0">
+                            ${formatoDinero(precio)}
+                        </h5>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <span class="badge ${stockClass}">
+                            <i class="fas fa-boxes"></i> ${stock} ${stockText}
+                        </span>
+                    </div>
+                    
+                    <button class="btn btn-sm btn-success btn-block" 
+                            onclick="event.stopPropagation(); agregarProductoDesdeFrecuentes(${id});">
+                        <i class="fas fa-cart-plus mr-1"></i> Agregar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// =============================================
+// FUNCIÓN PARA AGREGAR PRODUCTO
+// =============================================
+
+window.agregarProductoDesdeFrecuentes = function(id) {
+    console.log('➕ Agregando producto ID:', id);
+    
+    // Buscar en productos cargados
+    let producto = productos[id];
+    
+    if (producto) {
+        agregarAlCarrito(producto);
+        toastr.success(`"${producto.nombre}" agregado al carrito`);
+        return;
+    }
+    
+    // Si no está en productos cargados, buscar en el array actual
+    const contenedor = $('#productosFrecuentes');
+    const productoCard = contenedor.find(`[onclick*="${id}"]`);
+    
+    if (productoCard.length) {
+        const nombre = productoCard.find('.card-title').text().trim();
+        
+        // Crear producto temporal
+        const productoTemp = {
+            id: id,
+            nombre: nombre,
+            precio: 0,
+            stock: 10,
+            codigo: 'TEMP'
+        };
+        
+        agregarAlCarrito(productoTemp);
+        toastr.success(`"${nombre}" agregado al carrito`);
+    } else {
+        toastr.warning('Producto no encontrado', 'Aviso');
+    }
+};
+
+
+
+function mostrarErrorSinProductos() {
+    $('#productosFrecuentes').html(`
+        <div class="col-12">
+            <div class="alert alert-warning text-center py-4">
+                <i class="fas fa-database fa-2x mb-3"></i>
+                <h5>No hay productos en el sistema</h5>
+                <p class="mb-0">Agrega productos primero en el módulo de inventario</p>
+            </div>
+        </div>
+    `);
+}
+
+// =============================================
+// ACTUALIZAR FUNCIÓN mostrarProductosFrecuentes()
+// =============================================
+
+window.mostrarProductosFrecuentes = function() {
+    console.log('📊 Mostrando sección de productos frecuentes');
+    
+    // Crear sección si no existe
+    if (!$('#seccionProductosFrecuentes').length) {
+        const html = `
+            <div class="card mb-4 border-warning" id="seccionProductosFrecuentes">
+                <div class="card-header bg-warning text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-star mr-2"></i>
+                            <strong>Productos Más Vendidos</strong>
+                            <small class="ml-2">(Actualizados en tiempo real)</small>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-light mr-1" onclick="cargarProductosFrecuentes()" 
+                                    title="Actualizar lista">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light" onclick="$('#seccionProductosFrecuentes').hide();"
+                                    title="Ocultar sección">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row" id="productosFrecuentes">
+                        <div class="col-12 text-center py-3">
+                            <p class="text-muted">Iniciando carga de productos...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#dashboardRapido').after(html);
+    }
+    
+    // Mostrar sección
+    $('#seccionProductosFrecuentes').show();
+    
+    // Cargar productos
+    cargarProductosFrecuentes();
+};
+  
+
+// =============================================
+// FUNCIONES AUXILIARES PARA AGREGAR PRODUCTOS FRECUENTES
+// =============================================
+
+window.agregarProductoFrecuenteDesdeTarjeta = function(id) {
+    console.log('🛒 Agregando producto frecuente desde tarjeta:', id);
+    agregarProductoFrecuente(id);
+};
+
+window.agregarProductoFrecuenteDesdeTabla = function(id) {
+    console.log('🛒 Agregando producto frecuente desde tabla:', id);
+    agregarProductoFrecuente(id);
+};
+
+function agregarProductoFrecuente(id) {
+    const producto = productos[id];
+    if (producto) {
+        agregarAlCarrito(producto);
+        toastr.success(`${producto.nombre} agregado al carrito`, 'Producto Frecuente');
+    } else {
+        console.error('❌ Producto no encontrado en productos[]:', id);
+        toastr.error('Producto no disponible');
+    }
+}
+
+// =============================================
+// FUNCIÓN MODIFICADA PARA mostrarProductosFrecuentes()
+// =============================================
+
+window.mostrarProductosFrecuentes = function() {
+    console.log('⭐ Función: mostrarProductosFrecuentes()');
+    
+    // Obtener la sección de productos frecuentes
+    const $seccionFrecuentes = $('#seccionProductosFrecuentes');
+    
+    // Si la sección no existe en el DOM, crearla
+    if (!$seccionFrecuentes.length) {
+        console.log('📁 Creando sección de productos frecuentes...');
+        
+        const seccionHTML = `
+            <div class="card mb-4" id="seccionProductosFrecuentes">
+                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-star mr-2"></i>Productos Frecuentes
+                    </h5>
+                    <div>
+                        <button class="btn btn-sm btn-light mr-2" onclick="cargarProductosFrecuentes()" title="Recargar">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light" onclick="ocultarProductosFrecuentes()" title="Ocultar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Vista de tarjetas -->
+                    <div class="row" id="productosFrecuentes">
+                        <div class="col-12 text-center py-4">
+                            <div class="spinner-border text-warning" role="status">
+                                <span class="sr-only">Cargando...</span>
+                            </div>
+                            <p class="mt-2">Cargando productos frecuentes...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Vista de tabla (opcional) -->
+                    <div class="mt-4" id="tablaFrecuentesContenedor" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-sm" id="tablaProductosFrecuentes">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Se llena dinámicamente -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- Botones de vista -->
+                    <div class="text-center mt-3">
+                        <button class="btn btn-sm btn-outline-warning mr-2" onclick="cambiarVistaFrecuentes('tarjetas')">
+                            <i class="fas fa-th-large"></i> Tarjetas
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="cambiarVistaFrecuentes('tabla')">
+                            <i class="fas fa-table"></i> Tabla
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Insertar después del dashboard rápido
+        $('#dashboardRapido').after(seccionHTML);
+    }
+    
+    // Mostrar la sección
+    $('#seccionProductosFrecuentes').show();
+    
+    // Cargar productos frecuentes si no están cargados
+    if ($('#productosFrecuentes').is(':empty') || 
+        $('#productosFrecuentes .spinner-border').length > 0) {
+        cargarProductosFrecuentes();
+    }
+    
+    toastr.success('Productos frecuentes mostrados', 'Frecuentes');
+};
+
+// =============================================
+// FUNCIONES AUXILIARES PARA PRODUCTOS FRECUENTES
+// =============================================
+
+window.ocultarProductosFrecuentes = function() {
+    $('#seccionProductosFrecuentes').hide();
+    toastr.info('Productos frecuentes ocultados');
+};
+
+window.cambiarVistaFrecuentes = function(vista) {
+    if (vista === 'tarjetas') {
+        $('#productosFrecuentes').show();
+        $('#tablaFrecuentesContenedor').hide();
+        toastr.info('Vista de tarjetas activada');
+    } else if (vista === 'tabla') {
+        $('#productosFrecuentes').hide();
+        $('#tablaFrecuentesContenedor').show();
+        toastr.info('Vista de tabla activada');
+    }
+};
+
 
     // =============================================
     // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
     // =============================================
 
 
+function verificarCarrito() {
+    console.log('=== VERIFICACIÓN DEL CARRITO ===');
+    console.log('1. Variable carrito:', carrito);
+    console.log('2. Tipo:', typeof carrito);
+    console.log('3. Es array?:', Array.isArray(carrito));
+    console.log('4. Longitud:', carrito ? carrito.length : 'N/A');
+    console.log('5. Contenido:', JSON.stringify(carrito));
+    
+    // También verifica el DOM
+    const itemsEnTabla = $('#itemsCarrito tr').length;
+    console.log('6. Filas en tabla carrito:', itemsEnTabla);
+    
+    return carrito && Array.isArray(carrito) && carrito.length > 0;
+}
+
+// Luego modifica el event listener:
 $(document).on('click', '#btnProcesarVenta', function(e) {
     e.preventDefault();
     console.log('🖱️ Clic en botón COBRAR');
     
-    // Verificar que hay productos en el carrito
-    if (carrito.length === 0) {
-        toastr.error('El carrito está vacío', 'Error');
+    // Usar la función de verificación
+    const tieneProductos = verificarCarrito();
+    
+    if (!tieneProductos) {
+        console.log('❌ VERIFICACIÓN: Carrito vacío');
+        toastr.error('El carrito está vacío. Agregue productos antes de cobrar.', 'Error');
         return;
     }
     
-    console.log('📋 Productos en carrito:', carrito.length);
-    
+    console.log('✅ VERIFICACIÓN: Carrito con productos - Procesando...');
+    console.log('📋 Productos:', carrito.length);
+        
     // Validar stock antes de procesar
     let stockValido = true;
     let erroresStock = [];
@@ -1954,30 +2574,34 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         },
-       success: function(response) {
-    console.log('✅ Respuesta del servidor:', response);
-    
-    if (response.success) {
-        // MOSTRAR MENSAJE DE ÉXITO
-        toastr.success('Venta guardada con éxito', '¡Éxito!');
-        
-        // SOLO ESTA LÍNEA NUEVA - Actualizar tabla de productos
-        actualizarTablaProductosDespuesVenta();
-        
-        // MOSTRAR TICKET AUTOMÁTICAMENTE
-        if (response.venta_completa) {
-            console.log('🎫 Mostrando ticket con datos del servidor');
-            mostrarTicketAutomatico(response.venta_completa);
-        } else {
-            console.log('🎫 Mostrando ticket con datos locales');
-            mostrarVistaPrevia(response.numero_factura);
-        }
-        
-        // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
-        setTimeout(function() {
-            console.log('🔄 Reiniciando formulario...');
-            reiniciarFormularioVenta();
-        }, 1000);
+        success: function(response) {
+            console.log('✅ Respuesta del servidor:', response);
+            
+            if (response.success) {
+                // MOSTRAR MENSAJE DE ÉXITO
+                toastr.success('Venta guardada con éxito', '¡Éxito!');
+                
+                // Actualizar stock localmente
+                carrito.forEach(function(item) {
+                    if (productos[item.id]) {
+                        productos[item.id].stock -= item.cantidad;
+                    }
+                });
+                
+                // MOSTRAR TICKET AUTOMÁTICAMENTE
+                if (response.venta_completa) {
+                    console.log('🎫 Mostrando ticket con datos del servidor');
+                    mostrarTicketAutomatico(response.venta_completa);
+                } else {
+                    console.log('🎫 Mostrando ticket con datos locales');
+                    mostrarVistaPrevia(response.numero_factura);
+                }
+                
+                // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
+                setTimeout(function() {
+                    console.log('🔄 Reiniciando formulario...');
+                    reiniciarFormularioVenta();
+                }, 1000);
                 
             } else {
                 console.error('❌ Error en respuesta:', response);
@@ -2719,7 +3343,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         }
     });
     
-    $(document).on('click', '#modalScanner .close, #modalScanner [data-dismiss="modal"]', function(e) {
+    $(document).on('click', '#modalScanner .close, #modalScanner [data-bs-dismiss="modal"]', function(e) {
         e.preventDefault();
         console.log('🔴 Intentando cerrar modal escáner');
         
@@ -2759,32 +3383,923 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
     // 13. INICIALIZACIÓN CORREGIDA
     // =============================================
     function inicializarSistema() {
-        console.log('🚀 Inicializando sistema...');
-        
-        configurarSelect2Clientes();
-        configurarNuevoCliente(); 
-        cargarProductosDesdeDB();
-        configurarMetodosPago();
-        configurarBusquedaTiempoReal();
-        
-        // AGREGAR ESTAS LÍNEAS:
-        configurarInputEfectivo();
-        
-        $('#selectIva').on('change', function() {
-            const subtotal = parseFloat(window.ventaSubtotalNumerico) || 0;
-            actualizarTotales(subtotal);
-        });
-        
-        $('#numeroFactura').text(numeroFactura);
-        
-        console.log('✅ Sistema inicializado');
-        toastr.success('Sistema de punto de venta listo');
-    }
+    console.log('🚀 Inicializando sistema...');
+    
+    configurarSelect2Clientes();
+    configurarNuevoCliente(); 
+    cargarProductosDesdeDB();
+    configurarMetodosPago();
+    configurarBusquedaTiempoReal();
+    configurarInputEfectivo();
+    configurarAtajosTeclado();
+    
+    // Cargar productos frecuentes al iniciar (pero ocultos)
+    setTimeout(function() {
+        cargarProductosFrecuentes();
+    }, 1000);
+    
+    $('#selectIva').on('change', function() {
+        const subtotal = parseFloat(window.ventaSubtotalNumerico) || 0;
+        actualizarTotales(subtotal);
+    });
+    
+    $('#numeroFactura').text(numeroFactura);
+    
+    console.log('✅ Sistema inicializado');
+    toastr.success('Sistema de punto de venta listo');
+}
     
     // Iniciar sistema cuando el documento esté listo
     $(document).ready(function() {
         setTimeout(inicializarSistema, 500);
     });
+
+
+// 1. VENTA RÁPIDA
+window.iniciarVentaRapida = function() {
+    console.log('🚀 Función: iniciarVentaRapida()');
+    
+    // Ocultar todas las secciones primero
+    $('#seccionBusquedaRapida').hide();
+    $('#seccionProductosFrecuentes').hide();
+    
+    // Enfocar en el campo de código del escáner
+    setTimeout(function() {
+        $('#modalScanner').modal('show');
+        setTimeout(function() {
+            $('#inputCodigoManual').focus();
+            console.log('🔍 Escáner listo para venta rápida');
+        }, 300);
+    }, 100);
+    
+    // Mostrar mensaje de ayuda
+    toastr.info('Modo venta rápida activado. Usa el escáner o ingresa códigos manualmente.', 'Venta Rápida', {
+        timeOut: 5000,
+        positionClass: "toast-top-center"
+    });
+};
+
+// 2. BUSCAR
+window.activarBusquedaRapida = function() {
+    console.log('🔍 Función: activarBusquedaRapida()');
+    
+    // Mostrar sección de búsqueda
+    $('#seccionBusquedaRapida').show();
+    
+    // Enfocar y seleccionar texto en campo de búsqueda
+    setTimeout(function() {
+        $('#busquedaRapida').focus().select();
+        console.log('🔍 Campo de búsqueda enfocado');
+    }, 100);
+    
+    // Ocultar otras secciones
+    $('#seccionProductosFrecuentes').hide();
+    
+    toastr.info('Escribe para buscar productos por código, nombre o categoría', 'Búsqueda Rápida', {
+        timeOut: 4000
+    });
+};
+
+// 3. FRECUENTES
+window.mostrarProductosFrecuentes = function() {
+    console.log('⭐ Función: mostrarProductosFrecuentes()');
+    
+    // Alternar visibilidad de la sección
+    const $seccionFrecuentes = $('#seccionProductosFrecuentes');
+    if ($seccionFrecuentes.is(':visible')) {
+        $seccionFrecuentes.hide();
+        toastr.info('Productos frecuentes ocultos');
+    } else {
+        $seccionFrecuentes.show();
+        
+        // Si no hay productos frecuentes cargados, cargarlos
+        if ($('#productosFrecuentes').is(':empty')) {
+            cargarProductosFrecuentes();
+        }
+        
+        toastr.success('Productos frecuentes mostrados', 'Frecuentes');
+    }
+    
+    // Ocultar otras secciones
+    $('#seccionBusquedaRapida').hide();
+};
+
+// 4. MÉTRICAS
+window.mostrarMetricas = function() {
+    console.log('📊 Función: mostrarMetricas()');
+    
+    // Calcular métricas actuales
+    let totalProductos = 0;
+    let totalVenta = 0;
+    let productosUnicos = 0;
+    
+    if (carrito && Array.isArray(carrito)) {
+        productosUnicos = carrito.length;
+        carrito.forEach(function(item) {
+            totalProductos += item.cantidad || 0;
+            totalVenta += (item.precio || 0) * (item.cantidad || 0);
+        });
+    }
+    
+    // Crear contenido del modal de métricas
+    const contenidoMetricas = `
+        <div class="modal fade" id="modalMetricas" tabindex="-1" aria-labelledby="modalMetricasLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title" id="modalMetricasLabel">
+                            <i class="fas fa-chart-bar mr-2"></i>Métricas de Venta Actual
+                        </h5>
+                        <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-primary shadow-sm">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-primary mb-2">
+                                            <i class="fas fa-boxes fa-2x"></i>
+                                        </div>
+                                        <h2 class="text-primary mb-1">${productosUnicos}</h2>
+                                        <p class="card-text mb-0">Productos diferentes</p>
+                                        <small class="text-muted">En el carrito</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-success shadow-sm">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-success mb-2">
+                                            <i class="fas fa-layer-group fa-2x"></i>
+                                        </div>
+                                        <h2 class="text-success mb-1">${totalProductos}</h2>
+                                        <p class="card-text mb-0">Unidades totales</p>
+                                        <small class="text-muted">Suma de cantidades</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card border-warning shadow-sm">
+                                    <div class="card-body text-center py-3">
+                                        <div class="text-warning mb-2">
+                                            <i class="fas fa-dollar-sign fa-2x"></i>
+                                        </div>
+                                        <h3 class="text-warning mb-1">${formatoDinero(totalVenta)}</h3>
+                                        <p class="card-text mb-0">Valor total</p>
+                                        <small class="text-muted">Subtotal sin IVA</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Resumen de IVA y Total -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card border-secondary">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="fas fa-percentage mr-1"></i>IVA Aplicado</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Porcentaje:</span>
+                                            <span class="font-weight-bold">${$('#selectIva').val()}%</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <span>Monto IVA:</span>
+                                            <span class="font-weight-bold text-info">${formatoDinero(window.ventaIvaNumerico || 0)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-success">
+                                    <div class="card-body">
+                                        <h6 class="card-title"><i class="fas fa-calculator mr-1"></i>Total Final</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span>Total con IVA:</span>
+                                            <span class="font-weight-bold text-success">${formatoDinero(window.ventaTotalNumerico || 0)}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <span>Método de pago:</span>
+                                            <span class="badge badge-primary">${$('#metodoPago').val()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Detalle del carrito -->
+                        <h5 class="border-bottom pb-2 mb-3">
+                            <i class="fas fa-list-alt mr-2"></i>Detalle del Carrito
+                        </h5>
+                        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                            <table class="table table-sm table-hover">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad</th>
+                                        <th class="text-right">Precio Unit.</th>
+                                        <th class="text-right">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${carrito && carrito.length > 0 ? 
+                                        carrito.map(function(item) {
+                                            const subtotalItem = (item.precio || 0) * (item.cantidad || 0);
+                                            return `
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="bg-light rounded p-1 mr-2">
+                                                                <i class="fas fa-box text-primary"></i>
+                                                            </div>
+                                                            <div>
+                                                                <div class="font-weight-bold">${item.nombre || 'Sin nombre'}</div>
+                                                                <small class="text-muted">${item.codigo || 'Sin código'}</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td class="text-center align-middle">
+                                                        <span class="badge badge-pill badge-primary">${item.cantidad || 0}</span>
+                                                    </td>
+                                                    <td class="text-right align-middle">${formatoDinero(item.precio || 0)}</td>
+                                                    <td class="text-right align-middle font-weight-bold">${formatoDinero(subtotalItem)}</td>
+                                                </tr>
+                                            `;
+                                        }).join('') : 
+                                        `<tr>
+                                            <td colspan="4" class="text-center text-muted py-4">
+                                                <i class="fas fa-shopping-cart fa-2x mb-3 d-block"></i>
+                                                No hay productos en el carrito
+                                            </td>
+                                        </tr>`
+                                    }
+                                </tbody>
+                                ${carrito && carrito.length > 0 ? `
+                                    <tfoot class="thead-light">
+                                        <tr>
+                                            <td colspan="3" class="text-right"><strong>Total Carrito:</strong></td>
+                                            <td class="text-right font-weight-bold text-success">${formatoDinero(totalVenta)}</td>
+                                        </tr>
+                                    </tfoot>
+                                ` : ''}
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Cerrar
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="actualizarMetricasVista()">
+                            <i class="fas fa-sync-alt mr-1"></i>Actualizar
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="irACobrar()">
+                            <i class="fas fa-cash-register mr-1"></i>Ir a Cobrar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    if ($('#modalMetricas').length) {
+        $('#modalMetricas').remove();
+    }
+    
+    // Agregar modal al DOM y mostrarlo
+    $('body').append(contenidoMetricas);
+    $('#modalMetricas').modal('show');
+    
+    // Configurar evento para actualizar al cerrar
+    $('#modalMetricas').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+};
+
+// Función auxiliar para actualizar métricas desde el modal
+window.actualizarMetricasVista = function() {
+    if ($('#modalMetricas').is(':visible')) {
+        $('#modalMetricas').modal('hide');
+        setTimeout(mostrarMetricas, 300);
+    }
+};
+
+// Función para ir directamente a cobrar
+window.irACobrar = function() {
+    if ($('#modalMetricas').is(':visible')) {
+        $('#modalMetricas').modal('hide');
+    }
+    
+    // Desplazar a la sección de cobro
+    $('html, body').animate({
+        scrollTop: $('#seccionCobro').offset().top - 20
+    }, 500);
+    
+    // Enfocar en el método de pago
+    setTimeout(function() {
+        $('#metodoPago').focus();
+        toastr.info('Listo para procesar el cobro', 'Cobro');
+    }, 600);
+};
+
+// =============================================
+// 16. ATAAJOS DE TECLADO - VENTANA MODAL F1
+// =============================================
+
+function configurarAtajosTeclado() {
+    console.log('⌨️ Configurando atajos de teclado...');
+    
+    // Detectar tecla F1 para mostrar atajos
+    $(document).on('keydown', function(e) {
+        // F1 - Mostrar atajos
+        if (e.key === 'F1' || e.keyCode === 112) {
+            e.preventDefault();
+            console.log('⌨️ Tecla F1 presionada');
+            mostrarModalAtajos();
+            return false;
+        }
+        
+        // Atajo Ctrl+1 - Venta Rápida
+        if (e.ctrlKey && e.key === '1') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+1 - Venta Rápida');
+            iniciarVentaRapida();
+            return false;
+        }
+        
+        // Atajo Ctrl+2 - Buscar
+        if (e.ctrlKey && e.key === '2') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+2 - Buscar');
+            activarBusquedaRapida();
+            return false;
+        }
+        
+        // Atajo Ctrl+3 - Frecuentes
+        if (e.ctrlKey && e.key === '3') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+3 - Frecuentes');
+            mostrarProductosFrecuentes();
+            return false;
+        }
+        
+        // Atajo Ctrl+4 - Métricas
+        if (e.ctrlKey && e.key === '4') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+4 - Métricas');
+            mostrarMetricas();
+            return false;
+        }
+        
+        // Atajo Ctrl+B - Alternar búsqueda
+        if (e.ctrlKey && e.key === 'b') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+B - Alternar búsqueda');
+            if ($('#seccionBusquedaRapida').is(':visible')) {
+                $('#seccionBusquedaRapida').hide();
+                toastr.info('Búsqueda ocultada');
+            } else {
+                activarBusquedaRapida();
+            }
+            return false;
+        }
+        
+        // Atajo Ctrl+F - Frecuentes
+        if (e.ctrlKey && e.key === 'f') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+F - Frecuentes');
+            mostrarProductosFrecuentes();
+            return false;
+        }
+        
+        // Atajo Ctrl+M - Métricas
+        if (e.ctrlKey && e.key === 'm') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+M - Métricas');
+            mostrarMetricas();
+            return false;
+        }
+        
+        // Atajo Ctrl+S - Procesar venta
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+S - Procesar venta');
+            $('#btnProcesarVenta').click();
+            return false;
+        }
+    });
+}
+
+function mostrarModalAtajos() {
+    console.log('🔄 Mostrando modal de atajos');
+    
+    const contenidoAtajos = `
+        <div class="modal fade" id="modalAtajos" tabindex="-1" aria-labelledby="modalAtajosLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-light ">
+                        <h5 class="modal-title" id="modalAtajosLabel">
+                            <i class="fas fa-keyboard mr-2"></i>Atajos de Teclado - Sistema POS
+                        </h5>
+                        <button type="button" class="close text-white" data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-primary">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Presiona F1</strong> en cualquier momento para ver esta ventana de atajos
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard Rápido
+                                </h5>
+                                <table class="table table-sm table-hover">
+                                    <tr class="table-primary">
+                                        <td width="100"><span class="badge badge-primary">Ctrl + 1</span></td>
+                                        <td><strong>Venta Rápida</strong></td>
+                                        <td class="text-right">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="iniciarVentaRapida()">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-success">
+                                        <td><span class="badge badge-success">Ctrl + 2</span></td>
+                                        <td><strong>Buscar Productos</strong></td>
+                                        <td class="text-right">
+                                            <button class="btn btn-sm btn-outline-success" onclick="activarBusquedaRapida()">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td><span class="badge badge-warning">Ctrl + 3</span></td>
+                                        <td><strong>Productos Frecuentes</strong></td>
+                                        <td class="text-right">
+                                            <button class="btn btn-sm btn-outline-warning" onclick="mostrarProductosFrecuentes()">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="table-info">
+                                        <td><span class="badge badge-info">Ctrl + 4</span></td>
+                                        <td><strong>Ver Métricas</strong></td>
+                                        <td class="text-right">
+                                            <button class="btn btn-sm btn-outline-info" onclick="mostrarMetricas()">
+                                                <i class="fas fa-play"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-cogs mr-2"></i>Atajos Generales
+                                </h5>
+                                <table class="table table-sm table-hover">
+                                    <tr>
+                                        <td width="100"><span class="badge badge-dark">F2</span></td>
+                                        <td>Abrir escáner de código</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-dark">Ctrl + E</span></td>
+                                        <td>Abrir escáner (alternativo)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-dark">Ctrl + S</span></td>
+                                        <td>Procesar venta (Cobrar)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-dark">Ctrl + N</span></td>
+                                        <td>Nueva venta</td>
+                                    </tr>
+                                    <tr>
+                                        <td><span class="badge badge-dark">Ctrl + L</span></td>
+                                        <td>Limpiar carrito</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <h5 class="border-bottom pb-2 mb-3">
+                                    <i class="fas fa-lightbulb mr-2"></i>Consejos Prácticos
+                                </h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Haz clic en cualquier producto para agregarlo al carrito</li>
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Usa el escáner (F2) para agregar productos rápidamente</li>
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Las métricas se actualizan automáticamente</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Presiona Enter en búsqueda para buscar productos</li>
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>Tab en el escáner procesa el código automáticamente</li>
+                                            <li class="mb-2"><i class="fas fa-check text-success mr-2"></i>ESC cierra cualquier modal abierto</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title mb-3">
+                                            <i class="fas fa-rocket mr-2"></i>Acción Rápida
+                                        </h6>
+                                        <button class="btn btn-primary mr-2" onclick="iniciarVentaRapida()">
+                                            <i class="fas fa-bolt mr-1"></i>Venta Rápida
+                                        </button>
+                                        <button class="btn btn-success mr-2" onclick="activarBusquedaRapida()">
+                                            <i class="fas fa-search mr-1"></i>Buscar
+                                        </button>
+                                        <button class="btn btn-warning mr-2" onclick="mostrarProductosFrecuentes()">
+                                            <i class="fas fa-star mr-1"></i>Frecuentes
+                                        </button>
+                                        <button class="btn btn-info" onclick="mostrarMetricas()">
+                                            <i class="fas fa-chart-bar mr-1"></i>Métricas
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Cerrar (ESC)
+                        </button>
+                        <button type="button" class="btn btn-dark" onclick="cerrarYRecordarAtajos()">
+                            <i class="fas fa-check mr-1"></i>Entendido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    if ($('#modalAtajos').length) {
+        $('#modalAtajos').remove();
+    }
+    
+    // Agregar modal al DOM
+    $('body').append(contenidoAtajos);
+    
+    // Mostrar modal
+    $('#modalAtajos').modal('show');
+    
+    // Configurar evento para cerrar con ESC
+    $('#modalAtajos').on('shown.bs.modal', function() {
+        $(this).off('keydown').on('keydown', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                $('#modalAtajos').modal('hide');
+            }
+        });
+    });
+    
+    // Remover modal al cerrar
+    $('#modalAtajos').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+// Función para cerrar y recordar atajos
+window.cerrarYRecordarAtajos = function() {
+    if ($('#modalAtajos').is(':visible')) {
+        $('#modalAtajos').modal('hide');
+    }
+    toastr.info('Recuerda: F1 para ver atajos en cualquier momento', '💡 Atajos disponibles', {
+        timeOut: 4000,
+        positionClass: "toast-top-center"
+    });
+};
+
+
+// =============================================
+// 17. BOTÓN ATAJOS (F1) - VENTANA MODAL
+// =============================================
+
+// Función para mostrar el modal de atajos
+function mostrarModalAtajos() {
+    console.log('🔄 Mostrando modal de atajos');
+    
+    const contenidoAtajos = `
+        <div class="modal fade" id="modalAtajos" tabindex="-1" aria-labelledby="modalAtajosLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-ligth">
+                        <h5 class="modal-title" id="modalAtajosLabel">
+                            <i class="fas fa-keyboard mr-2"></i>Atajos de Teclado - Sistema POS
+                        </h5>
+                        <button type="button" class="close " data-bs-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            <strong>Presiona F1</strong> en cualquier momento para abrir esta ventana de atajos
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-shopping-cart mr-2"></i>Venta y Carrito</h5>
+                                <div class="list-group">
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-primary mr-2">F1</span>
+                                                <strong>Mostrar atajos</strong>
+                                            </div>
+                                            <small class="text-muted">Abre esta ventana</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-primary mr-2">F2</span>
+                                                <strong>Abrir escáner</strong>
+                                            </div>
+                                            <small class="text-muted">Escáner de códigos</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-primary mr-2">Ctrl + S</span>
+                                                <strong>Procesar venta</strong>
+                                            </div>
+                                            <small class="text-muted">Cobrar</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-primary mr-2">Ctrl + N</span>
+                                                <strong>Nueva venta</strong>
+                                            </div>
+                                            <small class="text-muted">Reiniciar</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-primary mr-2">Ctrl + L</span>
+                                                <strong>Limpiar carrito</strong>
+                                            </div>
+                                            <small class="text-muted">Vaciar carrito</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-tachometer-alt mr-2"></i>Dashboard Rápido</h5>
+                                <div class="list-group">
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-success mr-2">Ctrl + B</span>
+                                                <strong>Buscar productos</strong>
+                                            </div>
+                                            <small class="text-muted">Activar búsqueda</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-success mr-2">Ctrl + E</span>
+                                                <strong>Abrir escáner</strong>
+                                            </div>
+                                            <small class="text-muted">Alternativo a F2</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-success mr-2">Enter</span>
+                                                <strong>Confirmar/Aceptar</strong>
+                                            </div>
+                                            <small class="text-muted">En formularios</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-success mr-2">ESC</span>
+                                                <strong>Cerrar modal</strong>
+                                            </div>
+                                            <small class="text-muted">Cerrar ventana</small>
+                                        </div>
+                                    </div>
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="badge badge-success mr-2">Tab</span>
+                                                <strong>Procesar código</strong>
+                                            </div>
+                                            <small class="text-muted">En escáner</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-4">
+                            <div class="col-md-12">
+                                <h5><i class="fas fa-lightbulb mr-2"></i>Consejos Rápidos</h5>
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <ul class="mb-0">
+                                                    <li><i class="fas fa-check text-success mr-2"></i>Haz clic en productos para agregar</li>
+                                                    <li><i class="fas fa-check text-success mr-2"></i>Usa el escáner (F2) para agregar rápido</li>
+                                                </ul>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <ul class="mb-0">
+                                                    <li><i class="fas fa-check text-success mr-2"></i>Las métricas se actualizan automáticamente</li>
+                                                    <li><i class="fas fa-check text-success mr-2"></i>Presiona Enter para buscar productos</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times mr-1"></i>Cerrar
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="cerrarYRecordarAtajos()">
+                            <i class="fas fa-check mr-1"></i>Entendido
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remover modal anterior si existe
+    if ($('#modalAtajos').length) {
+        $('#modalAtajos').remove();
+    }
+    
+    // Agregar modal al DOM
+    $('body').append(contenidoAtajos);
+    
+    // Mostrar modal
+    $('#modalAtajos').modal('show');
+    
+    // Configurar evento para cerrar con ESC
+    $('#modalAtajos').on('shown.bs.modal', function() {
+        $(this).off('keydown').on('keydown', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                $('#modalAtajos').modal('hide');
+            }
+        });
+    });
+    
+    // Remover modal al cerrar
+    $('#modalAtajos').on('hidden.bs.modal', function() {
+        $(this).remove();
+    });
+}
+
+// Función para cerrar y recordar atajos
+window.cerrarYRecordarAtajos = function() {
+    if ($('#modalAtajos').is(':visible')) {
+        $('#modalAtajos').modal('hide');
+    }
+    toastr.info('Recuerda: F1 para ver atajos en cualquier momento', '💡 Atajos disponibles');
+};
+
+// Configurar atajos de teclado (incluyendo F1)
+function configurarAtajosTeclado() {
+    console.log('⌨️ Configurando atajos de teclado...');
+    
+    // Detectar tecla F1 para mostrar atajos
+    $(document).on('keydown', function(e) {
+        // F1 - Mostrar atajos
+        if (e.key === 'F1' || e.keyCode === 112) {
+            e.preventDefault();
+            console.log('⌨️ Tecla F1 presionada - Mostrando atajos');
+            mostrarModalAtajos();
+            return false;
+        }
+        
+        // Mantener tus otros atajos existentes...
+        // Atajo Ctrl+S - Procesar venta
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+S - Procesar venta');
+            $('#btnProcesarVenta').click();
+            return false;
+        }
+        
+        // Atajo Ctrl+B - Buscar
+        if (e.ctrlKey && e.key === 'b') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+B - Buscar productos');
+            $('#busquedaRapida').focus().select();
+            return false;
+        }
+        
+        // Atajo Ctrl+E - Abrir escáner
+        if (e.ctrlKey && e.key === 'e') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+E - Abrir escáner');
+            $('#modalScanner').modal('show');
+            setTimeout(function() {
+                $('#inputCodigoManual').focus();
+            }, 300);
+            return false;
+        }
+        
+        // Atajo Ctrl+L - Limpiar carrito
+        if (e.ctrlKey && e.key === 'l') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+L - Limpiar carrito');
+            if (carrito.length > 0 && confirm('¿Limpiar carrito?')) {
+                carrito = [];
+                actualizarCarrito();
+                actualizarMetricas();
+                toastr.success('Carrito limpiado');
+            }
+            return false;
+        }
+        
+        // Atajo Ctrl+N - Nueva venta
+        if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            console.log('⌨️ Atajo Ctrl+N - Nueva venta');
+            if (carrito.length > 0 && confirm('¿Iniciar nueva venta? Se perderá el carrito actual.')) {
+                reiniciarVenta();
+            }
+            return false;
+        }
+    });
+}
+
+// Función para el botón "Atajos" (agrega esto si tienes un botón físico)
+function configurarBotonAtajos() {
+    // Si tienes un botón con id="btnAtajos" en tu HTML
+    $(document).on('click', '#btnAtajos', function(e) {
+        e.preventDefault();
+        console.log('🖱️ Botón Atajos clickeado');
+        mostrarModalAtajos();
+    });
+    
+    // O si prefieres una función global para usar con onclick
+    window.mostrarAtajos = function() {
+        console.log('🔧 Mostrando atajos desde botón');
+        mostrarModalAtajos();
+    };
+}
+
+// Actualizar la función inicializarSistema
+function inicializarSistema() {
+    console.log('🚀 Inicializando sistema...');
+    
+    configurarSelect2Clientes();
+    configurarNuevoCliente(); 
+    cargarProductosDesdeDB();
+    configurarMetodosPago();
+    configurarBusquedaTiempoReal();
+    configurarInputEfectivo();
+    
+    // AGREGAR ESTAS LÍNEAS:
+    configurarAtajosTeclado();    // Configura F1 y otros atajos
+    configurarBotonAtajos();      // Configura el botón físico (si existe)
+    
+    $('#selectIva').on('change', function() {
+        const subtotal = parseFloat(window.ventaSubtotalNumerico) || 0;
+        actualizarTotales(subtotal);
+    });
+    
+    $('#numeroFactura').text(numeroFactura);
+    
+    console.log('✅ Sistema inicializado');
+    toastr.success('Sistema de punto de venta listo');
+    
+    // Mostrar mensaje de atajos al iniciar (opcional)
+    setTimeout(function() {
+        toastr.info('Presiona F1 para ver atajos de teclado', '💡 Consejo rápido');
+    }, 2000);
+}
+
     
     // =============================================
     // 14. FUNCIONES GLOBALES
@@ -2802,35 +4317,6 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         cargarProductosFrecuentes();
         toastr.info('Productos frecuentes actualizados');
     };
-
-    // =============================================
-// FUNCIÓN PARA ACTUALIZAR TABLA DE PRODUCTOS DESPUÉS DE VENTA
-// =============================================
-function actualizarTablaProductosDespuesVenta() {
-    console.log('🔄 Actualizando tabla de productos...');
-    
-    // Obtener la categoría activa actual
-    const categoriaActual = $('#filtrosCategoria .btn-primary').data('categoria') || 'todas';
-    
-    // Si hay productos en el carrito que vendimos, actualizar sus stocks localmente
-    if (carrito.length > 0) {
-        carrito.forEach(function(item) {
-            if (productos[item.id]) {
-                // Actualizar stock localmente restando lo vendido
-                productos[item.id].stock = Math.max(0, productos[item.id].stock - item.cantidad);
-            }
-        });
-    }
-    
-    // Volver a mostrar los productos con la categoría actual
-    if (categoriaActual === 'todas') {
-        mostrarTodosLosProductos();
-    } else {
-        filtrarProductosPorCategoria(categoriaActual);
-    }
-    
-    console.log('✅ Tabla de productos actualizada');
-}
     
 })(jQuery);
 </script>

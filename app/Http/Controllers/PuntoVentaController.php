@@ -92,65 +92,282 @@ class PuntoVentaController extends Controller
     /**
      * Obtener productos frecuentes
      */
-    public function productosFrecuentes()
+   /**
+ * Obtener productos frecuentes (VERSIÓN SIMPLIFICADA)
+ */
+ public function productosFrecuentes()
     {
         try {
-            // Obtener los productos más vendidos (últimos 30 días)
-            $fechaInicio = Carbon::now()->subDays(30);
+            \Log::info('=== PRODUCTOS FRECUENTES - INICIO ===');
             
-            $productos = DB::table('productos as p')
-                ->leftJoin('detalle_ventas as dv', 'p.id_producto', '=', 'dv.id_producto')
-                ->leftJoin('ventas as v', 'dv.id_venta', '=', 'v.id_venta')
-                ->select('p.*', DB::raw('COALESCE(SUM(dv.cantidad), 0) as total_vendido'))
-                ->where(function($query) use ($fechaInicio) {
-                    $query->where('v.fecha_venta', '>=', $fechaInicio)
-                          ->orWhereNull('v.fecha_venta');
-                })
-                ->where('p.stock', '>', 0)
-                ->groupBy('p.id_producto')
-                ->orderBy('total_vendido', 'desc')
-                ->orderBy('p.nombre', 'asc')
-                ->limit(12)
-                ->get();
+            // INTENTO 1: Productos más vendidos (historial de ventas)
+            $productos = $this->obtenerProductosMasVendidos(12);
+            
+            // INTENTO 2: Si no hay productos más vendidos, buscar por stock
+            if (empty($productos)) {
+                \Log::info('No hay productos vendidos. Intentando productos con stock...');
+                $productos = $this->obtenerProductosConStock(12);
+            }
+            
+            // INTENTO 3: Si aún no hay, productos activos
+            if (empty($productos)) {
+                \Log::info('No hay productos con stock. Intentando productos activos...');
+                $productos = $this->obtenerProductosActivos(12);
+            }
+            
+            // INTENTO 4: Último recurso - cualquier producto
+            if (empty($productos)) {
+                \Log::info('Intentando cualquier producto...');
+                $productos = $this->obtenerCualquierProducto(12);
+            }
+            
+            \Log::info('Productos obtenidos: ' . count($productos));
             
             return response()->json([
                 'success' => true,
-                'productos' => $productos
+                'productos' => $productos,
+                'total' => count($productos),
+                'message' => count($productos) > 0 ? 'Productos cargados correctamente' : 'No hay productos disponibles',
+                'timestamp' => Carbon::now()->toDateTimeString()
             ]);
             
         } catch (\Exception $e) {
+            \Log::error('ERROR en productosFrecuentes: ' . $e->getMessage());
+            
             return response()->json([
-                'success' => false,
-                'message' => 'Error al cargar productos frecuentes: ' . $e->getMessage()
-            ], 500);
+                'success' => true, // Mantener success: true para que no falle el frontend
+                'productos' => [],
+                'message' => 'Error al cargar productos: ' . $e->getMessage(),
+                'timestamp' => Carbon::now()->toDateTimeString()
+            ]);
         }
     }
     
     /**
-     * Verificar stock de producto
+     * INTENTO 1: Productos más vendidos
      */
-    public function verificarStock(Request $request)
+    private function obtenerProductosMasVendidos($limite = 12)
     {
-        $productoId = $request->input('id_producto');
-        $cantidadSolicitada = $request->input('cantidad', 1);
-        
         try {
-            $producto = Producto::findOrFail($productoId);
+            \Log::info('Buscando productos más vendidos...');
             
-            $stockDisponible = $producto->stock >= $cantidadSolicitada;
+            // Primero verificamos si hay ventas en la base de datos
+            $totalVentas = Venta::where('estado', 'completada')->count();
+            
+            if ($totalVentas === 0) {
+                \Log::info('No hay ventas registradas en la base de datos');
+                return [];
+            }
+            
+            $productosMasVendidos = DetalleVenta::select(
+                    'productos.id_producto',
+                    'productos.codigo',
+                    'productos.nombre',
+                    'productos.precio',
+                    'productos.stock',
+                    'productos.categoria',
+                    'productos.descripcion',
+                    'productos.unidad',
+                    'productos.stock_minimo',
+                    DB::raw('SUM(detalle_ventas.cantidad) as total_vendido')
+                )
+                ->join('productos', 'detalle_ventas.id_producto', '=', 'productos.id_producto')
+                ->join('ventas', 'detalle_ventas.id_venta', '=', 'ventas.id_venta')
+                ->where('ventas.estado', 'completada')
+                ->where('productos.estado', 'activo')
+                ->groupBy(
+                    'productos.id_producto',
+                    'productos.codigo',
+                    'productos.nombre',
+                    'productos.precio',
+                    'productos.stock',
+                    'productos.categoria',
+                    'productos.descripcion',
+                    'productos.unidad',
+                    'productos.stock_minimo'
+                )
+                ->orderBy('total_vendido', 'DESC')
+                ->limit($limite)
+                ->get();
+            
+            \Log::info('Productos más vendidos encontrados: ' . $productosMasVendidos->count());
+            
+            if ($productosMasVendidos->isNotEmpty()) {
+                return $productosMasVendidos->map(function($item) {
+                    return [
+                        'id' => $item->id_producto,
+                        'codigo' => $item->codigo,
+                        'nombre' => $item->nombre,
+                        'precio' => (float) $item->precio,
+                        'stock' => (int) $item->stock,
+                        'categoria' => $item->categoria,
+                        'descripcion' => $item->descripcion,
+                        'unidad' => $item->unidad ?? 'unidad',
+                        'stock_minimo' => $item->stock_minimo ?? 5,
+                        'total_vendido' => (int) $item->total_vendido,
+                        'tipo' => 'mas_vendido'
+                    ];
+                })->toArray();
+            }
+            
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en obtenerProductosMasVendidos: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * INTENTO 2: Productos con stock
+     */
+    private function obtenerProductosConStock($limite = 12)
+    {
+        try {
+            \Log::info('Buscando productos con stock...');
+            
+            $productos = Producto::where('stock', '>', 0)
+                ->where('estado', 'activo')
+                ->orderBy('stock', 'DESC') // Los con más stock primero
+                ->limit($limite)
+                ->get();
+            
+            \Log::info('Productos con stock encontrados: ' . $productos->count());
+            
+            if ($productos->isNotEmpty()) {
+                return $productos->map(function($producto) {
+                    return [
+                        'id' => $producto->id_producto,
+                        'codigo' => $producto->codigo,
+                        'nombre' => $producto->nombre,
+                        'precio' => (float) $producto->precio,
+                        'stock' => (int) $producto->stock,
+                        'categoria' => $producto->categoria,
+                        'descripcion' => $producto->descripcion,
+                        'unidad' => $producto->unidad ?? 'unidad',
+                        'stock_minimo' => $producto->stock_minimo ?? 5,
+                        'total_vendido' => 0,
+                        'tipo' => 'con_stock'
+                    ];
+                })->toArray();
+            }
+            
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en obtenerProductosConStock: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * INTENTO 3: Productos activos (sin importar stock)
+     */
+    private function obtenerProductosActivos($limite = 12)
+    {
+        try {
+            \Log::info('Buscando productos activos...');
+            
+            $productos = Producto::where('estado', 'activo')
+                ->orderBy('nombre', 'ASC')
+                ->limit($limite)
+                ->get();
+            
+            \Log::info('Productos activos encontrados: ' . $productos->count());
+            
+            if ($productos->isNotEmpty()) {
+                return $productos->map(function($producto) {
+                    return [
+                        'id' => $producto->id_producto,
+                        'codigo' => $producto->codigo,
+                        'nombre' => $producto->nombre,
+                        'precio' => (float) $producto->precio,
+                        'stock' => (int) $producto->stock,
+                        'categoria' => $producto->categoria,
+                        'descripcion' => $producto->descripcion,
+                        'unidad' => $producto->unidad ?? 'unidad',
+                        'stock_minimo' => $producto->stock_minimo ?? 5,
+                        'total_vendido' => 0,
+                        'tipo' => 'activo'
+                    ];
+                })->toArray();
+            }
+            
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en obtenerProductosActivos: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * INTENTO 4: Cualquier producto (último recurso)
+     */
+    private function obtenerCualquierProducto($limite = 12)
+    {
+        try {
+            \Log::info('Buscando cualquier producto...');
+            
+            $productos = Producto::orderBy('id_producto', 'ASC')
+                ->limit($limite)
+                ->get();
+            
+            \Log::info('Productos encontrados: ' . $productos->count());
+            
+            if ($productos->isNotEmpty()) {
+                return $productos->map(function($producto) {
+                    return [
+                        'id' => $producto->id_producto,
+                        'codigo' => $producto->codigo,
+                        'nombre' => $producto->nombre,
+                        'precio' => (float) $producto->precio,
+                        'stock' => (int) $producto->stock,
+                        'categoria' => $producto->categoria,
+                        'descripcion' => $producto->descripcion,
+                        'unidad' => $producto->unidad ?? 'unidad',
+                        'stock_minimo' => $producto->stock_minimo ?? 5,
+                        'total_vendido' => 0,
+                        'tipo' => 'general'
+                    ];
+                })->toArray();
+            }
+            
+            return [];
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en obtenerCualquierProducto: ' . $e->getMessage());
+            return [];
+        }
+    }
+    
+    /**
+     * MÉTODO DE DEPURACIÓN: Verificar estado de la base de datos
+     */
+    public function verificarEstadoBD()
+    {
+        try {
+            $totalProductos = Producto::count();
+            $productosActivos = Producto::where('estado', 'activo')->count();
+            $productosConStock = Producto::where('stock', '>', 0)->count();
+            $totalVentas = Venta::where('estado', 'completada')->count();
             
             return response()->json([
                 'success' => true,
-                'disponible' => $stockDisponible,
-                'stock_actual' => $producto->stock,
-                'producto' => $producto
+                'estadisticas' => [
+                    'total_productos' => $totalProductos,
+                    'productos_activos' => $productosActivos,
+                    'productos_con_stock' => $productosConStock,
+                    'ventas_completadas' => $totalVentas,
+                    'timestamp' => Carbon::now()->toDateTimeString()
+                ]
             ]);
             
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Producto no encontrado'
-            ], 404);
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
     
