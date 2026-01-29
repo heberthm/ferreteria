@@ -58,18 +58,8 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
  
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');
-
-
-
-
-
-
-
-
-       
-    // Verificación liviana de cambios
-    Route::get('/dashboard/check-updates', [DashboardController::class, 'checkUpdates'])->name('dashboard.check-updates');
+Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');       
+Route::get('/dashboard/check-updates', [DashboardController::class, 'checkUpdates'])->name('dashboard.check-updates');
 
 
 // ======================================================
@@ -79,11 +69,22 @@ Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])-
 // ======================================================
 
 
+Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
+Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
+Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
+Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
+Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
+Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
+
+
+/*
 
 Route::get('venta', [App\Http\Controllers\VentaController::class, 'index'])->name('venta');
 Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create'])->name('crear_venta');
  Route::get('/ventas/create', [VentaController::class, 'create'])->name('ventas.create');
  Route::get('/ventas/{venta}', [VentaController::class, 'show'])->name('ventas.show');
+
+*/
 
 
 // ======================================================
@@ -92,8 +93,14 @@ Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create
 
 // ======================================================
 
+
 Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
 Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('crear_categorias');
+Route::get('mostrar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'show'])->name('mostrar_categoria');
+Route::get('editar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'edit'])->name('editar_categoria');
+Route::post('actualizar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'update'])->name('categoria.update');
+Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'destroy'])->name('categoria.destroy');
+
 
 // ======================================================
 
@@ -114,23 +121,8 @@ Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'p
 //Route::get('/buscar-producto', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-producto');
 Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
 Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
-Route::get('/productos/frecuentes', [App\Http\Controllers\PuntoVentaController::class, 'productosFrecuentes'])->name('producto/frecuentes');
+Route::get('/productos/frecuentes', [App\Http\Controllers\PuntoVentaController::class, 'productosFrecuentes'])->name('productos/frecuentes');
 
-
-
-
-// ======================================================
-
-//  RUTAS PARA CATEGORIAS
-
-// ======================================================
-
-Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
-Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('crear_categorias');
-Route::get('mostrar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'show'])->name('mostrar_categoria');
-Route::get('editar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'edit'])->name('editar_categoria');
-Route::post('actualizar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'update'])->name('categoria.update');
-Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'destroy'])->name('categoria.destroy');
 
 
 
@@ -150,23 +142,6 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
     Route::post('/movimientos-caja/datatable', [CajaMenorController::class, 'datatable'])->name('movimientos.datatable');
     Route::get('/movimientos-caja/export/excel', [CajaMenorController::class, 'exportarExcel'])->name('movimientos.export.excel');
     Route::get('/movimientos-caja/export/pdf', [CajaMenorController::class, 'exportarPdf'])->name('movimientos.export.pdf');
-
-
-
-// ====================================================
-
-// RUTAS PARA VENTAS
-
-// ===================================================
-
-
-
-    Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
-    Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
-    Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
-    Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
-    Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
-    Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
 
 
 
