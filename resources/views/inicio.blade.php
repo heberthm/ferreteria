@@ -7,7 +7,34 @@
 @stop
 
 @section('content')
+
     <style>
+        /* Variables CSS para modo oscuro */
+        :root {
+            --dashboard-bg: #f4f6f9;
+            --dashboard-card-bg: #ffffff;
+            --dashboard-text-color: #495057;
+            --dashboard-table-header-bg: #f8f9fa;
+            --dashboard-table-text: #212529;
+            --dashboard-muted-text: #6c757d;
+        }
+
+        /* Modo oscuro AdminLTE */
+        .dark-mode {
+            --dashboard-bg: #343a40;
+            --dashboard-card-bg: #454d55;
+            --dashboard-text-color: #e1e1e1;
+            --dashboard-table-header-bg: #3a4047;
+            --dashboard-table-text: #e1e1e1;
+            --dashboard-muted-text: #adb5bd;
+        }
+
+        /* CORRECCIÓN: Aplicar variables a body en modo oscuro */
+        body.dark-mode {
+            background-color: var(--dashboard-bg);
+            color: var(--dashboard-text-color);
+        }
+
         /* Mantener diseño original de los cards */
         .card-dashboard {
             border-left: 4px solid !important;
@@ -15,6 +42,7 @@
             height: 120px;
             border-radius: 0.375rem !important;
             box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+            background-color: var(--dashboard-card-bg) !important;
         }
 
         .card-dashboard:hover {
@@ -51,17 +79,23 @@
             font-size: 1.8rem !important;
             font-weight: bold !important;
             margin-bottom: 0 !important;
+            color: var(--dashboard-text-color) !important;
         }
 
         .card-subtitle {
             font-size: 0.9rem !important;
-            color: #6c757d !important;
+            color: var(--dashboard-muted-text) !important;
             margin-bottom: 0.25rem !important;
         }
 
         /* Ajustes para AdminLTE */
         .content-wrapper {
-            background-color: #f4f6f9 !important;
+            background-color: var(--dashboard-bg) !important;
+        }
+
+        /* CORRECCIÓN: Aplicar a content-wrapper en modo oscuro */
+        .dark-mode .content-wrapper {
+            background-color: var(--dashboard-bg) !important;
         }
 
         .main-header {
@@ -103,14 +137,66 @@
             padding: 0.3em 0.6em !important;
         }
 
-        /* Ajustar tablas para AdminLTE */
+        /* Ajustar tablas para AdminLTE - MODIFICADO para modo oscuro */
         .table-hover tbody tr:hover {
             background-color: rgba(0, 0, 0, 0.075) !important;
         }
 
-        /* Asegurar que los cards tengan fondo blanco */
+        /* CORRECCIÓN: Hover en modo oscuro */
+        .dark-mode .table-hover tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.075) !important;
+        }
+
         .card {
-            background-color: #ffffff !important;
+            background-color: var(--dashboard-card-bg) !important;
+            color: var(--dashboard-text-color) !important;
+        }
+
+        .card-header {
+            background-color: var(--dashboard-table-header-bg) !important;
+            border-bottom: 1px solid rgba(0,0,0,.125) !important;
+            color: var(--dashboard-text-color) !important;
+        }
+
+        /* CORRECCIÓN: Borde en modo oscuro */
+        .dark-mode .card-header {
+            border-bottom: 1px solid rgba(255,255,255,.125) !important;
+        }
+
+        .card-footer {
+            background-color: var(--dashboard-table-header-bg) !important;
+            border-top: 1px solid rgba(0,0,0,.125) !important;
+            color: var(--dashboard-text-color) !important;
+        }
+
+        /* CORRECCIÓN: Borde en modo oscuro */
+        .dark-mode .card-footer {
+            border-top: 1px solid rgba(255,255,255,.125) !important;
+        }
+
+        .table {
+            color: var(--dashboard-table-text) !important;
+        }
+
+        .thead-light {
+            background-color: var(--dashboard-table-header-bg) !important;
+            color: var(--dashboard-table-text) !important;
+        }
+
+        .text-muted {
+            color: var(--dashboard-muted-text) !important;
+        }
+
+        /* CORRECCIÓN: Select en modo oscuro */
+        .dark-mode select.form-control {
+            background-color: var(--dashboard-card-bg);
+            color: var(--dashboard-text-color);
+            border-color: rgba(255,255,255,.125);
+        }
+
+        /* CORRECCIÓN: Botones en modo oscuro */
+        .dark-mode .btn-tool {
+            color: var(--dashboard-text-color);
         }
 
         /* Responsive adjustments */
@@ -432,6 +518,7 @@
         </div>
     </div>
 @stop
+
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

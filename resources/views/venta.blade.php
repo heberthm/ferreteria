@@ -18,51 +18,7 @@
 <div class="row">
     <!-- COLUMNA IZQUIERDA: Búsqueda y Productos -->
     <div class="col-lg-7">
-        <!-- Dashboard Rápido -->
-        <div class="row mb-3" id="dashboardRapido">
-            <div class="col-md-3">
-                <div class="small-box bg-primary" style="cursor: pointer;" onclick="iniciarVentaRapida()">
-                    <div class="inner p-2 text-center">
-                       
-                            <i class="fas fa-bolt"></i>
-                       
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Venta Rápida</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-success" style="cursor: pointer;" onclick="activarBusquedaRapida()">
-                    <div class="inner p-2 text-center">
-                      
-                            <i class="fas fa-search"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Buscar</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-warning" style="cursor: pointer;" onclick="mostrarProductosFrecuentes()">
-                    <div class="inner p-2 text-center">
-                      
-                            <i class="fas fa-star"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Frecuentes</h6>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="small-box bg-info" style="cursor: pointer;" onclick="mostrarMetricas()">
-                    <div class="inner p-2 text-center">
-                       
-                            <i class="fas fa-chart-bar"></i>
-                        
-                        <h6 class="mb-0" style="font-size: 0.8rem;">Métricas</h6>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Información del Cliente -->
+     <!-- Información del Cliente -->
         <div class="card card-primary card-outline">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h3 class="card-title"><i class="fas fa-user"></i> Cliente</h3>
@@ -171,61 +127,39 @@
     </div>
 
     <!-- COLUMNA DERECHA: Carrito y Totales -->
-    <div class="col-lg-5">
-        <!-- Métricas en Tiempo Real -->
-        <div class="row mb-3" id="metricasTiempoReal">
-            <div class="col-6">
-                <div class="info-box bg-light">
-                    <span class="info-box-icon bg-success"><i class="fas fa-shopping-cart"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Venta Actual</span>
-                        <span class="info-box-number" id="metricVentaActual">$0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6">
-                <div class="info-box bg-light">
-                    <span class="info-box-icon bg-warning"><i class="fas fa-cubes"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Productos</span>
-                        <span class="info-box-number" id="metricTotalProductos">0</span>
-                    </div>
-                </div>
+   <div class="col-lg-5">
+    
+    <div class="card card-warning card-outline card-carrito-contenedor">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito</h3>
+            <div class="card-tools">
+                <button type="button" class="btn btn-tool text-danger" id="btnLimpiarCarrito" title="Limpiar Carrito">
+                    <i class="fas fa-trash"></i>
+                </button>
             </div>
         </div>
-
-       <!-- Carrito de Compras - CORREGIDO: Misma altura que cliente -->
-<div class="card card-warning card-outline card-carrito-contenedor">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title"><i class="fas fa-shopping-cart"></i> Carrito</h3>
-        <div class="card-tools">
-            <button type="button" class="btn btn-tool text-danger" id="btnLimpiarCarrito" title="Limpiar Carrito">
-                <i class="fas fa-trash"></i>
-            </button>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 250px;">
+                <table class="table table-sm table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th width="40%">Producto</th>
+                            <th width="20%">Cant.</th>
+                            <th width="20%">Total</th>
+                            <th width="20%"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsCarrito">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-3">
+                                <i class="fas fa-shopping-basket fa-2x mb-2 d-block"></i>
+                                Carrito vacío
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive" style="max-height: 250px;">
-            <table class="table table-sm table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th width="40%">Producto</th>
-                        <th width="20%">Cant.</th>
-                        <th width="20%">Total</th>
-                        <th width="20%"></th>
-                    </tr>
-                </thead>
-                <tbody id="itemsCarrito">
-                    <tr>
-                        <td colspan="4" class="text-center text-muted py-3">
-                            <i class="fas fa-shopping-basket fa-2x mb-2 d-block"></i>
-                            Carrito vacío
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
         <!-- Totales y Pago -->
@@ -379,13 +313,16 @@
     </div>
 </div>
 
-<!-- Modal Atajos de Teclado -->
+
+<!-- Modal atajos -->
 <div class="modal fade" id="modalAtajos" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <h5 class="modal-title"><i class="fas fa-keyboard"></i> Atajos de Teclado</h5>
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="row">
@@ -412,8 +349,6 @@
         </div>
     </div>
 </div>
-
-
 
 <!-- Modal Scanner  -->
 <div class="modal fade" id="modalScanner" tabindex="-1" role="dialog">
@@ -1872,14 +1807,17 @@
 $(document).on('click', '#btnProcesarVenta', function(e) {
     e.preventDefault();
     console.log('🖱️ Clic en botón COBRAR');
+    console.log('📦 Estado del carrito:', carrito);
+    console.log('📊 Longitud del carrito:', carrito.length);
     
-    // Verificar que hay productos en el carrito
-    if (carrito.length === 0) {
+    // CORRECCIÓN: Verificar que hay productos en el carrito
+    if (!carrito || carrito.length === 0) {
+        console.error('❌ Carrito vacío o indefinido');
         toastr.error('El carrito está vacío', 'Error');
         return;
     }
     
-    console.log('📋 Productos en carrito:', carrito.length);
+    console.log('✅ Carrito tiene productos:', carrito.length);
     
     // Validar stock antes de procesar
     let stockValido = true;
@@ -1903,6 +1841,10 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         return;
     }
     
+    // CORRECCIÓN: Crear una copia del carrito ANTES de preparar datos
+    const carritoParaEnviar = JSON.parse(JSON.stringify(carrito));
+    console.log('📋 Copia del carrito creada:', carritoParaEnviar.length, 'items');
+    
     // Preparar datos de venta
     const ventaData = {
         cliente_id: clienteSeleccionado ? clienteSeleccionado.id : null,
@@ -1914,7 +1856,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         referencia_pago: obtenerReferenciaPago(),
         efectivo_recibido: Math.round(parseFloat($('#efectivoRecibido').val().replace(/\./g, '')) || 0),
         cambio: Math.round(parseFloat(window.cambioNumerico) || 0),
-        items: carrito.map(function(item) {
+        items: carritoParaEnviar.map(function(item) {
             return {
                 producto_id: item.id,
                 cantidad: item.cantidad,
@@ -1925,6 +1867,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
     };
     
     console.log('📤 Datos de venta preparados:', ventaData);
+    console.log('📦 Items en ventaData:', ventaData.items.length);
     
     // Mostrar loading
     const $btn = $(this);
@@ -1959,10 +1902,10 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             
             if (response.success) {
                 // MOSTRAR MENSAJE DE ÉXITO
-                toastr.success('Venta guardada con éxito', '¡Éxito!');
+                toastr.success('Venta realizada con éxito');
                 
-                // Actualizar stock localmente
-                carrito.forEach(function(item) {
+                // Actualizar stock localmente usando la copia
+                carritoParaEnviar.forEach(function(item) {
                     if (productos[item.id]) {
                         productos[item.id].stock -= item.cantidad;
                     }
@@ -2801,6 +2744,29 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             toastr.error('Producto no encontrado');
         }
     };
+
+    $(document).ready(function() {
+        // Abrir modal al hacer clic en el botón btnAtajos
+        $('#btnAtajos').on('click', function() {
+            $('#modalAtajos').modal('show');
+        });
+        
+        // Cerrar modal con el botón X
+        $('#modalAtajos .close').on('click', function() {
+            $('#modalAtajos').modal('hide');
+        });
+        
+        // También permite abrir con F1 y cerrar con Esc
+        $(document).on('keydown', function(e) {
+            if (e.key === 'F1') {
+                e.preventDefault();
+                $('#modalAtajos').modal('show');
+            }
+            if (e.key === 'Escape') {
+                $('#modalAtajos').modal('hide');
+            }
+        });
+    });
     
     window.recargarFrecuentes = function() {
         cargarProductosFrecuentes();
