@@ -8,6 +8,7 @@ use App\Models\Cliente;
 use App\Models\Venta;
 use App\Models\DetalleVenta;
 use App\Models\Pago;
+use App\Models\Inventario;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -243,6 +244,153 @@ public function procesarVenta(Request $request)
     DB::beginTransaction();
     
     try {
+        // 1. VERIFICAR Y CARGAR PRODUCTOS UNA SOLA VEZ
+        $productosVenta = [];
+        foreach ($request->items as $item) {
+            $producto = Producto::find($item['producto_id']);
+            
+            if (!$producto) {
+                throw new \Exception("Producto ID {$item['producto_id']} no encontrado");
+            }
+            
+            if ($producto->stock < $item['cantidad']) {
+                throw new \Exception("Stock insuficiente para '{$producto->nombre}'. Disponible: {$producto->stock}, Solicitado: {$item['cantidad']}");
+            }
+            
+            // Guardar en array para usar después
+            $productosVenta[$item['producto_id']] = [
+                'producto' => $producto,
+                'cantidad' => $item['cantidad'],
+                'precio' => $item['precio'],
+                'subtotal' => $item['subtotal']
+            ];
+        }
+        
+        // 2. GENERAR NÚMERO DE FACTURA
+        $numeroFactura = $this->generarNumeroFactura();
+        
+        // 3. PREPARAR DATOS DE PRODUCTOS PARA JSON
+        $productosJson = [];
+        foreach ($productosVenta as $id => $data) {
+            $productosJson[] = [
+                'id_producto' => $data['producto']->id_producto,
+                'codigo' => $data['producto']->codigo,
+                'nombre' => $data['producto']->nombre,
+                'cantidad' => $data['cantidad'],
+                'precio_unitario' => $data['precio'],
+                'subtotal' => $data['subtotal']
+            ];
+        }
+        
+        // 4. CREAR LA VENTA
+        $usuario = auth()->user();
+        $nombreUsuario = $usuario->name ?? 'Usuario Sistema';
+        
+        $venta = new Venta();
+        $venta->numero_factura = $numeroFactura;
+        $venta->id_cliente = $request->cliente_id;
+        $venta->nombre_usuario = $nombreUsuario;
+        $venta->subtotal = $request->subtotal;
+        $venta->iva = $request->iva;
+        $venta->total = $request->total;
+        $venta->metodo_pago = $request->metodo_pago;
+        $venta->tipo_comprobante = $request->tipo_comprobante;
+        $venta->referencia_pago = $request->referencia_pago;
+        $venta->efectivo_recibido = $request->efectivo_recibido;
+        $venta->cambio = $request->cambio;
+        $venta->userId = auth()->id() ?? 1;
+        $venta->fecha_venta = Carbon::now();
+        $venta->estado = 'completada';
+        $venta->productos = $productosJson;
+        $venta->save();
+        
+       // 5. CREAR DETALLES Y ACTUALIZAR STOCK
+        foreach ($productosVenta as $id => $data) {
+            // Crear detalle venta
+            $detalle = new DetalleVenta();
+            $detalle->id_venta = $venta->id_venta;
+            $detalle->id_producto = $data['producto']->id_producto;
+            $detalle->cantidad = $data['cantidad'];
+            $detalle->precio_unitario = $data['precio'];
+            $detalle->subtotal = $data['subtotal'];
+            $detalle->save();
+            
+            // Guardar stock anterior
+            $stockAnterior = $data['producto']->stock;
+            
+            // Actualizar stock y cantidad
+            $data['producto']->stock -= $data['cantidad'];
+            $data['producto']->cantidad -= $data['cantidad'];
+            $data['producto']->save();
+            
+            // 📝 Registrar movimiento de salida en inventarios
+            Inventario::create([
+                'id_producto' => $data['producto']->id_producto,
+                'tipo_movimiento' => 'salida',
+                'cantidad' => $data['cantidad'],
+                'stock_anterior' => $stockAnterior,
+                'stock_nuevo' => $data['producto']->stock,
+                'id_venta' => $venta->id_venta,
+                'fecha_movimiento' => now(),
+                'notas' => "Venta #{$venta->numero_factura}",
+                'usuario_id' => auth()->id()
+            ]);
+            
+            \Log::info("📦 Inventario actualizado: {$data['producto']->nombre}", [
+                'stock_anterior' => $stockAnterior,
+                'cantidad_vendida' => $data['cantidad'],
+                'stock_nuevo' => $data['producto']->stock
+            ]);
+        }
+        
+        // 6. CREAR PAGO
+        $pago = new Pago();
+        $pago->id_venta = $venta->id_venta;
+        $pago->metodo_pago = $request->metodo_pago;
+        $pago->monto = $request->total;
+        $pago->referencia = $request->referencia_pago;
+        $pago->estado = 'completado';
+        $pago->save();
+        
+        DB::commit();
+        
+        // 7. CARGAR DATOS PARA LA RESPUESTA
+        $venta->load(['cliente', 'detalles.producto', 'pago']);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Venta procesada exitosamente',
+            'venta_id' => $venta->id_venta,
+            'numero_factura' => $venta->numero_factura,
+            'venta_completa' => $venta,
+            'timestamp' => Carbon::now()->toDateTimeString()
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        
+        \Log::error('❌ Error al procesar venta:', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al procesar la venta: ' . $e->getMessage()
+        ], 500);
+    }
+
+
+     // ============================================
+        // 1. OBTENER USUARIO AUTENTICADO
+        // ============================================
+        $usuario = auth()->user();
+        $idUsuario = $usuario->id ?? $usuario->id_usuario ?? null;
+        $nombreUsuario = auth()->user()->name ?? 'Usuario Sistema';
+
+        
+    
+    try {
         // 1. VERIFICAR STOCK
         foreach ($request->items as $item) {
             $producto = Producto::find($item['producto_id']);
@@ -277,6 +425,7 @@ public function procesarVenta(Request $request)
         $venta = new Venta();
         $venta->numero_factura = $numeroFactura;
         $venta->id_cliente = $request->cliente_id;
+        $venta->nombre_usuario = $nombreUsuario;
         $venta->subtotal = $request->subtotal;
         $venta->iva = $request->iva;
         $venta->total = $request->total;

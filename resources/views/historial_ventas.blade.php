@@ -1,423 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Ferreteria')
-
-@section('content_header')
-    <h1 class="m-0 text-dark">Datos de ventas</h1>
-@stop
-
 @section('content')
 
-    <style>
-        /* Variables CSS para modo oscuro */
-        :root {
-            --dashboard-bg: #f4f6f9;
-            --dashboard-card-bg: #ffffff;
-            --dashboard-text-color: #495057;
-            --dashboard-table-header-bg: #f8f9fa;
-            --dashboard-table-text: #212529;
-            --dashboard-muted-text: #6c757d;
-        }
-
-        /* Modo oscuro AdminLTE */
-        .dark-mode {
-            --dashboard-bg: #343a40;
-            --dashboard-card-bg: #454d55;
-            --dashboard-text-color: #e1e1e1;
-            --dashboard-table-header-bg: #3a4047;
-            --dashboard-table-text: #e1e1e1;
-            --dashboard-muted-text: #adb5bd;
-        }
-
-        /* CORRECCIÓN: Aplicar variables a body en modo oscuro */
-        body.dark-mode {
-            background-color: var(--dashboard-bg);
-            color: var(--dashboard-text-color);
-        }
-
-        /* Mantener diseño original de los cards */
-        .card-dashboard {
-            border-left: 4px solid !important;
-            transition: transform 0.3s;
-            height: 120px;
-            border-radius: 0.375rem !important;
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-            background-color: var(--dashboard-card-bg) !important;
-        }
-
-        .card-dashboard:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-
-        .card-dashboard.primary {
-            border-left-color: #0d6efd !important;
-        }
-
-        .card-dashboard.success {
-            border-left-color: #198754 !important;
-        }
-
-        .card-dashboard.warning {
-            border-left-color: #ffc107 !important;
-        }
-
-        .card-dashboard.danger {
-            border-left-color: #dc3545 !important;
-        }
-
-        .card-dashboard.info {
-            border-left-color: #0dcaf0 !important;
-        }
-
-        .card-dashboard .card-icon {
-            font-size: 2.5rem !important;
-            opacity: 0.8;
-        }
-
-        .card-title {
-            font-size: 1.8rem !important;
-            font-weight: bold !important;
-            margin-bottom: 0 !important;
-            color: var(--dashboard-text-color) !important;
-        }
-
-        .card-subtitle {
-            font-size: 0.9rem !important;
-            color: var(--dashboard-muted-text) !important;
-            margin-bottom: 0.25rem !important;
-        }
-
-        /* Ajustes para AdminLTE */
-        .content-wrapper {
-            background-color: var(--dashboard-bg) !important;
-        }
-
-        /* CORRECCIÓN: Aplicar a content-wrapper en modo oscuro */
-        .dark-mode .content-wrapper {
-            background-color: var(--dashboard-bg) !important;
-        }
-
-        .main-header {
-            margin-bottom: 0 !important;
-        }
-
-        .small-box {
-            margin-bottom: 0 !important;
-        }
-
-        /* Animaciones y efectos adicionales */
-        .stock-bajo {
-            animation: pulse 2s infinite;
-        }
-
-        /* Estilos para el modo oscuro - Tabla de stock bajo */
-[data-bs-theme="dark"] .table-danger,
-[data-bs-theme="dark"] .table-warning {
-    --bs-table-color: #000000;
-    --bs-table-bg: var(--bs-table-bg-state, var(--bs-table-bg-type, var(--bs-table-accent-bg)));
-    color: var(--bs-table-color) !important;
-}
-
-/* Estilos específicos para las celdas en modo oscuro */
-[data-bs-theme="dark"] .table-danger td,
-[data-bs-theme="dark"] .table-warning td,
-[data-bs-theme="dark"] .table-danger th,
-[data-bs-theme="dark"] .table-warning th {
-    color: #000000 !important;
-}
-
-/* Para el texto dentro de las celdas específicamente */
-[data-bs-theme="dark"] .table-danger .font-weight-bold,
-[data-bs-theme="dark"] .table-warning .font-weight-bold,
-[data-bs-theme="dark"] .table-danger .text-muted,
-[data-bs-theme="dark"] .table-warning .text-muted {
-    color: #000000 !important;
-}
-
-/* Estilos para modo oscuro - Tabla stock bajo */
-[data-bs-theme="dark"] .table-danger {
-    --bs-table-bg: rgba(220, 53, 69, 0.15) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(220, 53, 69, 0.3) !important;
-    background-color: var(--bs-table-bg) !important;
-}
-
-[data-bs-theme="dark"] .table-warning {
-    --bs-table-bg: rgba(255, 193, 7, 0.15) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(255, 193, 7, 0.3) !important;
-    background-color: var(--bs-table-bg) !important;
-}
-
-/* Para las celdas específicamente */
-[data-bs-theme="dark"] .table-danger td,
-[data-bs-theme="dark"] .table-warning td,
-[data-bs-theme="dark"] .table-danger th,
-[data-bs-theme="dark"] .table-warning th {
-    background-color: transparent !important;
-    color: #ffffff !important;
-    border-color: var(--bs-table-border-color) !important;
-}
-
-/* Para el texto dentro de las celdas */
-[data-bs-theme="dark"] .table-danger .font-weight-bold,
-[data-bs-theme="dark"] .table-warning .font-weight-bold,
-[data-bs-theme="dark"] .table-danger .text-muted,
-[data-bs-theme="dark"] .table-warning .text-muted {
-    color: #f0f0f0 !important;
-}
-
-/* Para los badges dentro de la tabla */
-[data-bs-theme="dark"] .table-danger .badge-danger,
-[data-bs-theme="dark"] .table-warning .badge-warning {
-    color: #000000 !important;
-}
-
-/* Estilos para modo oscuro - Tabla stock bajo */
-[data-bs-theme="dark"] .table-danger {
-    --bs-table-bg: rgba(220, 53, 69, 0.15) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(220, 53, 69, 0.3) !important;
-    background-color: var(--bs-table-bg) !important;
-}
-
-[data-bs-theme="dark"] .table-warning {
-    --bs-table-bg: rgba(255, 193, 7, 0.15) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(255, 193, 7, 0.3) !important;
-    background-color: var(--bs-table-bg) !important;
-}
-
-/* Para las celdas específicamente */
-[data-bs-theme="dark"] .table-danger td,
-[data-bs-theme="dark"] .table-warning td,
-[data-bs-theme="dark"] .table-danger th,
-[data-bs-theme="dark"] .table-warning th {
-    background-color: transparent !important;
-    color: #ffffff !important;
-    border-color: var(--bs-table-border-color) !important;
-}
-
-/* Para el texto dentro de las celdas */
-[data-bs-theme="dark"] .table-danger .font-weight-bold,
-[data-bs-theme="dark"] .table-warning .font-weight-bold,
-[data-bs-theme="dark"] .table-danger .text-muted,
-[data-bs-theme="dark"] .table-warning .text-muted {
-    color: #f0f0f0 !important;
-}
-
-/* Para los badges dentro de la tabla */
-[data-bs-theme="dark"] .table-danger .badge-danger,
-[data-bs-theme="dark"] .table-warning .badge-warning {
-    color: #000000 !important;
-}
-
-/* Versión alternativa con fondo más oscuro */
-[data-bs-theme="dark"] .table-danger.dark-bg {
-    --bs-table-bg: rgba(88, 21, 28, 0.8) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(220, 53, 69, 0.5) !important;
-}
-
-[data-bs-theme="dark"] .table-warning.dark-bg {
-    --bs-table-bg: rgba(102, 77, 3, 0.8) !important;
-    --bs-table-color: #ffffff !important;
-    --bs-table-border-color: rgba(255, 193, 7, 0.5) !important;
-}
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        .loader {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .badge-stock {
-            font-size: 0.8em !important;
-            padding: 0.3em 0.6em !important;
-        }
-
-        /* Ajustar tablas para AdminLTE - MODIFICADO para modo oscuro */
-        .table-hover tbody tr:hover {
-            background-color: rgba(0, 0, 0, 0.075) !important;
-        }
-
-        /* CORRECCIÓN: Hover en modo oscuro */
-        .dark-mode .table-hover tbody tr:hover {
-            background-color: rgba(255, 255, 255, 0.075) !important;
-        }
-
-        .card {
-            background-color: var(--dashboard-card-bg) !important;
-            color: var(--dashboard-text-color) !important;
-        }
-
-        .card-header {
-            background-color: var(--dashboard-table-header-bg) !important;
-            border-bottom: 1px solid rgba(0,0,0,.125) !important;
-            color: var(--dashboard-text-color) !important;
-        }
-
-        /* CORRECCIÓN: Borde en modo oscuro */
-        .dark-mode .card-header {
-            border-bottom: 1px solid rgba(255,255,255,.125) !important;
-        }
-
-        .card-footer {
-            background-color: var(--dashboard-table-header-bg) !important;
-            border-top: 1px solid rgba(0,0,0,.125) !important;
-            color: var(--dashboard-text-color) !important;
-        }
-
-        /* CORRECCIÓN: Borde en modo oscuro */
-        .dark-mode .card-footer {
-            border-top: 1px solid rgba(255,255,255,.125) !important;
-        }
-
-        .table {
-            color: var(--dashboard-table-text) !important;
-        }
-
-        .thead-light {
-            background-color: var(--dashboard-table-header-bg) !important;
-            color: var(--dashboard-table-text) !important;
-        }
-
-        .text-muted {
-            color: var(--dashboard-muted-text) !important;
-        }
-
-        /* CORRECCIÓN: Select en modo oscuro */
-        .dark-mode select.form-control {
-            background-color: var(--dashboard-card-bg);
-            color: var(--dashboard-text-color);
-            border-color: rgba(255,255,255,.125);
-        }
-
-        /* CORRECCIÓN: Botones en modo oscuro */
-        .dark-mode .btn-tool {
-            color: var(--dashboard-text-color);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .card-dashboard {
-                height: auto;
-                min-height: 100px;
-            }
-            
-            .card-dashboard .card-icon {
-                font-size: 2rem !important;
-            }
-            
-            .card-title {
-                font-size: 1.1rem !important;
-            }
-        }
-
-/* Estilos para el dashboard */
-.updating {
-    color: #3498db !important;
-    transition: color 0.3s ease;
-}
-
-.alert-pulse {
-    animation: alertPulse 2s ease-in-out;
-}
-
-@keyframes alertPulse {
-    0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
-}
-
-.loading tr {
-    opacity: 0.6;
-}
-
-.product-rank {
-    width: 24px;
-    height: 24px;
-    background: #3498db;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-}
-
-.bg-gradient-primary {
-    background: linear-gradient(90deg, #3498db, #2ecc71);
-}
-
-.card-dashboard {
-    transition: all 0.3s ease;
-}
-
-.card-dashboard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
-/* Animación para números */
-@keyframes countUp {
-    from { opacity: 0.5; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.card-title {
-    animation: countUp 0.5s ease-out;
-}
-
-/* Estilos para el dashboard */
-.number {
-    font-size: 1.8rem;
-    font-weight: bold;
-}
-
-.subtle-notification {
-    animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 0.9;
-    }
-}
-
-/* Estilo para las tarjetas cuando se actualizan */
-.card-updating {
-    animation: pulse 1s ease-in-out;
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4); }
-    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
-}
-   /* Estilos para vista previa e impresión */
+<style>
+    .text-success { color: green; }
+    .text-danger { color: red; }
+    .badge-estado { font-size: 0.85em; padding: 4px 8px; }
+    .filtro-ventas { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .filtro-ventas .form-group { margin-bottom: 10px; }
+    .btn-accion-venta { margin-right: 5px; }
+    .modal-lg-custom { max-width: 900px; }
+    .table-ventas th { background-color: #f1f5f9; }
+    .total-venta { font-weight: bold; color: #2c3e50; }
+    
+    /* Estilos para vista previa e impresión */
     @media print {
         body * {
             visibility: hidden;
@@ -499,33 +95,20 @@
         }
     }
     
-
     /* Estilos específicos para ticket - IDÉNTICOS EN VISTA PREVIA E IMPRESIÓN */
-   #vistaPreviaTicket .preview-container {
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    min-height: 70vh !important;
-    background-color: #f5f5f5 !important;
-    padding: 20px !important;
-    margin: 0 !important;
-}
-
-#ticketPreview {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    transition: transform 0.2s ease;
-}
-
-#ticketPreview > div {
-    width: 302px !important;
-    max-width: 302px !important;
-    min-width: 302px !important;
-    margin: 0 auto !important;
-    box-sizing: border-box !important;
-}
+    .ticket-preview, .ticket-print {
+        font-family: 'Courier New', monospace;
+        width: 300px;
+        margin: 0 auto;
+        padding: 10px;
+        font-size: 12px;
+        line-height: 1.2;
+        border: 1px solid #ddd;
+        background-color: white;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        max-height: none !important; /* Eliminar altura máxima */
+        overflow: visible !important; /* Eliminar scroll */
+    }
     
     .ticket-header {
         text-align: center;
@@ -675,240 +258,115 @@
         padding-bottom: 10px;
         border-bottom: 2px solid #007bff;
     }
+</style>
 
-    </style>
-
-    <div class="container-fluid">
-        <!-- Primera fila: Estadísticas principales -->
-        <div class="row">
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                <div class="card card-dashboard primary">
-                    <div class="card-body d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h6 class="card-subtitle">Total Ventas Hoy</h6>
-                            <h3 class="card-title" id="totalVentasHoy">
-                                <span class="loader"></span>
-                            </h3>
-                            <small class="text-muted" id="comparativaVentas"></small>
-                        </div>
-                        <div class="card-icon text-primary">
-                            <i class="fas fa-shopping-cart"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                <div class="card card-dashboard success">
-                    <div class="card-body d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h6 class="card-subtitle">Ingresos Totales hoy</h6>
-                            <h3 class="card-title" id="ingresosTotales">
-                                <span class="loader"></span>
-                            </h3>
-                            <small class="text-muted" id="tendenciaIngresos"></small>
-                        </div>
-                        <div class="card-icon text-success">
-                            <i class="fas fa-dollar-sign"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                <div class="card card-dashboard warning">
-                    <div class="card-body d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h6 class="card-subtitle">Promedio por Venta</h6>
-                            <h3 class="card-title" id="promedioVenta">
-                                <span class="loader"></span>
-                            </h3>
-                            <small class="text-muted">Valor promedio</small>
-                        </div>
-                        <div class="card-icon text-warning">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-3 col-md-6 col-sm-12 mb-3">
-                <div class="card card-dashboard danger">
-                    <div class="card-body d-flex justify-content-between align-items-center p-3">
-                        <div>
-                            <h6 class="card-subtitle">Alerta Stock Bajo</h6>
-                            <h3 class="card-title" id="alertasStock">
-                                <span class="loader"></span>
-                            </h3>
-                            <small class="text-muted" id="productosBajoStock"></small>
-                        </div>
-                        <div class="card-icon text-danger">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<br><br>
+<div class="card">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-history"></i> Historial de Ventas</h5>
+        <div class="pull-right">
+            <button type="button" id="descargarReporte" class="btn btn-success btn-sm">
+                <span class="fa fa-download"></span> Exportar
+            </button>
         </div>
-
-        <!-- Segunda fila: Gráficos y Tablas -->
-        <div class="row">
-            <div class="col-lg-6 col-md-12 mb-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-chart-bar mr-2"></i>
-                            Productos Más Vendidos
-                        </h3>
-                        <div class="card-tools">
-                            <select id="filtroPeriodo" class="form-control form-control-sm" style="width: auto;">
-                                <option value="hoy">Hoy</option>
-                                <option value="semana">Esta Semana</option>
-                                <option value="mes" selected>Este Mes</option>
-                                <option value="anio">Este Año</option>
-                            </select>
-                        </div>
+    </div>
+  
+    <div class="card-body">
+        <div class="filtro-ventas">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="fecha_desde">Fecha desde</label>
+                        <input type="date" class="form-control form-control-sm" id="fecha_desde" name="fecha_desde">
                     </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th style="width: 40%;">Producto</th>
-                                        <th style="width: 15%;">Cantidad</th>
-                                        <th style="width: 25%;">Total Vendido</th>
-                                        <th style="width: 20%;">%</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cuerpoProductosVendidos">
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4">
-                                            <span class="loader"></span> Cargando datos...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="fecha_hasta">Fecha hasta</label>
+                        <input type="date" class="form-control form-control-sm" id="fecha_hasta" name="fecha_hasta">
                     </div>
-                    <div class="card-footer">
-                        <small class="text-muted">Actualizado: <span id="fechaActualizacionProductos">--:--:--</span></small>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="estado_venta">Estado</label>
+                        <select class="form-control form-control-sm" id="estado_venta" name="estado_venta">
+                            <option value="">Todos</option>
+                            <option value="completada">Completada</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label for="metodo_pago">Método de pago</label>
+                        <select class="form-control form-control-sm" id="metodo_pago" name="metodo_pago">
+                            <option value="">Todos</option>
+                            <option value="efectivo">Efectivo</option>
+                            <option value="tarjeta">Tarjeta</option>
+                            <option value="transferencia">Transferencia</option>
+                        </select>
                     </div>
                 </div>
             </div>
-
-            <div class="col-lg-6 col-md-12 mb-3">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="fas fa-arrow-circle-down mr-2"></i>
-                            Productos con Stock Bajo
-                        </h3>
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="thead-light">
-                                    <tr>
-                                        <th style="width: 30%;">Producto</th>
-                                        <th style="width: 20%;">Código</th>
-                                        <th style="width: 15%;">Stock</th>
-                                        <th style="width: 20%;">Mínimo</th>
-                                        <th style="width: 15%;">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cuerpoStockBajo">
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4">
-                                            <span class="loader"></span> Cargando datos...
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <div class="alert alert-warning mb-0 py-2 d-none" id="alertaStock">
-                            <i class="fas fa-exclamation-circle mr-2"></i>
-                            <span id="mensajeAlerta"></span>
-                        </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="buscar_cliente">Buscar por cliente</label>
+                        <input type="text" class="form-control form-control-sm" id="buscar_cliente" 
+                               placeholder="Nombre o documento del cliente">
                     </div>
                 </div>
-            </div>
-        </div>
-
-<!-- Ventas Recientes -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="icon-circle bg-secondary  mr-3">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                        <div>
-                            <h3 class="card-title mb-0">Ventas Recientes</h3>
-                            <small class="text-muted d-block" id="ventasUpdateStatus">
-                                Actualizado: <span id="fechaUltimaActualizacion">--:--:--</span>
-                            </small>
-                        </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="buscar_factura">Buscar factura</label>
+                        <input type="text" class="form-control form-control-sm" id="buscar_factura" 
+                               placeholder="Número de factura">
                     </div>
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                onclick="actualizarDashboard()" 
-                                title="Actualizar datos"
-                                data-toggle="tooltip">
-                            <i class="fas fa-sync-alt"></i>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-group w-100">
+                        <button type="button" id="btnFiltrar" class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-search"></i> Filtrar
                         </button>
-                        <a href="{{ route('historial_ventas') }}" 
-                           class="btn btn-sm btn-primary"
-                           title="Ver todas las ventas"
-                           data-toggle="tooltip">
-                            <i class="fas fa-list mr-1"></i> Ver todas las ventas
-                        </a>
+                        <button type="button" id="btnLimpiarFiltros" class="btn btn-secondary btn-sm w-100 mt-1">
+                            <i class="fas fa-times"></i> Limpiar
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="thead-light">
-                            <tr>
-                                <th style="width: 15%;">Factura</th>
-                                <th style="width: 15%;">Fecha/Hora</th>
-                                <th style="width: 20%;">Cliente</th>
-                                <th style="width: 15%;">Productos</th>
-                                <th style="width: 15%;">Total</th>
-                                <th style="width: 10%;">Estado</th>
-                                <th style="width: 10%;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cuerpoVentasRecientes">
-                            <tr>
-                                <td colspan="7" class="text-center py-4">
-                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                        <span class="sr-only">Cargando...</span>
-                                    </div>
-                                    <span class="ml-2">Cargando ventas recientes...</span>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        </div>
+        
+        <!-- Tabla de ventas -->
+        <div class="table-responsive">
+            <table class="table table-hover table-striped" id="tablaVentas" style="width:100%;font-size:12.5px;">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Factura</th>
+                        <th>Fecha/Hora</th>
+                        <th>Cliente</th>
+                        <th>Vendedor</th>
+                        <th>Cant.</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Pago</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Datos se cargarán via AJAX -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5" class="text-right"><strong>Total general:</strong></td>
+                        <td id="totalGeneral" class="total-venta">$0</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
     </div>
 </div>
-
-<style>
-.icon-circle {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-</style>      
 
 <!-- Modal para Ver Detalle de Venta -->
 <div class="modal fade" id="modalDetalleVenta" tabindex="-1" role="dialog" aria-labelledby="modalDetalleVentaLabel" aria-hidden="true">
@@ -1122,6 +580,10 @@
                     <i class="fas fa-times mr-1"></i> Cerrar
                 </button>
                 
+                <button type="button" class="btn btn-danger ms-2 d-none" id="btnEliminarVentaModal" onclick="eliminarVenta(modalVentaId)">
+                    <i class="fas fa-trash mr-1"></i> Eliminar Factura
+                </button>
+
                 <!-- Botones de impresión SEPARADOS pero uno al lado del otro -->
                 <button type="button" class="btn btn-primary me-2" onclick="mostrarVistaPrevia('ticket')">
                     <i class="fas fa-receipt mr-1"></i> Vista Previa Ticket
@@ -1199,21 +661,11 @@
     </div>
 </div>
 
-@stop
+@endsection
 
+@push('js')
 
-@section('js')
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-
-// ============================================
-// INICIALIZAR VARIABLES GLOBALES
-// ============================================
-window.dashboardInterval = window.dashboardInterval || null;
-window.ultimaActualizacion = window.ultimaActualizacion || null;
-window.periodoActual = window.periodoActual || 'mes';
-window.ventaActual = window.ventaActual || null;
-
+<script>
 var tablaVentas;
 var modalVentaId = null;
 var datosVenta = null;
@@ -1239,369 +691,71 @@ function formatSinDecimales(numero) {
 }
 
 // ============================================
-// INICIALIZACIÓN
-// ============================================
-$(document).ready(function() {
-    console.log('🚀 Iniciando Dashboard POS');
-    
-    cargarDatosDashboard();
-    window.dashboardInterval = setInterval(cargarDatosDashboard, 30000);
-    
-    $('#filtroPeriodo').on('change', function() {
-        window.periodoActual = $(this).val();
-        cargarDatosDashboard();
-    });
-    
-    // Inicializar DataTable
-    if ($('#tablaVentas').length) {
-        initDataTable();
-    }
-});
-
-// ============================================
-// FUNCIÓN PRINCIPAL DE CARGA
-// ============================================
-function cargarDatosDashboard() {
-    const url = '/dashboard/data';
-    
-    $.ajax({
-        url: url,
-        method: 'GET',
-        data: { periodo: window.periodoActual },
-        success: function(response) {
-            if (response.success) {
-                actualizarEstadisticas(response.data.estadisticas);
-                actualizarProductosVendidos(response.data.productos_vendidos);
-                actualizarStockBajo(response.data.stock_bajo);
-                actualizarVentasRecientes(response.data.ventas_recientes);
-                actualizarTimestamps();
-                window.ultimaActualizacion = new Date();
-            } else {
-                mostrarError('No se pudieron cargar los datos');
-            }
-        },
-        error: function() {
-            mostrarError('Error de conexión con el servidor');
-        }
-    });
-}
-
-// ============================================
-// ACTUALIZAR ESTADÍSTICAS
-// ============================================
-function actualizarEstadisticas(stats) {
-    $('#totalVentasHoy').html(stats.ventas_hoy || 0);
-    $('#comparativaVentas').text(`${stats.ventas_hoy || 0} ventas realizadas`);
-    
-    const ingresos = parseFloat(stats.ingresos_hoy || 0);
-    $('#ingresosTotales').html(formatearMoneda(ingresos));
-    
-    const promedio = parseFloat(stats.promedio_venta || 0);
-    $('#promedioVenta').html(formatearMoneda(promedio));
-    
-    const stockBajo = parseInt(stats.productos_stock_bajo || 0);
-    $('#alertasStock').html(stockBajo);
-    
-    if (stockBajo > 0) {
-        $('#productosBajoStock').html(`${stockBajo} producto${stockBajo !== 1 ? 's' : ''} requiere${stockBajo !== 1 ? 'n' : ''} atención`);
-        $('#alertasStock').closest('.card-dashboard').addClass('stock-bajo');
-    } else {
-        $('#productosBajoStock').html('Todos los productos OK');
-        $('#alertasStock').closest('.card-dashboard').removeClass('stock-bajo');
-    }
-}
-
-// ============================================
-// ACTUALIZAR PRODUCTOS VENDIDOS
-// ============================================
-function actualizarProductosVendidos(productos) {
-    let html = '';
-    
-    if (!productos || productos.length === 0) {
-        html = `<tr><td colspan="4" class="text-center py-4"><i class="fas fa-info-circle fa-2x text-muted mb-2"></i><div class="text-muted">No hay ventas en este período</div></td></tr>`;
-    } else {
-        productos.forEach((producto, index) => {
-            const porcentaje = parseFloat(producto.porcentaje || 0).toFixed(1);
-            const cantidad = parseInt(producto.total_cantidad || 0);
-            const total = parseFloat(producto.total_vendido || 0);
-            
-            html += `<tr>
-                <td><div class="d-flex align-items-center"><span class="badge badge-primary mr-2">${index + 1}</span><div><div class="font-weight-bold">${escapeHtml(producto.nombre)}</div><small class="text-muted">${escapeHtml(producto.codigo)}</small></div></div></td>
-                <td class="text-center font-weight-bold">${cantidad}</td>
-                <td class="text-right">${formatearMoneda(total)}</td>
-                <td><div class="progress" style="height: 20px;"><div class="progress-bar bg-success" style="width: ${porcentaje}%">${porcentaje}%</div></div></td>
-            </tr>`;
-        });
-    }
-    
-    $('#cuerpoProductosVendidos').html(html);
-}
-
-// ============================================
-// ACTUALIZAR STOCK BAJO
-// ============================================
-function actualizarStockBajo(stockItems) {
-    let html = '';
-    
-    if (!stockItems || stockItems.length === 0) {
-        html = `<tr><td colspan="5" class="text-center py-4"><i class="fas fa-check-circle fa-2x text-success mb-2"></i><div class="text-success font-weight-bold">Todo el stock está en niveles adecuados</div></td></tr>`;
-        $('#alertaStock').addClass('d-none');
-    } else {
-        stockItems.forEach((item) => {
-            const stock = parseInt(item.stock_actual || 0);
-            const minimo = parseInt(item.stock_minimo || 5);
-            const esCritico = stock <= 2;
-            const estadoBadge = esCritico ? 'danger' : 'warning';
-            
-            html += `<tr class="${esCritico ? 'table-danger' : 'table-warning'}">
-                <td><div class="font-weight-bold">${escapeHtml(item.nombre)}</div></td>
-                <td><small class="text-muted">${escapeHtml(item.codigo)}</small></td>
-                <td class="text-center"><span class="badge badge-${estadoBadge} font-weight-bold">${stock}</span></td>
-                <td class="text-center">${minimo}</td>
-                <td><span class="badge badge-${estadoBadge}"><i class="fas fa-exclamation-triangle mr-1"></i>${item.estado}</span></td>
-            </tr>`;
-        });
-        
-        $('#mensajeAlerta').text(`${stockItems.length} producto${stockItems.length !== 1 ? 's necesitan' : ' necesita'} reabastecimiento`);
-        $('#alertaStock').removeClass('d-none');
-    }
-    
-    $('#cuerpoStockBajo').html(html);
-}
-
-// ============================================
-// ACTUALIZAR VENTAS RECIENTES
-// ============================================
-function actualizarVentasRecientes(ventas) {
-    let html = '';
-    
-    if (!ventas || ventas.length === 0) {
-        html = `<tr><td colspan="7" class="text-center py-4"><i class="fas fa-receipt fa-2x text-muted mb-2"></i><div class="text-muted">No hay ventas recientes</div></td></tr>`;
-    } else {
-        ventas.forEach((venta) => {
-            const estadoBadge = obtenerBadgeEstado(venta.estado);
-            const fecha = new Date(venta.fecha_venta);
-            const fechaFormateada = formatearFecha(fecha);
-            
-            html += `<tr>
-                <td><span class="badge badge-info">${escapeHtml(venta.numero_factura)}</span></td>
-                <td><small>${fechaFormateada}</small></td>
-                <td>${escapeHtml(venta.cliente)}</td>
-                <td class="text-center"><span class="badge badge-secondary">${venta.total_productos}</span></td>
-                <td class="text-right font-weight-bold">${formatearMoneda(venta.total)}</td>
-                <td><span class="badge badge-${estadoBadge.class}"><i class="fas ${estadoBadge.icon} mr-1"></i>${estadoBadge.text}</span></td>
-                <td class="text-center"><a href="javascript:void(0)" class="btn btn-sm btn-outline-primary" onclick="verDetalleVenta(${venta.id})" title="Ver Detalle venta"><i class="fas fa-eye"></i></a></td>
-            </tr>`;
-        });
-    }
-    
-    $('#cuerpoVentasRecientes').html(html);
-}
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
-function actualizarTimestamps() {
-    const ahora = new Date();
-    const horaFormateada = ahora.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    $('#fechaUltimaActualizacion').text(horaFormateada);
-    $('#fechaActualizacionProductos').text(horaFormateada);
-}
-
-function formatearMoneda(valor) {
-    return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(valor || 0);
-}
-
-function formatearFecha(fecha) {
-    return fecha.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-}
-
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function obtenerBadgeEstado(estado) {
-    const estados = { 
-        'completada': { class: 'success', icon: 'fa-check-circle', text: 'Completada' }, 
-        'pendiente': { class: 'warning', icon: 'fa-clock', text: 'Pendiente' }, 
-        'cancelada': { class: 'danger', icon: 'fa-times-circle', text: 'Cancelada' } 
-    };
-    return estados[estado] || { class: 'secondary', icon: 'fa-question-circle', text: estado };
-}
-
-function mostrarError(mensaje) {
-    console.error('❌', mensaje);
-}
-
-// ============================================
-// INICIALIZAR DATATABLE
-// ============================================
-function initDataTable() {
-    tablaVentas = $('#tablaVentas').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: "{{ route('historial.ventas.data') }}",
-            type: "GET",
-            data: function(d) {
-                d.fecha_desde = $('#fecha_desde').val();
-                d.fecha_hasta = $('#fecha_hasta').val();
-                d.estado = $('#estado_venta').val();
-                d.metodo_pago = $('#metodo_pago').val();
-                d.cliente = $('#buscar_cliente').val();
-                d.factura = $('#buscar_factura').val();
-                return d;
-            }
-        },
-        columns: [
-            { data: "numero_factura", name: "ventas.numero_factura", defaultContent: "N/A" },
-            { 
-                data: "fecha_venta", 
-                name: "ventas.fecha_venta",
-                render: function(data, type, row) {
-                    if (type === 'display') return row.fecha_formateada + '<br><small class="text-muted">' + row.hora_formateada + '</small>';
-                    return data;
-                }
-            },
-            { data: "cliente_nombre", name: "cliente_nombre" },
-            { data: "vendedor_nombre", name: "vendedor_nombre" },
-            { data: "total_productos", name: "total_productos", className: "text-center" },
-            { 
-                data: "total", 
-                name: "ventas.total", 
-                className: "text-right",
-                render: function(data) { return '<span data-total="' + data + '">' + data + '</span>'; }
-            },
-            { data: "estado", name: "ventas.estado" },
-            { data: "metodo_pago", name: "ventas.metodo_pago" },
-            { data: "acciones", name: "acciones", orderable: false, searchable: false }
-        ],
-        order: [[1, 'desc']],
-        language: {
-            emptyTable: "No hay productos registrados.",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-            infoEmpty: "Mostrando 0 a 0 de 0 Entradas",
-            infoFiltered: "(Filtrado de _MAX_ total entradas)",
-            lengthMenu: "Mostrar _MENU_ Entradas",
-            loadingRecords: "Cargando...",
-            processing: "Procesando...",
-            search: "Buscar:",
-            zeroRecords: "Sin resultados encontrados",
-            paginate: { first: "Primero", last: "Ultimo", next: "Siguiente", previous: "Anterior" }
-        },
-        pageLength: 10,
-        drawCallback: function(settings) {
-            var api = this.api();
-            var total = 0;
-            api.rows({page: 'current'}).every(function() {
-                var data = this.data();
-                var valorTotal = 0;
-                if (data.total) {
-                    if (typeof data.total === 'string') {
-                        var valorLimpio = data.total.replace(/[\$\.]/g, '').replace(',', '.');
-                        valorTotal = parseFloat(valorLimpio);
-                    } else {
-                        valorTotal = parseFloat(data.total);
-                    }
-                }
-                if (!isNaN(valorTotal)) total += valorTotal;
-            });
-            if ($('#totalGeneral').length) {
-                $('#totalGeneral').text('$' + total.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
-            }
-        }
-    });
-    
-    // Eventos de filtros
-    $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() { 
-        if (tablaVentas) tablaVentas.ajax.reload(); 
-    });
-    
-    $('#buscar_cliente, #buscar_factura').on('keyup', function() {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(function() { 
-            if (tablaVentas) tablaVentas.ajax.reload(); 
-        }, 500);
-    });
-    
-    $('#btnFiltrar').on('click', function() { 
-        if (tablaVentas) tablaVentas.ajax.reload(); 
-    });
-    
-    $('#btnLimpiarFiltros').on('click', function() {
-        $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago, #buscar_cliente, #buscar_factura').val('');
-        if (tablaVentas) tablaVentas.ajax.reload();
-    });
-    
-    // Reportes
-    $('#descargarReporte').on('click', function() { 
-        $('#modalReporte').modal('show'); 
-    });
-    
-    $('#btnGenerarReporte').on('click', function() {
-        var params = new URLSearchParams({
-            formato: $('#formatoReporte').val(),
-            fecha_inicio: $('#fechaInicioReporte').val(),
-            fecha_fin: $('#fechaFinReporte').val(),
-            detalles: $('#incluirDetalles').is(':checked') ? 1 : 0,
-            totales: $('#incluirTotales').is(':checked') ? 1 : 0,
-            estado: $('#estado_venta').val(),
-            metodo_pago: $('#metodo_pago').val()
-        });
-        window.open("{{ route('ventas.reporte') }}?" + params.toString(), '_blank');
-        $('#modalReporte').modal('hide');
-    });
-}
-
-// ============================================
 // VER DETALLE DE VENTA
 // ============================================
 function verDetalleVenta(id) {
     modalVentaId = id;
+    console.log('Cargando detalle venta ID:', id);
     
     $.ajax({
         url: "{{ url('ventas/detalle') }}/" + id,
         type: "GET",
         dataType: "json",
         success: function(response) {
+            console.log('Respuesta recibida:', response);
+            
             if (response.success) {
                 datosVenta = response.data.venta;
                 datosCliente = response.data.cliente;
                 datosVendedor = response.data.vendedor;
                 detallesVenta = response.data.detalles;
                 
+                // Información de la venta
                 $('#modalFactura').text(datosVenta.numero_factura || 'N/A');
                 $('#modalFecha').text(datosVenta.fecha || 'N/A');
                 $('#modalHora').text(datosVenta.hora || 'N/A');
                 
+                // Estado con badge
                 var estado = datosVenta.estado || 'pendiente';
                 var estadoTexto = '';
                 var badgeClass = '';
                 
                 switch(estado) {
-                    case 'completada': estadoTexto = 'Completada'; badgeClass = 'badge-success'; break;
-                    case 'pendiente': estadoTexto = 'Pendiente'; badgeClass = 'badge-warning'; break;
-                    case 'cancelada': estadoTexto = 'Cancelada'; badgeClass = 'badge-danger'; break;
-                    default: estadoTexto = estado.charAt(0).toUpperCase() + estado.slice(1); badgeClass = 'badge-secondary';
+                    case 'completada':
+                        estadoTexto = 'Completada';
+                        badgeClass = 'badge-success';
+                        break;
+                    case 'pendiente':
+                        estadoTexto = 'Pendiente';
+                        badgeClass = 'badge-warning';
+                        break;
+                    case 'cancelada':
+                        estadoTexto = 'Cancelada';
+                        badgeClass = 'badge-danger';
+                        break;
+                    default:
+                        estadoTexto = estado.charAt(0).toUpperCase() + estado.slice(1);
+                        badgeClass = 'badge-secondary';
                 }
                 
                 $('#modalEstado').removeClass().addClass('badge ' + badgeClass).text(estadoTexto);
+                
+                // Información del cliente
                 $('#modalCliente').text(datosCliente ? datosCliente.nombre : 'Cliente General');
                 $('#modalDocumento').text(datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A');
                 $('#modalMetodoPago').text(datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A');
                 $('#modalVendedor').text(datosVendedor ? datosVendedor.nombre : 'N/A');
                 
+                // Detalle de productos
                 var htmlProductos = '';
                 var subtotalProductos = 0;
                 
                 if (detallesVenta && detallesVenta.length > 0) {
-                    detallesVenta.forEach(function(p) {
+                    detallesVenta.forEach(function(p, index) {
                         var cantidad = parseFloat(p.cantidad) || 0;
                         var precioUnitario = parseFloat(p.precio_unitario) || 0;
                         var subtotal = parseFloat(p.subtotal) || 0;
+                        
                         subtotalProductos += subtotal;
                         
                         htmlProductos += '<tr>' +
@@ -1618,29 +772,56 @@ function verDetalleVenta(id) {
                 
                 $('#modalDetalleProductos').html(htmlProductos);
                 
+                // Obtener el total de la venta
                 var totalVenta = parseFloat(datosVenta.total) || 0;
-                $('#modalSubtotalProductos').text('$' + subtotalProductos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                 
+                // Mostrar subtotal de productos
+                $('#modalSubtotalProductos').text('$' + subtotalProductos.toLocaleString('es-CO', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
+                
+                // Calcular la diferencia (IVA, descuentos, otros)
                 var diferencia = totalVenta - subtotalProductos;
+                
+                // Ocultar todas las filas extras primero
                 $('#filaIVA, #filaDescuento, #filaOtrosCargos').hide();
                 
+                // Mostrar desglose si hay diferencia significativa
                 if (Math.abs(diferencia) > 0.01) {
                     var ivaCalculado = subtotalProductos * 0.19;
                     
                     if (Math.abs(diferencia - ivaCalculado) < 1) {
-                        $('#modalIVA').text('$' + diferencia.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        // Es IVA
+                        $('#modalIVA').text('$' + diferencia.toLocaleString('es-CO', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
                         $('#filaIVA').show();
                     } else if (diferencia < 0) {
-                        $('#modalDescuento').text('-$' + Math.abs(diferencia).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        // Es descuento
+                        $('#modalDescuento').text('-$' + Math.abs(diferencia).toLocaleString('es-CO', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
                         $('#filaDescuento').show();
                     } else {
-                        $('#modalOtrosCargos').text('$' + diferencia.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                        // Otros cargos
+                        $('#modalOtrosCargos').text('$' + diferencia.toLocaleString('es-CO', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }));
                         $('#filaOtrosCargos').show();
                     }
                 }
                 
-                $('#modalTotalVenta').text('$' + totalVenta.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                // Mostrar TOTAL FINAL
+                $('#modalTotalVenta').text('$' + totalVenta.toLocaleString('es-CO', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }));
                 
+                // Observaciones
                 var observaciones = datosVenta.observaciones || '';
                 if (observaciones && observaciones.trim() !== '') {
                     $('#modalObservaciones').text(observaciones);
@@ -1649,6 +830,7 @@ function verDetalleVenta(id) {
                     $('#modalObservacionesContainer').hide();
                 }
                 
+                // Mostrar/ocultar botón de cancelar
                 var btnCancelar = $('#btnCancelarVentaModal');
                 if (estado !== 'cancelada' && estado !== 'completada') {
                     btnCancelar.removeClass('d-none');
@@ -1656,22 +838,27 @@ function verDetalleVenta(id) {
                     btnCancelar.addClass('d-none');
                 }
                 
+                // Mostrar modal
                 mostrarContenidoDetalle();
                 $('#modalDetalleVenta').modal('show');
+                
             } else {
-                alert('Error: ' + (response.message || 'No se pudo cargar el detalle'));
+                var errorMsg = response.message || 'No se pudo cargar el detalle de la venta';
+                alert('Error: ' + errorMsg);
             }
         },
-        error: function() {
-            alert('Error al cargar el detalle de la venta');
+        error: function(xhr, status, error) {
+            console.error('Error AJAX:', error);
+            alert('Error al cargar el detalle de la venta. Por favor, intente nuevamente.');
         }
     });
 }
 
 // ============================================
-// FUNCIONES DE VISTA PREVIA - TICKET 80mm
+// FUNCIONES DE VISTA PREVIA
 // ============================================
 
+// Función para mostrar vista previa
 function mostrarVistaPrevia(tipo) {
     prepararDatosVistaPrevia(tipo);
     
@@ -1682,47 +869,9 @@ function mostrarVistaPrevia(tipo) {
     }
 }
 
-function mostrarVistaPreviaTicket() {
-    prepararDatosVistaPrevia('ticket');
-    ocultarTodosContenidos();
-    $('#vistaPreviaTicket').show();
-    
-    // Configurar contenedor para ticket centrado de 80mm
-    $('.preview-container').css({
-        'display': 'flex',
-        'justify-content': 'center',
-        'align-items': 'center',
-        'min-height': '70vh',
-        'max-height': 'none',
-        'overflow-y': 'visible',
-        'background': '#f5f5f5',
-        'padding': '20px',
-        'margin': '0'
-    });
-    
-    aplicarEscalaTicket();
-}
-
-function mostrarVistaPreviaFactura() {
-    prepararDatosVistaPrevia('factura');
-    ocultarTodosContenidos();
-    $('#vistaPreviaFactura').show();
-    aplicarEscalaFactura();
-    
-    // Configurar contenedor para factura (scroll normal)
-    $('.preview-container').css({
-        'max-height': '70vh',
-        'overflow-y': 'auto',
-        'display': 'block',
-        'justify-content': 'normal',
-        'align-items': 'normal',
-        'min-height': 'auto',
-        'background': 'transparent',
-        'padding': '0',
-        'margin': '0'
-    });
-}
-
+// ============================================
+// PREPARAR DATOS DE VISTA PREVIA
+// ============================================
 function prepararDatosVistaPrevia(tipo) {
     if (!datosVenta) return;
     
@@ -1730,15 +879,18 @@ function prepararDatosVistaPrevia(tipo) {
     var subtotalProductos = 0;
     var totalProductosVendidos = 0;
     
+    // Calcular subtotal y total de productos
     if (detallesVenta && detallesVenta.length > 0) {
         detallesVenta.forEach(function(p) {
             var cantidad = parseFloat(p.cantidad) || 0;
             var subtotal = parseFloat(p.subtotal) || 0;
+            
             subtotalProductos += subtotal;
             totalProductosVendidos += cantidad;
         });
     }
     
+    // Calcular diferencia (IVA/Descuentos)
     var diferencia = totalVenta - subtotalProductos;
     var tieneIVA = false;
     var tieneDescuento = false;
@@ -1757,7 +909,7 @@ function prepararDatosVistaPrevia(tipo) {
     
     if (tipo === 'ticket') {
         // ============================================
-        // TICKET 80mm - 302px EXACTOS
+        // TICKET 80mm - 302px EXACTOS - CENTRADO
         // ============================================
         contenidoTicketGenerado = `
             <div style="width: 302px; max-width: 302px; min-width: 302px; margin: 0 auto; background: white; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box;">
@@ -1782,7 +934,7 @@ function prepararDatosVistaPrevia(tipo) {
                     <!-- CLIENTE -->
                     <div style="margin: 6px 0;">
                         <p style="margin: 2px 0;"><strong>CLIENTE:</strong> ${datosCliente ? datosCliente.nombre : 'Cliente General'}</p>
-                        <p style="margin: 2px 0;"><strong>DOC:</strong> ${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</p>
+                        <p style="margin: 2px 0;"><strong>CEDULA:</strong> ${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</p>
                         <p style="margin: 2px 0;"><strong>VENDEDOR:</strong> ${datosVendedor ? datosVendedor.nombre : 'N/A'}</p>
                     </div>
                     
@@ -1807,6 +959,7 @@ function prepararDatosVistaPrevia(tipo) {
                 var subtotal = parseFloat(p.subtotal) || 0;
                 var nombreProducto = p.nombre || 'Producto';
                 
+                // Acortar nombre si es muy largo
                 if (nombreProducto.length > 20) {
                     nombreProducto = nombreProducto.substring(0, 17) + '...';
                 }
@@ -1831,7 +984,7 @@ function prepararDatosVistaPrevia(tipo) {
                     
                     <!-- TOTAL PRODUCTOS -->
                     <div style="margin-bottom: 5px;">
-                        <p style="margin: 2px 0; font-size: 11px; font-weight: bold;">TOTAL PRODUCTOS: ${totalProductosVendidos} unidades</p>
+                        <p style="margin: 2px 0; font-size: 9px; font-weight: bold;">TOTAL PRODUCTOS: ${totalProductosVendidos} unidades</p>
                     </div>
                     
                     <div style="text-align: right; margin-top: 8px;">
@@ -1857,7 +1010,6 @@ function prepararDatosVistaPrevia(tipo) {
                         <p style="margin: 2px 0; font-size: 9px;">Conserve este ticket para cambios</p>
                         <p style="margin: 2px 0; font-size: 9px;">${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'})}</p>
                     </div>
-                    
                 </div>
             </div>
         `;
@@ -1877,15 +1029,15 @@ function prepararDatosVistaPrevia(tipo) {
                     <h3 style="margin: 5px 0;">SUPERMERCADO XYZ</h3>
                     <p style="margin: 2px 0;">NIT: 123456789-0</p>
                     <p style="margin: 2px 0;">Dirección: Calle 123 #45-67, Bogotá D.C.</p>
-                    <p style="margin: 2px 0;">Tel: (601) 123-4567 | Email: info@superxyz.com</p>
+                    <p style="margin: 2px 0;">Teléfono: (601) 123-4567 | Email: info@superxyz.com</p>
                 </div>
                 
                 <!-- INFORMACIÓN FACTURA Y CLIENTE -->
                 <div style="display: flex; margin-bottom: 20px;">
                     <div style="flex: 1; padding-right: 15px;">
-                        <h4>INFORMACIÓN DE LA FACTURA</h4>
-                        <table style="width: 100%;">
-                            <tr><td><strong>No. Factura:</strong></td><td>${datosVenta.numero_factura || 'N/A'}</td></tr>
+                        <h4>INFORMACIÓN FACTURA</h4>
+                        <table style="width: 100%; border: none;">
+                            <tr><td style="width: 40%;"><strong>No. Factura:</strong></td><td>${datosVenta.numero_factura || 'N/A'}</td></tr>
                             <tr><td><strong>Fecha:</strong></td><td>${datosVenta.fecha || 'N/A'}</td></tr>
                             <tr><td><strong>Hora:</strong></td><td>${datosVenta.hora || 'N/A'}</td></tr>
                             <tr><td><strong>Estado:</strong></td><td>${datosVenta.estado ? datosVenta.estado.charAt(0).toUpperCase() + datosVenta.estado.slice(1) : 'N/A'}</td></tr>
@@ -1893,8 +1045,8 @@ function prepararDatosVistaPrevia(tipo) {
                     </div>
                     <div style="flex: 1; padding-left: 15px;">
                         <h4>INFORMACIÓN DEL CLIENTE</h4>
-                        <table style="width: 100%;">
-                            <tr><td><strong>Nombre:</strong></td><td>${datosCliente ? datosCliente.nombre : 'Cliente General'}</td></tr>
+                        <table style="width: 100%; border: none;">
+                            <tr><td style="width: 40%;"><strong>Nombre:</strong></td><td>${datosCliente ? datosCliente.nombre : 'Cliente General'}</td></tr>
                             <tr><td><strong>Documento:</strong></td><td>${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</td></tr>
                             <tr><td><strong>Método de Pago:</strong></td><td>${datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A'}</td></tr>
                             <tr><td><strong>Vendedor:</strong></td><td>${datosVendedor ? datosVendedor.nombre : 'N/A'}</td></tr>
@@ -1902,8 +1054,7 @@ function prepararDatosVistaPrevia(tipo) {
                     </div>
                 </div>
                 
-               
-               <!-- TOTAL DE PRODUCTOS VENDIDOS -->
+                <!-- TOTAL DE PRODUCTOS VENDIDOS -->
                 <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #27292a;">
                     <h5 style="margin: 0; color: #1c1c1d;">
                         <i class="fas fa-boxes" style="margin-right: 8px;"></i>
@@ -1926,6 +1077,7 @@ function prepararDatosVistaPrevia(tipo) {
                     <tbody>
         `;
         
+        // PRODUCTOS FACTURA
         if (detallesVenta && detallesVenta.length > 0) {
             detallesVenta.forEach(function(p) {
                 var cantidad = parseFloat(p.cantidad) || 0;
@@ -1955,16 +1107,29 @@ function prepararDatosVistaPrevia(tipo) {
                     <div style="display: flex;">
                         <div style="flex: 2;"></div>
                         <div style="flex: 1;">
-                            <table style="width: 100%;">
-                                <tr><td><strong>Subtotal:</strong></td><td style="text-align: right;">$${subtotalProductos.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>
+                            <table style="width: 100%; border: none;">
+                                <tr>
+                                    <td><strong>Subtotal:</strong></td>
+                                    <td class="text-right" style="text-align: right;">$${subtotalProductos.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                                </tr>
         `;
         
         if (tieneIVA) {
-            contenidoFacturaGenerado += `<tr><td>IVA (19%):</td><td style="text-align: right;">$${valorIVA.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`;
+            contenidoFacturaGenerado += `
+                <tr>
+                    <td>IVA (19%):</td>
+                    <td style="text-align: right;">$${valorIVA.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+            `;
         }
         
         if (tieneDescuento) {
-            contenidoFacturaGenerado += `<tr><td>Descuento:</td><td style="text-align: right;">-$${valorDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`;
+            contenidoFacturaGenerado += `
+                <tr>
+                    <td>Descuento:</td>
+                    <td style="text-align: right;">-$${valorDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                </tr>
+            `;
         }
         
         contenidoFacturaGenerado += `
@@ -1978,12 +1143,14 @@ function prepararDatosVistaPrevia(tipo) {
                 </div>
         `;
         
-        if (datosVenta.observaciones) {
+        // OBSERVACIONES
+        var observaciones = datosVenta.observaciones || '';
+        if (observaciones && observaciones.trim() !== '') {
             contenidoFacturaGenerado += `
                 <div style="margin-top: 30px;">
                     <h5>Observaciones:</h5>
                     <div style="border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">
-                        ${datosVenta.observaciones}
+                        <p style="margin: 0;">${observaciones}</p>
                     </div>
                 </div>
             `;
@@ -2003,16 +1170,63 @@ function prepararDatosVistaPrevia(tipo) {
                 </div>
                 
                 <!-- PIE DE PÁGINA -->
-                <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
+                <div style="text-align: center; margin-top: 30px; font-size: 12px;">
                     <p>Documento generado el: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO')}</p>
                     <p>Este documento es válido como factura de venta según Resolución DIAN 12345</p>
                 </div>
-                
             </div>
         `;
         
         $('#facturaPreview').html(contenidoFacturaGenerado);
     }
+}
+
+// ============================================
+// MOSTRAR VISTA PREVIA DEL TICKET (80mm CENTRADO)
+// ============================================
+function mostrarVistaPreviaTicket() {
+    prepararDatosVistaPrevia('ticket');
+    ocultarTodosContenidos();
+    $('#vistaPreviaTicket').show();
+
+    // FORZAR contenedor centrado
+    $('.preview-container').css({
+        'display': 'flex',
+        'justify-content': 'center',
+        'align-items': 'center',
+        'min-height': '70vh',
+        'max-height': 'none',
+        'overflow-y': 'visible',
+        'background': '#f5f5f5',
+        'padding': '20px',
+        'margin': '0'
+    });
+
+    // APLICAR ESCALA INICIAL
+    aplicarEscalaTicket();
+}
+
+// ============================================
+// MOSTRAR VISTA PREVIA DE LA FACTURA
+// ============================================
+function mostrarVistaPreviaFactura() {
+    prepararDatosVistaPrevia('factura');
+    ocultarTodosContenidos();
+    $('#vistaPreviaFactura').show();
+    aplicarEscalaFactura();
+    
+    // Restaurar scroll para factura
+    $('.preview-container').css({
+        'max-height': '70vh',
+        'overflow-y': 'auto',
+        'display': 'block',
+        'justify-content': 'normal',
+        'align-items': 'normal',
+        'min-height': 'auto',
+        'background': 'transparent',
+        'padding': '0',
+        'margin': '0'
+    });
 }
 
 // ============================================
@@ -2053,30 +1267,61 @@ function ajustarFactura(accion) {
 }
 
 // ============================================
-// IMPRESIÓN
+// IMPRIMIR TICKET (80mm)
 // ============================================
-
 function imprimirTicket() {
+    // Guardar el estado actual
     var currentScale = escalaTicket;
+    
+    // Resetear la escala temporalmente
     $('#ticketPreview').css('transform', 'scale(1)');
     
+    // Crear contenido para impresión
     var printContent = `
         <!DOCTYPE html>
         <html>
         <head>
             <title>Ticket de Venta</title>
             <style>
-                @page { size: 80mm auto; margin: 0; }
-                body { margin: 0; padding: 0; font-family: 'Courier New', monospace; background: white; width: 80mm; }
-                .ticket-print { width: 80mm; margin: 0 auto; padding: 10px; box-sizing: border-box; }
+                @page { 
+                    size: 80mm auto; 
+                    margin: 0; 
+                }
+                body { 
+                    margin: 0; 
+                    padding: 0; 
+                    font-family: 'Courier New', monospace; 
+                    background: white; 
+                    width: 80mm;
+                }
+                .ticket-print { 
+                    width: 80mm; 
+                    margin: 0 auto; 
+                    padding: 10px; 
+                    box-sizing: border-box; 
+                }
+                @media print {
+                    body { 
+                        margin: 0 !important; 
+                        padding: 0 !important; 
+                        width: 80mm !important; 
+                    }
+                    .ticket-print { 
+                        width: 80mm !important; 
+                        padding: 10px !important; 
+                    }
+                }
             </style>
         </head>
         <body>
-            <div class="ticket-print">${contenidoTicketGenerado}</div>
+            <div class="ticket-print">
+                ${contenidoTicketGenerado}
+            </div>
         </body>
         </html>
     `;
     
+    // Crear iframe temporal
     var iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0';
@@ -2090,6 +1335,7 @@ function imprimirTicket() {
     iframeDoc.write(printContent);
     iframeDoc.close();
     
+    // Imprimir
     setTimeout(function() {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
@@ -2100,27 +1346,57 @@ function imprimirTicket() {
     }, 100);
 }
 
+// ============================================
+// IMPRIMIR FACTURA (A4)
+// ============================================
 function imprimirFactura() {
+    // Guardar el estado actual
     var currentScale = escalaFactura;
+    
+    // Resetear la escala temporalmente
     $('#facturaPreview').css('transform', 'scale(0.8)');
     
+    // Crear contenido para impresión
     var printContent = `
         <!DOCTYPE html>
         <html>
         <head>
             <title>Factura de Venta</title>
             <style>
-                @page { size: A4; margin: 0; }
-                body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: white; }
-                .factura-print { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+                @page { 
+                    size: A4; 
+                    margin: 0; 
+                }
+                body { 
+                    margin: 0; 
+                    padding: 0; 
+                    font-family: Arial, sans-serif; 
+                    background: white; 
+                }
+                .factura-print { 
+                    width: 210mm; 
+                    min-height: 297mm; 
+                    margin: 0 auto; 
+                    padding: 20px; 
+                    box-sizing: border-box; 
+                }
+                @media print {
+                    body { 
+                        width: 210mm; 
+                        min-height: 297mm; 
+                    }
+                }
             </style>
         </head>
         <body>
-            <div class="factura-print">${contenidoFacturaGenerado}</div>
+            <div class="factura-print">
+                ${contenidoFacturaGenerado}
+            </div>
         </body>
         </html>
     `;
     
+    // Crear iframe temporal
     var iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0';
@@ -2134,6 +1410,7 @@ function imprimirFactura() {
     iframeDoc.write(printContent);
     iframeDoc.close();
     
+    // Imprimir
     setTimeout(function() {
         iframe.contentWindow.focus();
         iframe.contentWindow.print();
@@ -2151,9 +1428,12 @@ function imprimirFactura() {
 function mostrarContenidoDetalle() {
     ocultarTodosContenidos();
     $('#contenidoDetalle').show();
+    
+    // Resetear escalas
     escalaTicket = 1;
     escalaFactura = 0.8;
     
+    // Restaurar scroll para vista normal
     $('.preview-container').css({
         'max-height': '70vh',
         'overflow-y': 'auto',
@@ -2178,47 +1458,164 @@ function ocultarTodosContenidos() {
 // ============================================
 // CANCELAR VENTA
 // ============================================
-
 function cancelarVenta(id) {
     id = id || modalVentaId;
-    if (!id) { 
-        alert('ID no válido'); 
-        return; 
+    
+    if (!id) {
+        alert('No se puede cancelar la venta. ID no válido.');
+        return;
     }
     
-    if (confirm('¿Está seguro de cancelar esta venta?')) {
+    if (confirm('¿Está seguro de cancelar esta venta? Esta acción no se puede deshacer.')) {
         $.ajax({
             url: "{{ url('ventas/cancelar') }}/" + id,
             type: "POST",
-            data: { _token: "{{ csrf_token() }}" },
+            data: {
+                _token: "{{ csrf_token() }}"
+            },
             success: function(response) {
                 if (response.success) {
                     alert('Venta cancelada exitosamente');
                     $('#modalDetalleVenta').modal('hide');
-                    if (tablaVentas) tablaVentas.ajax.reload();
+                    if (typeof tablaVentas !== 'undefined') {
+                        tablaVentas.ajax.reload();
+                    }
                 } else {
-                    alert('Error: ' + (response.message || 'No se pudo cancelar'));
+                    alert('Error: ' + (response.message || 'No se pudo cancelar la venta'));
                 }
             },
-            error: function() { 
-                alert('Error en la solicitud'); 
+            error: function(xhr, status, error) {
+                console.error('Error al cancelar venta:', error);
+                alert('Error en la solicitud. Por favor, intente nuevamente.');
             }
         });
     }
 }
 
-// ============================================
-// DATATABLE
-// ============================================
 
+// ============================================
+// ELIMINAR VENTA Y RESTABLECER STOCK
+// ============================================
+function eliminarVenta(id) {
+    if (!id) {
+        Swal.fire('Error', 'No se puede eliminar la venta. ID no válido.', 'error');
+        return;
+    }
+    
+    Swal.fire({
+        title: '¿Eliminar factura permanentemente?',
+        html: '<div style="text-align: left;">' +
+                '<p class="text-danger"><strong>⚠️ ¡ADVERTENCIA! ⚠️</strong></p>' +
+                '<p>Esta acción eliminará completamente la factura del sistema y:</p>' +
+                '<ul style="margin-top: 10px; text-align: left;">' +
+                    '<li>✅ Restablecerá el stock de todos los productos</li>' +
+                    '<li>🗑️ Eliminará permanentemente el registro de la venta</li>' +
+                    '<li>📝 Eliminará todos los detalles de la venta</li>' +
+                '</ul>' +
+                '<p><strong>¿Está completamente seguro de continuar?</strong></p>' +
+            '</div>',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar permanentemente',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    }).then(function(result) {  // ← CAMBIO AQUÍ: arrow function a function tradicional
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando venta...',
+                text: 'Restableciendo stock y eliminando registros',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: function() {
+                    Swal.showLoading();
+                }
+            });
+            
+            var url = '/historial-ventas/eliminar/' + id;
+            var token = $('meta[name="csrf-token"]').attr('content');
+            
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    _method: 'DELETE',
+                    _token: token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: '¡Eliminada!',
+                            html: '<p class="text-success">✓ Venta eliminada correctamente</p>' +
+                                '<p>Stock restablecido para <strong>' + (response.productos_restablecidos || 0) + '</strong> productos</p>',
+                            icon: 'success',
+                            confirmButtonColor: '#28a745',
+                            confirmButtonText: 'Aceptar'
+                        }).then(function() {
+                            // Recargar la tabla
+                            if (typeof tablaVentas !== 'undefined' && tablaVentas) {
+                                tablaVentas.ajax.reload(null, false);
+                            } else {
+                                location.reload();
+                            }
+                            
+                            // Si el modal de detalle está abierto, cerrarlo
+                            $('#modalDetalleVenta').modal('hide');
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message || 'No se pudo eliminar la venta',
+                            icon: 'error',
+                            confirmButtonColor: '#d33'
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al eliminar venta:', error);
+                    console.error('Respuesta completa:', xhr);
+                    
+                    var mensaje = 'Error en la solicitud. Por favor, intente nuevamente.';
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        mensaje = xhr.responseJSON.message;
+                    } else if (xhr.status === 404) {
+                        mensaje = 'La venta no existe o ya fue eliminada.';
+                    } else if (xhr.status === 500) {
+                        mensaje = 'Error en el servidor. Contacte al administrador.';
+                    } else if (xhr.status === 419) {
+                        mensaje = 'Sesión expirada. Por favor, recargue la página.';
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error',
+                        text: mensaje,
+                        icon: 'error',
+                        confirmButtonColor: '#d33'
+                    });
+                }
+            });
+        }
+    });
+}
+
+// ============================================
+// INICIALIZACIÓN DATATABLE
+// ============================================
 jQuery(document).ready(function($) {
+    console.log('Inicializando sistema de ventas...');
+    
+    // Inicializar DataTable
     tablaVentas = $('#tablaVentas').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: "{{ route('historial.ventas.data') }}",
-            type: "GET",
-            data: function(d) {
+        "processing": true,
+        "serverSide": true,
+        "ajax": {
+            "url": "{{ route('historial.ventas.data') }}",
+            "type": "GET",
+            "data": function(d) {
                 d.fecha_desde = $('#fecha_desde').val();
                 d.fecha_hasta = $('#fecha_hasta').val();
                 d.estado = $('#estado_venta').val();
@@ -2228,49 +1625,86 @@ jQuery(document).ready(function($) {
                 return d;
             }
         },
-        columns: [
-            { data: "numero_factura", name: "ventas.numero_factura", defaultContent: "N/A" },
+        "columns": [
             { 
-                data: "fecha_venta", 
-                name: "ventas.fecha_venta",
-                render: function(data, type, row) {
-                    if (type === 'display') return row.fecha_formateada + '<br><small class="text-muted">' + row.hora_formateada + '</small>';
+                "data": "numero_factura",
+                "name": "ventas.numero_factura",
+                "defaultContent": "N/A"
+            },
+            { 
+                "data": "fecha_venta",
+                "name": "ventas.fecha_venta",
+                "render": function(data, type, row) {
+                    if (type === 'display') {
+                        return row.fecha_formateada + '<br><small class="text-muted">' + row.hora_formateada + '</small>';
+                    }
                     return data;
                 }
             },
-            { data: "cliente_nombre", name: "cliente_nombre" },
-            { data: "vendedor_nombre", name: "vendedor_nombre" },
-            { data: "total_productos", name: "total_productos", className: "text-center" },
             { 
-                data: "total", 
-                name: "ventas.total", 
-                className: "text-right",
-                render: function(data) { return '<span data-total="' + data + '">' + data + '</span>'; }
+                "data": "cliente_nombre",
+                "name": "cliente_nombre"
             },
-            { data: "estado", name: "ventas.estado" },
-            { data: "metodo_pago", name: "ventas.metodo_pago" },
-            { data: "acciones", name: "acciones", orderable: false, searchable: false }
+            { 
+                "data": "vendedor_nombre",
+                "name": "vendedor_nombre"
+            },
+            { 
+                "data": "total_productos",
+                "name": "total_productos",
+                "className": "text-center"
+            },
+            { 
+                "data": "total",
+                "name": "ventas.total",
+                "className": "text-right",
+                "render": function(data, type, row) {
+                    if (type === 'display') {
+                        return '<span data-total="' + data + '">' + data + '</span>';
+                    }
+                    return data;
+                }
+            },
+            { 
+                "data": "estado",
+                "name": "ventas.estado"
+            },
+            { 
+                "data": "metodo_pago",
+                "name": "ventas.metodo_pago"
+            },
+            { 
+                "data": "acciones",
+                "name": "acciones",
+                "orderable": false,
+                "searchable": false
+            }
         ],
-        order: [[1, 'desc']],
-        language: {
-            emptyTable: "No hay productos registrados.",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-            infoEmpty: "Mostrando 0 a 0 de 0 Entradas",
-            infoFiltered: "(Filtrado de _MAX_ total entradas)",
-            lengthMenu: "Mostrar _MENU_ Entradas",
-            loadingRecords: "Cargando...",
-            processing: "Procesando...",
-            search: "Buscar:",
-            zeroRecords: "Sin resultados encontrados",
-            paginate: { first: "Primero", last: "Ultimo", next: "Siguiente", previous: "Anterior" }
+        "language": {
+            "processing": "Procesando...",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "zeroRecords": "Sin resultados encontrados",
+            "emptyTable": "Ningún dato disponible en esta tabla",
+            "info": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+            "infoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+            "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+            "search": "Buscar:",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
         },
-        pageLength: 10,
-        drawCallback: function(settings) {
+        "pageLength": 10,
+        "drawCallback": function(settings) {
             var api = this.api();
             var total = 0;
+            
             api.rows({page: 'current'}).every(function() {
                 var data = this.data();
                 var valorTotal = 0;
+                
                 if (data.total) {
                     if (typeof data.total === 'string') {
                         var valorLimpio = data.total.replace(/[\$\.]/g, '').replace(',', '.');
@@ -2279,28 +1713,52 @@ jQuery(document).ready(function($) {
                         valorTotal = parseFloat(data.total);
                     }
                 }
-                if (!isNaN(valorTotal)) total += valorTotal;
+                
+                if (!isNaN(valorTotal)) {
+                    total += valorTotal;
+                }
             });
+            
             if ($('#totalGeneral').length) {
-                $('#totalGeneral').text('$' + total.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+                $('#totalGeneral').text('$' + total.toLocaleString('es-CO', {
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0
+                }));
             }
         }
     });
     
-    // FILTROS
-    $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() { tablaVentas.ajax.reload(); });
-    $('#buscar_cliente, #buscar_factura').on('keyup', function() {
-        clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(function() { tablaVentas.ajax.reload(); }, 500);
-    });
-    $('#btnFiltrar').on('click', function() { tablaVentas.ajax.reload(); });
-    $('#btnLimpiarFiltros').on('click', function() {
-        $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago, #buscar_cliente, #buscar_factura').val('');
+    // Eventos de filtros
+    $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() {
         tablaVentas.ajax.reload();
     });
     
-    // REPORTE
-    $('#descargarReporte').on('click', function() { $('#modalReporte').modal('show'); });
+    $('#buscar_cliente, #buscar_factura').on('keyup', function() {
+        clearTimeout(window.searchTimeout);
+        window.searchTimeout = setTimeout(function() {
+            tablaVentas.ajax.reload();
+        }, 500);
+    });
+    
+    $('#btnFiltrar').on('click', function() {
+        tablaVentas.ajax.reload();
+    });
+    
+    $('#btnLimpiarFiltros').on('click', function() {
+        $('#fecha_desde').val('');
+        $('#fecha_hasta').val('');
+        $('#estado_venta').val('');
+        $('#metodo_pago').val('');
+        $('#buscar_cliente').val('');
+        $('#buscar_factura').val('');
+        tablaVentas.ajax.reload();
+    });
+    
+    // Reportes
+    $('#descargarReporte').on('click', function() {
+        $('#modalReporte').modal('show');
+    });
+    
     $('#btnGenerarReporte').on('click', function() {
         var params = new URLSearchParams({
             formato: $('#formatoReporte').val(),
@@ -2311,10 +1769,11 @@ jQuery(document).ready(function($) {
             estado: $('#estado_venta').val(),
             metodo_pago: $('#metodo_pago').val()
         });
+        
         window.open("{{ route('ventas.reporte') }}?" + params.toString(), '_blank');
         $('#modalReporte').modal('hide');
     });
 });
 
-    </script>
-@stop
+</script>
+@endpush

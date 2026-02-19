@@ -79,7 +79,7 @@ class DashboardController extends Controller
                 ->where('ventas.fecha_venta', '>=', $fechaInicio)
                 ->groupBy('productos.id_producto', 'productos.nombre', 'productos.codigo')
                 ->orderByDesc('total_cantidad')
-                ->limit(10)
+                ->limit(5)
                 ->get();
             
             Log::info('Dashboard: Productos vendidos OK', ['cantidad' => $productosVendidos->count()]);
@@ -158,7 +158,7 @@ class DashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cargar datos del dashboard',
-                'error' => $e->getMessage(),
+                'error' => $e->getMessage(),   
                 'line' => $e->getLine(),
                 'file' => basename($e->getFile())
             ], 500);
@@ -183,4 +183,195 @@ class DashboardController extends Controller
                 return Carbon::now()->startOfMonth();
         }
     }
+
+ public function getDetalleVenta($id)
+{
+    try {
+        \Log::info("🔍 Dashboard: Obteniendo detalle de venta ID: $id");
+        
+        // Validar que el ID sea numérico
+        if (!is_numeric($id)) {
+            \Log::error("❌ ID no válido: $id");
+            return response()->json([
+                'success' => false,
+                'message' => 'ID de venta no válido'
+            ], 400);
+        }
+        
+        // Obtener información básica de la venta
+        $venta = DB::table('ventas')
+            ->where('id_venta', (int)$id)
+            ->first();
+            
+        \Log::info("📊 Venta encontrada: " . ($venta ? "Sí" : "No"));
+        
+        if (!$venta) {
+            \Log::warning("⚠️ Venta no encontrada ID: $id");
+            return response()->json([
+                'success' => false,
+                'message' => 'Venta no encontrada'
+            ], 404);
+        }
+        
+        \Log::info("📋 Datos de venta: ", (array)$venta);
+        
+        // Formatear fecha
+        try {
+            $fecha = \Carbon\Carbon::parse($venta->fecha_venta ?? now());
+        } catch (\Exception $e) {
+            \Log::error("❌ Error parseando fecha: " . $e->getMessage());
+            $fecha = now();
+        }
+        
+        // Obtener cliente
+        $cliente = null;
+        if (isset($venta->id_cliente) && $venta->id_cliente) {
+            $cliente = DB::table('clientes')
+                ->where('id_cliente', $venta->id_cliente)
+                ->first();
+            \Log::info("👤 Cliente encontrado: " . ($cliente ? "Sí" : "No"));
+        }
+        
+        // Obtener información del usuario que realizó la venta ORIGINAL
+        $usuarioVenta = null;
+        if (isset($venta->id_usuario) && $venta->id_usuario) {
+            try {
+                $usuarioVenta = DB::table('usuarios')
+                    ->where('id_usuario', $venta->id_usuario)
+                    ->first(['nombre', 'email']);
+                \Log::info("👤 Usuario venta encontrado: " . ($usuarioVenta ? $usuarioVenta->nombre : "No"));
+            } catch (\Exception $e) {
+                \Log::error("❌ Error obteniendo usuario venta: " . $e->getMessage());
+            }
+        }
+        
+        // Obtener usuario ACTUALMENTE LOGEADO (quien está viendo/imprimiendo)
+        $usuarioLogeado = null;
+        try {
+            // Intentar obtener el usuario autenticado
+            if (auth()->check()) {
+                $user = auth()->user();
+                \Log::info("👤 Usuario autenticado detectado");
+                
+                // Crear objeto con los datos del usuario logeado
+                // Usamos el operador null-safe para evitar errores
+                $usuarioLogeado = [
+                    'nombre' => $user->nombre ?? $user->name ?? 'Usuario Sistema',
+                    'email' => $user->email ?? ''
+                ];
+                
+                \Log::info("👤 Usuario logeado procesado: " . $usuarioLogeado['nombre']);
+            } else {
+                \Log::warning("⚠️ No hay usuario autenticado");
+                $usuarioLogeado = [
+                    'nombre' => 'Usuario Sistema',
+                    'email' => ''
+                ];
+            }
+        } catch (\Exception $e) {
+            \Log::error("❌ Error obteniendo usuario logeado: " . $e->getMessage());
+            $usuarioLogeado = [
+                'nombre' => 'Usuario Sistema',
+                'email' => ''
+            ];
+        }
+        
+        // Obtener detalle de productos de la venta
+        $detalles = collect([]);
+        try {
+            $detalles = DB::table('detalle_ventas as dv')
+                ->select(
+                    'dv.*',
+                    'p.nombre',
+                    'p.codigo',
+                    'p.precio_venta'
+                )
+                ->leftJoin('productos as p', 'dv.id_producto', '=', 'p.id_producto')
+                ->where('dv.id_venta', (int)$id)
+                ->get();
+            \Log::info("📦 Detalles encontrados: " . $detalles->count());
+        } catch (\Exception $e) {
+            \Log::error("❌ Error obteniendo detalles: " . $e->getMessage());
+        }
+        
+        // Preparar respuesta
+        $response = [
+            'success' => true,
+            'message' => 'Detalle obtenido correctamente',
+            'data' => [
+                'venta' => [
+                    'id' => $venta->id_venta,
+                    'numero_factura' => $venta->numero_factura ?? 'F-' . str_pad($venta->id_venta, 6, '0', STR_PAD_LEFT),
+                    'fecha' => $fecha->format('d/m/Y'),
+                    'hora' => $fecha->format('H:i:s'),
+                    'total' => (float)($venta->total ?? 0),
+                    'estado' => $venta->estado ?? 'completada',
+                    'metodo_pago' => $venta->metodo_pago ?? 'efectivo',
+                    'observaciones' => $venta->observaciones ?? null,
+                ],
+                'cliente' => $cliente ? [
+                    'nombre' => $cliente->nombre ?? 'Cliente General',
+                    'telefono' => $cliente->telefono ?? '',
+                    'email' => $cliente->email ?? ''
+                ] : [
+                    'nombre' => 'Cliente General',
+                    'telefono' => '',
+                    'email' => ''
+                ],
+                // Usuario que REALIZÓ la venta originalmente
+                'vendedor_original' => $usuarioVenta ? [
+                    'nombre' => $usuarioVenta->nombre ?? 'No especificado',
+                    'email' => $usuarioVenta->email ?? ''
+                ] : [
+                    'nombre' => 'No especificado',
+                    'email' => ''
+                ],
+                // Usuario que ESTÁ LOGEADO actualmente (quien imprime)
+                'usuario_actual' => $usuarioLogeado,
+                'detalles' => $detalles->map(function($item) {
+                    return [
+                        'id_producto' => $item->id_producto ?? 0,
+                        'nombre' => $item->nombre ?? 'Producto eliminado',
+                        'codigo' => $item->codigo ?? 'N/A',
+                        'cantidad' => (int)($item->cantidad ?? 0),
+                        'precio_unitario' => (float)($item->precio_venta ?? 0),
+                        'subtotal' => (float)($item->subtotal ?? 0)
+                    ];
+                })
+            ]
+        ];
+        
+        \Log::info("✅ Respuesta preparada correctamente");
+        \Log::info("📤 Vendedor original: " . ($response['data']['vendedor_original']['nombre'] ?? 'N/A'));
+        \Log::info("📤 Usuario actual: " . ($response['data']['usuario_actual']['nombre'] ?? 'N/A'));
+        
+        return response()->json($response);
+        
+    } catch (\Exception $e) {
+        \Log::error("❌ Error crítico en getDetalleVenta ID: $id");
+        \Log::error("📌 Mensaje: " . $e->getMessage());
+        \Log::error("📌 Línea: " . $e->getLine());
+        \Log::error("📌 Archivo: " . $e->getFile());
+        \Log::error("📌 Trace: " . $e->getTraceAsString());
+        
+        // Para desarrollo, mostrar error completo
+        if (env('APP_DEBUG')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error interno del servidor: ' . $e->getMessage(),
+                'error' => [
+                    'message' => $e->getMessage(),
+                    'line' => $e->getLine(),
+                    'file' => basename($e->getFile()),
+                    'trace' => explode("\n", $e->getTraceAsString())
+                ]
+            ], 500);
+        }
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error interno del servidor'
+        ], 500);
+    }
 }
+} 

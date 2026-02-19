@@ -393,7 +393,7 @@ return [
                 [
                     'text' => 'Historial ventas',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'historial-ventas',
                 ],
                  [
                     'text' => 'Facturas',
@@ -412,7 +412,7 @@ return [
                 [
                     'text' => 'Nueva compra',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'compras',
                 ],
                 [
                     'text' => 'Proveedores',
@@ -447,7 +447,7 @@ return [
             ]
         ],
           [
-            'text' => 'Contizaciones',
+            'text' => 'Cotizaciones',
             'icon' => 'nav-icon fas fa-comments-dollar',
             'url' => 'contizaciones',
         ],       

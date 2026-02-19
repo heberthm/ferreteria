@@ -18,6 +18,31 @@ class ProveedorController extends Controller
         return view('crear_proveedores');
     }
 
+     /**
+     * Listar proveedores
+     */
+    public function listar()
+    {
+        try {
+            $proveedores = Proveedor::select('id_proveedor', 'nombre')
+                ->orderBy('nombre')
+                ->get();
+            
+            return response()->json([
+                'success' => true,
+                'proveedores' => $proveedores
+            ]);
+            
+        } catch (\Exception $e) {
+            // Si la tabla no existe, retornar array vacío
+            return response()->json([
+                'success' => true,
+                'proveedores' => []
+            ]);
+        }
+    }
+}
+
     public function store(Request $request)
     {
         $validated = $request->validate([

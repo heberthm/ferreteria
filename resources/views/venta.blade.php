@@ -1803,14 +1803,13 @@
     // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
     // =============================================
 
-
 $(document).on('click', '#btnProcesarVenta', function(e) {
     e.preventDefault();
     console.log('🖱️ Clic en botón COBRAR');
     console.log('📦 Estado del carrito:', carrito);
     console.log('📊 Longitud del carrito:', carrito.length);
     
-    // CORRECCIÓN: Verificar que hay productos en el carrito
+    // Verificar que hay productos en el carrito
     if (!carrito || carrito.length === 0) {
         console.error('❌ Carrito vacío o indefinido');
         toastr.error('El carrito está vacío', 'Error');
@@ -1841,7 +1840,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         return;
     }
     
-    // CORRECCIÓN: Crear una copia del carrito ANTES de preparar datos
+    // Crear una copia del carrito ANTES de preparar datos
     const carritoParaEnviar = JSON.parse(JSON.stringify(carrito));
     console.log('📋 Copia del carrito creada:', carritoParaEnviar.length, 'items');
     
@@ -1901,8 +1900,8 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             console.log('✅ Respuesta del servidor:', response);
             
             if (response.success) {
-                // MOSTRAR MENSAJE DE ÉXITO
-                toastr.success('Venta realizada con éxito');
+                // CORRECCIÓN: Mostrar mensaje de éxito cuando la venta se guarda correctamente
+                toastr.success('Venta guardada correctamente', 'Éxito');
                 
                 // Actualizar stock localmente usando la copia
                 carritoParaEnviar.forEach(function(item) {

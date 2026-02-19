@@ -10,6 +10,37 @@
             margin-top: 5px;
             display: none;
         }
+
+
+    .producto-imagen-tabla {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        padding: 2px;
+        background: white;
+        transition: transform 0.2s;
+    }
+    
+    .producto-imagen-tabla:hover {
+        transform: scale(2);
+        z-index: 1000;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        cursor: pointer;
+    }
+    
+    .badge-warning {
+        background-color: #ffc107;
+        color: #212529;
+    }
+    
+    .badge-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+
     </style>
     
 <br>
@@ -32,14 +63,16 @@
     <div class="card-body">  
         <table class="table table-hover" id="tablaProductos" style="width:100%;font-size:12.5px;">   
             <thead>  
-                <tr>   
+               <tr>   
                     <th>Código</th>
                     <th>Nombre</th>   
                     <th>Descripción</th>   
-                    <th>Precio</th>   
+                    <th>Precio Venta</th>   
                     <th>Stock</th>
                     <th>Stock min</th>
                     <th>Ubicación</th>   
+                    <th>Frecuente</th>  
+                    <th>Imagen</th>      
                     <th>Acciones</th>   
                 </tr>   
             </thead>   
@@ -54,27 +87,32 @@
  Modal para crear productos 
 ======================================  -->
 
-<div class="modal fade" id="modalProductos"  role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
+<div class="modal fade" id="modalProductos" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title" id="modalproductosTitle"><i class="fas fa-umbrella"></i> Nuevo producto</h5>
+                <h5 class="modal-title"><i class="fas fa-umbrella"></i> Nuevo producto</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             
-            <form method="POST" id="form_guardar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
-            
+            <form method="POST" id="form_guardar_productos" enctype="multipart/form-data" action="{{ url('productos') }}">
+                @csrf
                 <div class="modal-body">
-                    <input type="hidden" id="id_categoria" name="id_categoria" value="1">
-                     <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
-                    
-                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
+                    <div class="row">
                         <!-- Columna 1 -->
                         <div class="col-md-6">
                             <div class="form-group row mb-3">
-                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
+                                <label for="codigo" class="col-sm-4 col-form-label">Código *</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="codigo" name="codigo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="nombre" class="col-sm-4 col-form-label">Nombre *</label>
                                 <div class="col-sm-8">
                                     <input type="text" class="form-control" id="nombre" name="nombre" required>
                                     <div class="invalid-feedback"></div>
@@ -90,59 +128,53 @@
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
+                                <label for="marca" class="col-sm-4 col-form-label">Marca</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" required>
+                                    <input type="text" class="form-control" id="marca" name="marca">
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
+                                <label for="id_categoria" class="col-sm-4 col-form-label">Categoría *</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" required>
+                                    <select id="id_categoria" name="id_categoria" class="form-control" required>
+                                        <option value="">Seleccione categoría</option>
+                                        @foreach($categorias as $categoria)
+                                            <option value="{{ $categoria->id_categoria }}">{{ $categoria->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="id_proveedor" class="col-sm-4 col-form-label">Proveedor</label>
+                                <div class="col-sm-8">
+                                    <select id="id_proveedor" name="id_proveedor" class="form-control">
+                                        <option value="">Seleccione proveedor</option>
+                                        @foreach($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre }}</option>
+                                        @endforeach
+                                    </select>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
 
                             <div class="form-group row mb-3">
-                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="marca" name="marca" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                          
-                            
-                             <div class="form-group row mb-3">
-                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
-                               <div class="col-sm-8">
-                                     <select id="categoria" name="categoria" class="form-control" placeholder="Filtrar eventos" required>
-
-                                            <option value="todos">Mostrar todas</option>
-
-                                            @foreach($categorias as $categ)
-
-                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
-
-                                            @endforeach
-
-                                     </select>
-                                </div>                             
-                             </div>
-
-                              <div class="form-group row mb-3">
                                 <label for="imagen" class="col-sm-4 col-form-label">Imagen</label>
-
-                                <input type="file" id="imagen" name="imagen" class="form-control" accept=".webp,.jpeg,.jpg,.png,.gif" 
-                                            onchange="manejarSeleccionArchivo(this, document.getElementById('preview'), document.getElementById('mensaje-archivo'))">
-                                        <small class="form-text text-muted">
-                                            Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
-                                            <div id="mensaje-archivo"></div> 
-                                        </small>                   
-                                    
-                               
+                                <div class="col-sm-8">
+                                    <input type="file" id="imagen" name="imagen" class="form-control" 
+                                           accept=".webp,.jpeg,.jpg,.png,.gif"
+                                           onchange="manejarSeleccionArchivo(this, document.getElementById('preview'), document.getElementById('mensaje-archivo'))">
+                                    <small class="form-text text-muted">
+                                        Formatos: JPEG, PNG, JPG, GIF, WEBP. Máximo 2MB.
+                                    </small>
+                                    <div id="mensaje-archivo" class="small"></div>
+                                    <img id="preview" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
+                                </div>
                             </div>
+                            
 
 
                         </div>
@@ -150,81 +182,232 @@
                         <!-- Columna 2 -->
                         <div class="col-md-6">
                             <div class="form-group row mb-3">
-                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
+                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta *</label>
                                 <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="cantidad" name="cantidad" required>
+                                    <input type="number" step="0.01" class="form-control" id="precio_venta" name="precio_venta" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
+                                <label for="stock" class="col-sm-4 col-form-label">Stock actual *</label>
                                 <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="precio_compra" name="precio_compra" required>
+                                    <input type="number" class="form-control" id="stock" name="stock" value="0" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
+                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo *</label>
                                 <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="precio_venta" name="precio_venta" required>
+                                    <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" value="0" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
+                                <label for="unidad_medida" class="col-sm-4 col-form-label">Unidad medida *</label>
                                 <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="codigo" name="codigo" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-
-                              <div class="form-group row mb-3">
-                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="stock" name="stock" required>
+                                    <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" placeholder="Ej: UNIDAD, KG, LITRO" required>
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
                             
                             <div class="form-group row mb-3">
-                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
+                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
                                 <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="stock_minimo" name="stock_minimo" required>
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" placeholder="Ej: ESTANTE A1">
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
-
-                         
-
-                               <div class="form-group row mb-3">
-                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="proveedor" name="proveedor" required>
-                                        <div class="invalid-feedback"></div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="frecuente" class="col-sm-4 col-form-label">Producto frecuente</label>
+                                <div class="col-sm-8">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="frecuente" name="frecuente" value="1">
+                                        <label class="form-check-label" for="frecuente">Marcar como producto de uso frecuente</label>
                                     </div>
-                               </div>
-
-                                 <div class="form-group row mb-3">
-                                     <div class="col-sm-8">
-                                       <img id="preview">                     
-                                         
-                                    </div>
-                               </div>
- 
-
-                         </div>
-                    </div>                    
-                  
+                                </div>
+                            </div>
+                            
+                            
+                            <!-- Campo oculto para activo (siempre true por defecto) -->
+                            <input type="hidden" name="activo" value="1">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer">
-                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                   <button type="submit" class="btn btn-primary" id="BtnGuardar_producto" name="BtnGuardar_producto">Guardar</button>                              
-                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
-              
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="BtnGuardar_producto">Guardar producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ================================= 
+ Modal para editar productos 
+======================================  -->
+
+<div class="modal fade" id="modalEditarProducto" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">Editar producto: <span id="nombre_producto_titulo_2" style="color:red"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            
+            <form method="POST" id="form_editar_productos" enctype="multipart/form-data">
+                @csrf
+                <div class="modal-body">
+                    <input type="hidden" id="id_producto_producto" name="id_producto">
+                    
+                    <div class="row">
+                        <!-- Columna 1 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="codigo_producto" class="col-sm-4 col-form-label">Código *</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="codigo_producto" name="codigo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="nombre_producto" class="col-sm-4 col-form-label">Nombre *</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="nombre_producto" name="nombre" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="descripcion_producto" class="col-sm-4 col-form-label">Descripción</label>
+                                <div class="col-sm-8">
+                                    <textarea class="form-control" id="descripcion_producto" name="descripcion" rows="2"></textarea>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="marca_producto" class="col-sm-4 col-form-label">Marca</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="marca_producto" name="marca">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="id_categoria_producto" class="col-sm-4 col-form-label">Categoría *</label>
+                                <div class="col-sm-8">
+                                    <select id="id_categoria_producto" name="id_categoria" class="form-control" required>
+                                        <option value="">Seleccione categoría</option>
+                                        @foreach($categorias as $categoria)
+                                            <option value="{{ $categoria->id_categoria }}">{{ $categoria->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="id_proveedor_producto" class="col-sm-4 col-form-label">Proveedor</label>
+                                <div class="col-sm-8">
+                                    <select id="id_proveedor_producto" name="id_proveedor" class="form-control">
+                                        <option value="">Seleccione proveedor</option>
+                                        @foreach($proveedores as $proveedor)
+                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre }}</option>
+                                        @endforeach
+                                    </select>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Columna 2 -->
+                        <div class="col-md-6">
+                            <div class="form-group row mb-3">
+                                <label for="precio_venta_producto" class="col-sm-4 col-form-label">Precio venta *</label>
+                                <div class="col-sm-8">
+                                    <input type="number" step="0.01" class="form-control" id="precio_venta_producto" name="precio_venta" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="stock_producto" class="col-sm-4 col-form-label">Stock actual *</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock_producto" name="stock" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="stock_minimo_producto" class="col-sm-4 col-form-label">Stock mínimo *</label>
+                                <div class="col-sm-8">
+                                    <input type="number" class="form-control" id="stock_minimo_producto" name="stock_minimo" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="unidad_medida_producto" class="col-sm-4 col-form-label">Unidad medida *</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="unidad_medida_producto" name="unidad_medida" required>
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="ubicacion_producto" class="col-sm-4 col-form-label">Ubicación</label>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" id="ubicacion_producto" name="ubicacion">
+                                    <div class="invalid-feedback"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="frecuente_producto" class="col-sm-4 col-form-label">Producto frecuente</label>
+                                <div class="col-sm-8">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="frecuente_producto" name="frecuente" value="1">
+                                        <label class="form-check-label" for="frecuente_producto">Marcar como producto de uso frecuente</label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group row mb-3">
+                                <label for="imagen_editar" class="col-sm-4 col-form-label">Imagen</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="imagen_editar" name="imagen" class="form-control" 
+                                           accept=".webp,.jpeg,.jpg,.png,.gif"
+                                           onchange="previewImage(this, 'preview_editar')">
+                                    <small class="form-text text-muted">
+                                        Formatos: JPEG, PNG, JPG, GIF, WEBP. Máximo 2MB.
+                                    </small>
+                                    <div id="mensaje-archivo-editar" class="small"></div>
+                                    
+                                    <!-- Preview de imagen actual -->
+                                    <div class="mt-2">
+                                        <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; display: none;">
+                                        <img id="preview_editar" style="max-width: 100px; max-height: 100px; display: none;">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <input type="hidden" name="activo" value="1">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="BtnEditar_producto">Actualizar producto</button>
                 </div>
             </form>
         </div>
@@ -234,346 +417,132 @@
 
 
 <!-- ================================= 
- Modal para editar productos 
+ Modal para ver productos 
 ======================================  -->
 
-<div class="modal fade" id="modalEditarProducto"  role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-lg"> <!-- Añadido modal-lg para más ancho -->
+<div class="modal fade" id="modalVerProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-light">
-                <h5 class="modal-title" id="modalEditarProducto"><i class="fas fa-umbrella"></i> Editar producto: &nbsp; &nbsp</h5>
-                   <h5 ><a class="mx-1 nombre" style="color:red" id="nombre_producto_titulo_2"></a></h5>    
+                <h5 class="modal-title">Datos del producto: <span id="nombre_producto_titulo" style="color:red"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             
-            <form method="POST" id="form_editar_productos" enctype="multipart/form-data"  action="{{ url('productos') }}" >
-            @csrf
-                <div class="modal-body">
-                    <input type="hidden" id="id_categoria" name="id_categoria" value="1">
-                     <input type="hidden" id="id_proveedor" name="id_proveedor" value="1">
-                     <input type="hidden" id="id_producto_producto" name="id_producto" value="">
-                    
-                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
-                        <!-- Columna 1 -->
-                        <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="nombre_producto" name="nombre" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
-                                <div class="col-sm-8">
-                                    <textarea class="form-control" id="descripcion_producto" name="descripcion" rows="2"></textarea>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="unidad_medida_producto" name="unidad_medida" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="ubicacion_producto" name="ubicacion" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-
-                            <div class="form-group row mb-3">
-                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="marca_producto" name="marca" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                          
-                            
-                             <div class="form-group row mb-3">
-                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
-                               <div class="col-sm-8">
-                                     <select id="categoria_producto" name="categoria" class="form-control" placeholder="Filtrar eventos" required>
-
-                                            <option value="todos">Mostrar todas</option>
-
-                                            @foreach($categorias as $categ)
-
-                                            <option value="{{$categ->nombre}}">{{$categ->nombre}}</option>
-
-                                            @endforeach
-
-                                     </select>
-                                </div>                             
-                             </div>
-
-                              <div class="form-group row mb-3">
-                                <label for="imagen_editar" class="col-sm-4 col-form-label">Imagen</label>
-                                <div class="col-sm-8">
-                                    <input type="file" id="imagen_editar" name="imagen" class="form-control" 
-                                           accept=".webp,.jpeg,.jpg,.png,.gif" 
-                                          onchange="previewImage(this, 'preview_editar')">
-                                    <small class="form-text text-muted">
-                                        Formatos: JPEG, PNG, JPG, GIF, SVG. Máximo 2MB.
-                                        <div id="mensaje-archivo-editar"></div> 
-                                    </small>
-                                </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Columna 1 -->
+                    <div class="col-md-6">
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Código:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_codigo" readonly>
                             </div>
                         </div>
                         
-                        <!-- Columna 2 -->
-                        <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="cantidad_producto" name="cantidad" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Nombre:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_nombre" readonly>
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="precio_compra_producto" name="precio_compra" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Descripción:</label>
+                            <div class="col-sm-8">
+                                <textarea class="form-control-plaintext" id="ver_descripcion" rows="2" readonly></textarea>
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="precio_venta_producto" name="precio_venta" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Marca:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_marca" readonly>
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="codigo_producto" name="codigo" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Categoría:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_categoria" readonly>
                             </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Proveedor:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_proveedor" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Columna 2 -->
+                    <div class="col-md-6">
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Precio venta:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_precio_venta" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Stock actual:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_stock" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Stock mínimo:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_stock_minimo" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Unidad medida:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_unidad_medida" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Ubicación:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_ubicacion" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Frecuente:</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control-plaintext" id="ver_frecuente" readonly>
+                            </div>
+                        </div>
 
-                              <div class="form-group row mb-3">
-                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="stock_producto" name="stock" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
-                                <div class="col-sm-8">
-                                    <input type="number" class="form-control" id="stock_minimo_producto" name="stock_minimo" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
 
-                         
-
-                               <div class="form-group row mb-3">
-                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="proveedor_producto" name="proveedor" required>
-                                        <div class="invalid-feedback"></div>
-                                    </div>
-                               </div>
-
-                                <div class="form-group row mb-3">
+                        <div class="form-group row mb-3">
                                 <div class="col-sm-8 offset-sm-4">
                                     <img id="preview_editar" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
                                     <!-- Preview de la imagen actual -->
-                                    <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
+                                    <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
                                 </div>
                             </div>
- 
-
-                         </div>
-                    </div>                    
-                  
-                </div>
-
-                <div class="modal-footer">
-                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                   <button type="submit" class="btn btn-primary" id="BtnEditar_producto" name="BtnEditar_producto">Guardar</button>                              
-                    <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>
-              
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-
-
-
-<!--=====================================
-
-    MODAL VER DATOS DEL PRODUCTO
-
-======================================-->
-
-
-<div class="modal fade" id="modalVerProducto" tabindex="-1" aria-labelledby="miModalLabel" aria-hidden="true">
-
-    <div class="modal-dialog modal-lg"> 
-        <div class="modal-content">
-            <div class="modal-header bg-light">
-                  <h5 class="modal-title" id="modalVerProductos"><i class="fas fa-umbrella"></i> Ver datos del producto: &nbsp; &nbsp;</h5>
-                      <h5 ><a class="mx-1 nombre" style="color:red" id="nombre_producto_titulo"></a></h5>     
-
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            
-            <form method="GET" id="form_ver_producto" enctype="multipart/form-data"  action="{{ url('productos') }}" >
-            @csrf
-                <div class="modal-body">
-                    <input type="hidden" id="id_categoria" name="id_categoria" >
-                     <input type="hidden" id="id_proveedor" name="id_proveedor" >
-                                       
-                    <div class="row"> <!-- Fila para agrupar campos horizontalmente -->
-                        <!-- Columna 1 -->
-                        <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="Nombre" class="col-sm-4 col-form-label">Nombre</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control  border-0" autocomplete="off" id="nombre" name="nombre" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="descripcion" class="col-sm-4 col-form-label">Descripción</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" autocomplete="off" id="descripcion" name="descripcion" readonly >
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="unida_medida" class="col-sm-4 col-form-label">Unidad de medida</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control " autocomplete="off" id="unidad_medida" name="unidad_medida" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="ubicacion" class="col-sm-4 col-form-label">Ubicación</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" autocomplete="off" id="ubicacion" name="ubicacion" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-
-                            <div class="form-group row mb-3">
-                                <label for="Marca" class="col-sm-4 col-form-label">Marca</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control " autocomplete="off" id="marca" name="marca" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>                          
-                            
-                             <div class="form-group row mb-3">
-                               <label for="Categoria" class="col-sm-4 col-form-label">Categoría</label>
-                               <div class="col-sm-8">
-                                   <input type="text" class="form-control "  autocomplete="off" id="categoria" name="categoria" readonly required>
-                                    <div class="invalid-feedback"></div>                                                                        
-                                </div>                             
-                             </div>
-
-                               <div class="form-group row mb-3">
-                                     <div class="col-sm-8">
-                                       <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">                                         
-                                    </div>
-                               </div>
-
-                        </div>
                         
-                        <!-- Columna 2 -->
-                        <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="cantidad" class="col-sm-4 col-form-label">Cantidad</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="cantidad" name="cantidad" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        <div class="form-group row mb-3">
+                            <label class="col-sm-4 col-form-label font-weight-bold">Imagen:</label>
+                            <div class="col-sm-8">
+                                <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; display: none;">
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="Precio_compra" class="col-sm-4 col-form-label">Precio compra</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="precio_compra" name="precio_compra" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="precio_venta" class="col-sm-4 col-form-label">Precio venta</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="precio_venta" name="precio_venta" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="Codigo" class="col-sm-4 col-form-label">Código</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="codigo" name="codigo" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-
-                              <div class="form-group row mb-3">
-                                <label for="Stock" class="col-sm-4 col-form-label">Stock</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="stock" name="stock" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="stock_minimo" class="col-sm-4 col-form-label">Stock mínimo</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="stock_minimo" name="stock_minimo" readonly required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>                         
-
-                               <div class="form-group row mb-3">
-                                    <label for="proveedor" class="col-sm-4 col-form-label">Proveedor</label>
-                                    <div class="col-sm-8">
-                                        <input type="text" class="form-control" id="proveedor" name="proveedor" readonly required>
-                                        <div class="invalid-feedback"></div>
-                                             <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::user()->id }}" readonly>
-
-                                    </div>
-                               </div>
-                         </div>
-                    </div>       
-                    
-
-                  
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div class="modal-footer">
-                   <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>                                               
-                   <input type="hidden" name="userId" class="form-control" id="userId" value="{{ Auth::check() ? Auth::user()->id : null}}" readonly>                
-                </div>
-            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -660,52 +629,87 @@ $.ajaxSetup({
   }
 });
   
+  // Imagen por defecto (definida una sola vez)
+    const defaultProductImage = "{{ asset('storage/images/default-product.png') }}";
+    
     window.table = $('#tablaProductos').DataTable({
-      processing: true,
-      serverSide: true,
-      paging: true,
-      info: true,
-      filter: true,
-      responsive: true,
-      type: "GET",
-      ajax: 'productos',
-      columns: [
-        {
-          data: 'codigo',
-          name: 'codigo'
-        },
-        {
-          data: 'nombre',
-          name: 'nombre'
-        },
-        {
-          data: 'descripcion',
-          name: 'descripcion'
-        },
-        {
-          data: 'precio_compra',
-          name: 'precio_compra'
-        },
-        {
-          data: 'stock',
-          name: 'stock'
-        },
-         {
-          data: 'stock_minimo',
-          name: 'stock_minimo'
-        },
-        {
-          data: 'ubicacion',
-          name: 'ubicacion'
-        },
-
-        {
-          data: 'action',
-          name: 'action',
-          orderable: false,
-          searchable: false
-        },
-      ],
+        processing: true,
+        serverSide: true,
+        paging: true,
+        info: true,
+        filter: true,
+        responsive: true,
+        type: "GET",
+        ajax: 'productos',
+        columns: [
+            {
+                data: 'codigo',
+                name: 'codigo'
+            },
+            {
+                data: 'nombre',
+                name: 'nombre'
+            },
+            {
+                data: 'descripcion',
+                name: 'descripcion'
+            },
+            {
+                data: 'precio_venta',
+                name: 'precio_venta',
+                render: function(data) {
+                    return '$' + parseFloat(data || 0).toFixed(2);
+                }
+            },
+            {
+                data: 'stock',
+                name: 'stock',
+                render: function(data, type, row) {
+                    let badgeClass = data <= row.stock_minimo ? 'badge-danger' : 'badge-success';
+                    return '<span class="badge ' + badgeClass + '">' + data + '</span>';
+                }
+            },
+            {
+                data: 'stock_minimo',
+                name: 'stock_minimo'
+            },
+            {
+                data: 'ubicacion',
+                name: 'ubicacion'
+            },
+            {
+                data: 'frecuente',
+                name: 'frecuente',
+                render: function(data) {
+                    if (data == 1 || data == true) {
+                        return '<span class="badge badge-warning"><i class="fa fa-star"></i> Frecuente</span>';
+                    } else {
+                        return '<span class="badge badge-secondary">Normal</span>';
+                    }
+                }
+            },
+            {
+                data: 'imagen',
+                name: 'imagen',
+                render: function(data) {
+                    if (data) {
+                        // Limpiar la ruta
+                        let imagePath = data.replace('storage/', '');
+                        let imageUrl = "{{ asset('storage') }}/" + imagePath;
+                        
+                        return '<img src="' + imageUrl + '" alt="Producto" class="producto-imagen-tabla" onerror="this.src=\'' + defaultProductImage + '\'">';
+                    } else {
+                        return '<img src="' + defaultProductImage + '" alt="Sin imagen" class="producto-imagen-tabla">';
+                    }
+                }
+            },
+            {
+                data: 'action',
+                name: 'action',
+                orderable: false,
+                searchable: false
+            }
+        ],
 
       order: [
         [0, 'desc']
@@ -841,7 +845,7 @@ let btn = $('#BtnGuardar_producto')
 
         try {
         $.ajax({
-            url: "/productos",
+            url: "/productos-guardar",
             method: "POST",
             data: formData,
             processData: false, 
@@ -1063,28 +1067,25 @@ $(document).on('click', '.verProducto', function(e) {
 
             // Manejo de imagen en modal VER
             const preview = $('#previewVerProducto');
-            
-            if(data.imagen && data.imagen.trim() !== '') {
-                let cleanImagePath = data.imagen.replace('storage/', '');
-                let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
-                
-                preview.attr('src', imageUrl);
-                preview.css({
-                    'display': 'block',
-                    'max-width': '100px',
-                    'max-height': '100px',
-                    'margin-top': '5px'
-                });
-                
-                preview.on('load', function() {
-                    console.log('Imagen cargada correctamente');
-                });
-                
-                preview.on('error', function() {
-                    console.error('Error cargando imagen:', imageUrl);
-                    preview.attr('src', 'https://via.placeholder.com/120x120/6c757d/ffffff?text=Sin+Imagen');
+    
+                if(data.imagen && data.imagen.trim() !== '') {
+                    let cleanImagePath = data.imagen.replace('storage/', '');
+                    let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
+                    
+                    preview.attr('src', imageUrl);
+                    preview.css({
+                        'display': 'block',
+                        'max-width': '150px',
+                        'max-height': '150px',
+                        'border': '1px solid #ddd',
+                        'border-radius': '4px',
+                        'padding': '5px'
+                    });
+                } else {
+                    preview.attr('src', "{{ asset('storage/images/default-product.png') }}");
                     preview.show();
-                });
+                }
+            }
                 
             } else {
                 console.log('No hay imagen disponible');
@@ -1458,7 +1459,12 @@ function subirArchivo() {
 
 </script>
 
-<script>$(document).ready(function() {
+<script>
+
+$(document).ready(function() {
+
+const defaultProductImage = "{{ asset('storage/images/default-product.png') }}";
+
     // ===== MODAL VER PRODUCTO =====
     $(document).on('click', '#modalVerProducto .close', function() {
         $('#modalVerProducto').modal('hide');

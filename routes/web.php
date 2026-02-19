@@ -7,9 +7,11 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
+use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
 use App\http\Controllers\ventaController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\HistorialVentasController;
 
 
 
@@ -58,7 +60,8 @@ Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])
 
  
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');       
+Route::get('/dashboard/data', [DashboardController::class, 'getDashboardData'])->name('dashboard.data');     
+Route::get('/dashboard/detalle-venta/{id}', [DashboardController::class, 'getDetalleVenta'])->name('dashboard.detalle-venta');
 Route::get('/dashboard/check-updates', [DashboardController::class, 'checkUpdates'])->name('dashboard.check-updates');
 
 
@@ -75,6 +78,35 @@ Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])
 Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
 Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
 Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
+
+
+// ======================================================
+
+//  RUTAS PARA VENTAS
+
+// ======================================================
+
+
+ // Ruta para la vista principal
+    Route::get('/historial-ventas', [HistorialVentasController::class, 'index'])->name('historial_ventas');    
+    // Ruta para obtener datos de la tabla (DataTables)
+    Route::get('/historial-ventas/data', [HistorialVentasController::class, 'getVentasData'])->name('historial.ventas.data');    
+    // Ruta para ver detalle de una venta específica
+    Route::get('/ventas/detalle/{id}', [HistorialVentasController::class, 'getDetalleVenta'])->name('ventas.detalle');    
+    
+    // Ruta para imprimir ticket
+    Route::get('/ventas/ticket/{id}', [HistorialVentasController::class, 'imprimirTicket'])->name('ventas.ticket');    
+
+    // Ruta para cancelar venta (solo pendientes)
+    Route::post('/ventas/cancelar/{id}', [HistorialVentasController::class, 'cancelarVenta'])->name('ventas.cancelar');    
+
+    // Eliminar venta y restablecer stock
+    Route::delete('/historial-ventas/eliminar/{id}', [HistorialVentasController::class, 'eliminarVenta'])->name('ventas.eliminar');
+        
+    // Ruta para exportar reporte
+    Route::get('/ventas/reporte', [HistorialVentasController::class, 'exportarReporte'])->name('ventas.reporte');    
+    // Ruta para vista de todas las ventas (opcional - como alternativa)
+    Route::get('/ventas/todas', [HistorialVentasController::class, 'ventasTodas'])->name('ventas.todas');
 
 
 /*
@@ -108,13 +140,25 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
 
 // ======================================================
 
-Route::get('productos', [App\Http\Controllers\ProductoController::class, 'index'])->name('productos');
-Route::post('/productos', [App\Http\Controllers\ProductoController::class, 'store'])->name('crear_productos');
+Route::post('/compras/guardar',     [ProductoController::class, 'registrarCompra'])->name('compras.guardar');
+Route::get('/compras/listar',       [ProductoController::class, 'listarCompras'])->name('compras.listar');
+Route::get('/compras/estadisticas', [ProductoController::class, 'estadisticasCompras'])->name('compras.estadisticas');
+Route::get('compras', [App\Http\Controllers\ProductoController::class, 'index'])->name('compras');
+
+Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
+Route::post('/productos-guardar', [ProductoController::class, 'store'])->name('producto.guardar');
+
+Route::get('/productos/buscar', [ProductoController::class, 'buscarProductos'])->name('buscar.producto');
 Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'show'])->name('productos.show');
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
+Route::post('/compras/guardar',     [ProductoController::class, 'registrarCompra'])->name('compras.guardar');
+Route::get('/compras/listar',       [ProductoController::class, 'listarCompras'])->name('compras.listar');
+Route::get('/compras/estadisticas', [ProductoController::class, 'estadisticasCompras'])->name('compras.estadisticas');
+
+
+
 Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
 Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');
-
 
 Route::get('/obtener-categorias', [App\Http\Controllers\ProductoController::class, 'obtenerCategorias'])->name('categorias.obtener');
 Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('productos.por-categoria');
@@ -124,6 +168,21 @@ Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 
 Route::get('/productos/frecuentes', [App\Http\Controllers\PuntoVentaController::class, 'productosFrecuentes'])->name('productos/frecuentes');
 
 
+
+// ======================================================
+
+//  RUTAS PARA INVETARIO
+
+// ======================================================
+
+ 
+Route::get('/inventarios', [App\Http\Controllers\InventarioController::class, 'index']);
+Route::get('/inventarios/kardex/{id_producto}',[App\Http\Controllers\InventarioController::class, 'kardex']);
+Route::get('/inventarios/reporte',[App\Http\Controllers\InventarioController::class, 'reporte']);
+Route::get('/inventarios/listar',[App\Http\Controllers\InventarioController::class, 'listar']);
+Route::get('/inventarios/{id}',[App\Http\Controllers\InventarioController::class, 'show']);
+Route::get('/inventarios/estadisticas',[App\Http\Controllers\InventarioController::class, 'estadisticas']);
+  
 
 
 // ======================================================

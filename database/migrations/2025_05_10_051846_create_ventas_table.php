@@ -23,6 +23,7 @@ return new class extends Migration
             // Luego el resto de las columnas
             $table->dateTime('fecha_venta');
             $table->string('numero_factura')->unique();
+            $table->string('nombre_usuario')->nullable();
             $table->json('productos')->nullable();
             $table->string('subtotal', 10);
             $table->string('iva', 8);

@@ -5,37 +5,62 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use App\Models\Proveedor;
 use App\Models\Categoria;
-use App\Models\inventario;
+use App\Models\Inventario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class ProductoController extends Controller
 {
-    public function index()
-    {
-        if(request()->ajax()) {
-            $id = Producto::select('id_producto', 'codigo', 'nombre', 'descripcion','precio_compra', 'stock', 'stock_minimo', 'ubicacion', 'frecuente')->get();
-            
-            return datatables()->of($id)        
-                ->addColumn('action', 'atencion')
-                ->rawColumns(['action'])
-                ->addColumn('action', function($data) {  
-                    $actionBtn = '<a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Ver datos del producto" class="fa fa-eye verProducto" style="margin-right: 5px;"></a>                  
-                                <a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Editar datos del producto" class="fa fa-edit editarProducto" style="margin-right: 5px;"></a>
-                                <a href="javascript:void(0)" data-toggle="tooltip" data-id="'.$data->id_producto.'" title="Eliminar datos del producto" class="fa fa-trash eliminarProducto" style="color: #c47215ff;"></a>';        
-                    return $actionBtn;
-                })
-                ->make(true);
-        } 
+    public function index(Request $request)
+{
+    if ($request->ajax()) {
+        // Para DataTable - incluir TODOS los campos necesarios
+        $productos = Producto::with(['categoria', 'proveedor'])
+            ->select(
+                'id_producto', 
+                'codigo', 
+                'nombre', 
+                'descripcion', 
+                'precio_venta',
+                'stock', 
+                'stock_minimo', 
+                'ubicacion',
+                'marca',
+                'unidad_medida',
+                'imagen', // 👈 ASEGURAR QUE IMAGEN ESTÁ INCLUIDA
+                'frecuente',
+                'id_categoria',
+                'id_proveedor'
+            );
         
-        $productos = Producto::select('id_producto','nombre')->get(); 
-        $categorias = Categoria::select('nombre')->get();
-
-        return view('productos', compact('categorias'));          
+        return datatables()->of($productos)
+            ->addColumn('categoria_nombre', function($producto) {
+                return $producto->categoria ? $producto->categoria->nombre : 'Sin categoría';
+            })
+            ->addColumn('proveedor_nombre', function($producto) {
+                return $producto->proveedor ? $producto->proveedor->nombre : 'Sin proveedor';
+            })
+            ->addColumn('action', function($producto) {
+                $btn = '<div class="btn-group" role="group">';
+                $btn .= '<button class="btn btn-xs btn-info verProducto" data-id="'.$producto->id_producto.'"><i class="fa fa-eye"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-warning editarProducto" data-id="'.$producto->id_producto.'"><i class="fa fa-pencil"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-danger eliminarProducto" data-id="'.$producto->id_producto.'" data-nombre="'.$producto->nombre.'"><i class="fa fa-trash"></i></button>';
+                $btn .= '</div>';
+                return $btn;
+            })
+            ->rawColumns(['action']) // Nota: No incluir 'imagen' aquí porque ya tiene HTML
+            ->make(true);
     }
+    
+    // Para vista normal
+    $categorias = Categoria::all();
+    $proveedores = Proveedor::all();
+    return view('productos', compact('categorias', 'proveedores'));
+}
 
     public function search(Request $request)
     {
@@ -68,76 +93,88 @@ class ProductoController extends Controller
         // Código original
     }
 
-    public function store(Request $request)
+   public function store(Request $request)
 {
-    $validatedData = $request->validate([
-        'codigo'        => 'required|string|max:50|unique:productos',
-        'nombre'        => 'required|string|max:255',
-        'descripcion'   => 'nullable|string',
-        'precio_compra' => 'required|numeric|min:0',
-        'precio_venta'  => 'required|numeric|min:0',
-        'unidad_medida' => 'required|string|max:50',
-        'ubicacion'     => 'nullable|string|max:100',
-        'proveedor'     => 'nullable|string|max:100',
-      ///  'imagen'        => 'nullable|image|mimes:webp,jpeg,png,jpg,gif|max:2048',   
-        'cantidad'      => 'required|integer|min:0',
-        'stock_minimo'  => 'required|integer|min:0',
-        'stock'         => 'nullable|integer|min:0',
-    ]);
-
-    // Calcular margen de ganancia
-    $margenGanancia = (($request->precio_venta - $request->precio_compra) / $request->precio_compra) * 100;
-
     try {
-        $data = new Producto;
+        // Validar SOLO los campos que existen en la nueva tabla
+        $validatedData = $request->validate([
+            'codigo'        => 'required|string|max:50|unique:productos',
+            'nombre'        => 'required|string|max:255',
+            'descripcion'   => 'nullable|string',
+            'precio_venta'  => 'required|numeric|min:0', // 👈 SOLO precio_venta
+            'stock'         => 'required|integer|min:0', // 👈 Stock inicial
+            'stock_minimo'  => 'required|integer|min:0',
+            'unidad_medida' => 'required|string|max:50',
+            'ubicacion'     => 'nullable|string|max:100',
+            'marca'         => 'nullable|string|max:100',
+            'id_categoria'  => 'required|exists:categorias,id_categoria', // 👈 ID de categoría
+            'id_proveedor'  => 'nullable|exists:proveedores,id_proveedor', // 👈 ID de proveedor
+            'frecuente'     => 'nullable|boolean',
+            'imagen'        => 'nullable|image|max:2048' // 2MB max
+        ]);
+
+        // Calcular margen de ganancia (opcional, si lo necesitas)
+        // $margenGanancia = 0; // Ya no se usa precio_compra
+
+        // Crear nuevo producto
+        $producto = new Producto();
+        
+        // Asignar campos básicos
+        $producto->codigo = $request->codigo;
+        $producto->nombre = $request->nombre;
+        $producto->descripcion = $request->descripcion;
+        $producto->precio_venta = $request->precio_venta;
+        $producto->stock = $request->stock; // Stock inicial
+        $producto->stock_minimo = $request->stock_minimo;
+        $producto->unidad_medida = $request->unidad_medida;
+        $producto->ubicacion = $request->ubicacion;
+        $producto->marca = $request->marca;
+        $producto->id_categoria = $request->id_categoria;
+        $producto->id_proveedor = $request->id_proveedor;
+        $producto->frecuente = $request->has('frecuente') ? 1 : 0;
+        $producto->activo = 1; // Activo por defecto
 
         // Manejo de la imagen
-        $rutaPublica = null;
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
-            // Si se sube una imagen, guardarla normalmente
             $imagen = $request->file('imagen');
             
             // Generar nombre único para la imagen
-            $nombreImagen = Str::random(20) . '_' . time() . '.' . $imagen->getClientOriginalExtension();
+            $nombreImagen = time() . '_' . uniqid() . '.' . $imagen->getClientOriginalExtension();
             
-            // Guardar imagen en storage/app/public/images
-            $ruta = $imagen->storeAs('public/images', $nombreImagen);
+            // Guardar imagen en storage/app/public/productos
+            $ruta = $imagen->storeAs('public/productos', $nombreImagen);
             
             // Ruta pública para la base de datos
-            $rutaPublica = 'storage/images/' . $nombreImagen;
+            $producto->imagen = 'storage/productos/' . $nombreImagen;
         } else {
-            // Si no se sube imagen, usar imagen por defecto
-            $rutaPublica = 'storage/images/default-product.png'; // Ruta de la imagen por defecto
+            // Si no se sube imagen, usar null o imagen por defecto
+            $producto->imagen = null; // O 'storage/images/default-product.png'
         }
 
-        // Asignar campos correctamente
-        $data->userId = $request->userId;
-        $data->codigo = $request->codigo;
-        $data->nombre = $request->nombre;
-        $data->descripcion = $request->descripcion;
-        $data->precio_compra = $request->precio_compra;
-        $data->precio_venta = $request->precio_venta;
-        $data->unidad_medida = $request->unidad_medida; 
-        $data->ubicacion = $request->ubicacion;
-        $data->marca = $request->marca;
-        $data->proveedor = $request->proveedor;
-        $data->categoria = $request->categoria;
-        $data->id_categoria = $request->id_categoria;
-        $data->id_proveedor = $request->id_proveedor;
-        $data->cantidad = $request->cantidad; 
-        $data->stock = $request->cantidad; // Asumiendo que stock es igual a cantidad inicial
-        $data->stock_minimo = $request->stock_minimo; 
-        $data->stock = $request->stock;
-        $data->imagen = $rutaPublica;
-        
-    } catch (\Exception  $exception) {
-        return back()->withError($exception->getMessage())->withInput();
-    }
-    
-    $data->save();
+        // Guardar el producto
+        $producto->save();
 
-    // Respuesta de éxito con el mensaje deseado
-    return response()->json(['success'=>'Successfully']);
+        // Respuesta de éxito
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto creado correctamente',
+            'data' => $producto
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors' => $e->errors()
+        ], 422);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar producto: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al guardar el producto: ' . $e->getMessage()
+        ], 500);
+    }
 }
 
     public function obtenerCategorias()
@@ -176,48 +213,25 @@ class ProductoController extends Controller
     /**
      * Buscar productos por término y categoría
      */
-    public function buscarProductos(Request $request)
-    {
-        try {
-            $termino = $request->input('termino', '');
-            $categoria = $request->input('categoria', 'todas');
-
-            $query = Producto::where('activo', 1)
-                ->where('stock', '>', 0);
-
-            // Aplicar filtro por categoría si no es "todas"
-            if ($categoria !== 'todas') {
-                $query->where('categoria', $categoria);
-            }
-
-            // Aplicar búsqueda por término
-            if (!empty($termino)) {
-                $query->where(function($q) use ($termino) {
-                    $q->where('codigo', 'LIKE', "%{$termino}%")
-                      ->orWhere('nombre', 'LIKE', "%{$termino}%")
-                      ->orWhere('categoria', 'LIKE', "%{$termino}%");
-                });
-            }
-
-            $productos = $query->select(['id_producto', 'codigo', 'nombre', 'precio', 'stock', 'categoria'])
-                ->orderBy('nombre')
-                ->limit(50)
-                ->get();
-
-            return response()->json([
-                'success' => true,
-                'productos' => $productos,
-                'total' => $productos->count()
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'productos' => [],
-                'message' => 'Error al buscar productos'
-            ], 500);
-        }
-    }
+ 
+public function buscarProductos(Request $request)
+{
+    $termino = $request->get('termino');
+    
+    \Log::info('Buscando productos con término: ' . $termino);
+    
+    $productos = Producto::where('nombre', 'LIKE', "%{$termino}%")
+                        ->orWhere('codigo', 'LIKE', "%{$termino}%")
+                        ->limit(10)
+                        ->get(['id_producto', 'nombre', 'codigo', 'stock', 'precio_compra']);
+    
+    \Log::info('Productos encontrados: ' . $productos->count());
+    
+    return response()->json([
+        'success' => true,
+        'productos' => $productos
+    ]);
+}
 
     /**
      * Filtrar productos por categoría (porCategoria)
@@ -253,37 +267,61 @@ class ProductoController extends Controller
         }
     }
 
+public function listarCompras()
+{
+    $compras = \App\Models\Compra::with('producto')
+        ->orderBy('id_compra', 'desc')
+        ->get();
+
+    return response()->json(['compras' => $compras]);
+}
+
+public function estadisticasCompras()
+{
+    $hoy = now()->toDateString();
+
+    return response()->json([
+        'success'             => true,
+        'compras_hoy'         => \App\Models\Compra::whereDate('fecha_compra', $hoy)->count(),
+        'total_invertido'     => (float) \App\Models\Compra::whereDate('fecha_compra', $hoy)
+                                    ->selectRaw('SUM(cantidad * precio_compra) as total')
+                                    ->value('total'),
+        'productos_comprados' => (int) \App\Models\Compra::whereDate('fecha_compra', $hoy)->sum('cantidad'),
+        'compras_mes'         => \App\Models\Compra::whereMonth('fecha_compra', now()->month)->count(),
+    ]);
+}
+
     /**
      * Obtener todos los productos activos
      */
-   public function todosLosProductos()
-{
-    try {
-       
-        $productos = Producto::where('activo', 1) 
-            ->where('stock', '>', 0)
-            ->select(['id_producto', 'codigo', 'nombre', 'precio_venta as precio', 'stock', 'categoria'])
-            ->orderBy('nombre')
-            ->get();
+    public function todosLosProductos()
+    {
+        try {
+            $productos = Producto::where('activo', 1) 
+                ->where('stock', '>', 0)
+                ->select(['id_producto', 'codigo', 'nombre', 'precio_venta as precio', 'stock', 'categoria'])
+                ->orderBy('nombre')
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'productos' => $productos,
-            'total' => $productos->count()
-        ]);
+            return response()->json([
+                'success' => true,
+                'productos' => $productos,
+                'total' => $productos->count()
+            ]);
 
-    } catch (\Exception $e) {
-        // Agrega logging para ver el error
-        \Log::error('Error en todosLosProductos: ' . $e->getMessage());
-        \Log::error('Trace: ' . $e->getTraceAsString());
-        
-        return response()->json([
-            'success' => false,
-            'productos' => [],
-            'message' => 'Error al cargar productos'
-        ], 500);
+        } catch (\Exception $e) {
+            // Agrega logging para ver el error
+            \Log::error('Error en todosLosProductos: ' . $e->getMessage());
+            \Log::error('Trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'productos' => [],
+                'message' => 'Error al cargar productos'
+            ], 500);
+        }
     }
-}
+
     /**
      * Obtener productos frecuentes
      */
@@ -329,148 +367,161 @@ class ProductoController extends Controller
         }
     }
 
-    public function update(Request $request, $id_producto)
+    public function registrarCompra(Request $request)
     {
+        Log::info('📥 Recibiendo compra', $request->all());
+        
         try {
-            $producto = Producto::find($id_producto);
+            // Validar datos
+            $validator = Validator::make($request->all(), [
+                'id_producto' => 'required|exists:productos,id_producto',
+                'cantidad_comprada' => 'required|numeric|min:1',
+                'precio_compra' => 'nullable|numeric|min:0',
+                'fecha_compra' => 'required|date',
+            ]);
 
-            if (!$producto) {
+            if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Producto no encontrado'
-                ], 404);
-            }        
-
-            // Validar campos básicos
-            $validated = $request->validate([
-                'codigo'        => 'required|string|max:50',
-                'nombre'        => 'required|string|max:255',
-                'descripcion'   => 'nullable|string',
-                'precio_compra' => 'required|numeric|min:0',
-                'precio_venta'  => 'required|numeric|min:0',
-                'unidad_medida' => 'required|string|max:50',
-                'ubicacion'     => 'nullable|string|max:100',
-                'marca'         => 'nullable|string|max:80',
-                'cantidad'      => 'required|integer|min:0',
-                'stock'         => 'nullable|integer|min:0',
-                'stock_minimo'  => 'required|integer|min:0',
-                'proveedor'     => 'nullable|string|max:80',
-                'categoria'     => 'nullable|string|max:80',
-            ]);
-
-            Log::info('Validación pasada, actualizando producto...');
-
-            // Preparar datos para actualizar
-            $datosActualizar = [
-                'codigo'         => $validated['codigo'],
-                'nombre'         => $validated['nombre'],
-                'descripcion'    => $validated['descripcion'] ?? null,
-                'cantidad'       => $validated['cantidad'],
-                'precio_compra'  => $validated['precio_compra'],
-                'precio_venta'   => $validated['precio_venta'],
-                'unidad_medida'  => $validated['unidad_medida'],
-                'ubicacion'      => $validated['ubicacion'] ?? null,
-                'marca'          => $validated['marca'] ?? null,
-                'categoria'      => $validated['categoria'] ?? null,
-                'stock'          => $validated['stock'] ?? 0,
-                'stock_minimo'   => $validated['stock_minimo'],
-                'proveedor'      => $validated['proveedor'] ?? null,
-            ];
-
-            if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
-                Log::info('Nueva imagen válida detectada, procesando...');
-                
-                // Validar tipo de archivo
-                $imagen = $request->file('imagen');
-                $extensionesPermitidas = ['webp', 'jpeg', 'png', 'jpg', 'gif'];
-                $extension = $imagen->getClientOriginalExtension();
-                
-                if (!in_array(strtolower($extension), $extensionesPermitidas)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Tipo de archivo no permitido. Formatos aceptados: WEBP, JPEG, PNG, JPG, GIF',
-                        'errors' => ['imagen' => ['Tipo de archivo no permitido']]
-                    ], 422);
-                }
-                
-                // Validar tamaño
-                if ($imagen->getSize() > 2 * 1024 * 1024) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'La imagen es demasiado grande. Máximo permitido: 2MB',
-                        'errors' => ['imagen' => ['La imagen es demasiado grande']]
-                    ], 422);
-                }
-                
-                // Eliminar imagen anterior si existe
-                if ($producto->imagen && Storage::disk('public')->exists($producto->imagen)) {
-                    Storage::disk('public')->delete($producto->imagen);
-                    Log::info('Imagen anterior eliminada: ' . $producto->imagen);
-                }
-                
-                // Guardar nueva imagen
-                $nombreImagen = time() . '_' . uniqid() . '.' . $extension;
-                $rutaImagen = $imagen->storeAs('productos', $nombreImagen, 'public');
-                
-                $datosActualizar['imagen'] = $rutaImagen;
-                Log::info('Nueva imagen guardada: ' . $rutaImagen);
-                
-            } else {
-                Log::info('No se subió nueva imagen o es inválida, manteniendo la actual');
-                // Mantener la imagen actual
-                $datosActualizar['imagen'] = $producto->imagen;
+                    'message' => 'Datos inválidos',
+                    'errors' => $validator->errors()
+                ], 422);
             }
-           
-            // Actualizar el producto
-            $producto->update($datosActualizar);     
 
+            // Buscar el producto
+            $producto = Producto::findOrFail($request->id_producto);
+            
+            // Guardar stock anterior
+            $stockAnterior = $producto->stock;
+            
+            // Actualizar stock del producto
+            $producto->stock += $request->cantidad_comprada;
+            
+            // Actualizar precio de compra si se proporcionó
+            if ($request->filled('precio_compra')) {
+                $producto->precio_compra = $request->precio_compra;
+            }
+            
+            $producto->save();
+            
+            // Registrar en inventario
+            $inventario = new Inventario();
+            $inventario->id_producto = $producto->id_producto;
+            $inventario->tipo_movimiento = 'entrada';
+            $inventario->cantidad = $request->cantidad_comprada;
+            $inventario->stock_anterior = $stockAnterior;
+            $inventario->stock_nuevo = $producto->stock;
+            $inventario->precio_compra = $request->precio_compra ?? $producto->precio_compra;
+            $inventario->proveedor = $request->proveedor;
+            $inventario->numero_factura = $request->numero_factura;
+            $inventario->fecha_movimiento = $request->fecha_compra;
+            $inventario->metodo_pago = $request->metodo_pago ?? 'efectivo';
+            $inventario->notas = $request->notas;
+            $inventario->id_usuario = auth()->id(); // Usuario autenticado
+            $inventario->save();
+            
+            Log::info('✅ Compra registrada exitosamente', [
+                'inventario_id' => $inventario->id_inventario,
+                'producto' => $producto->nombre,
+                'stock_nuevo' => $producto->stock
+            ]);
+            
             return response()->json([
                 'success' => true,
-                'message' => 'Producto actualizado exitosamente',
-                'data' => $producto
+                'message' => 'Compra registrada exitosamente',
+                'data' => [
+                    'producto' => [
+                        'id' => $producto->id_producto,
+                        'nombre' => $producto->nombre,
+                        'codigo' => $producto->codigo
+                    ],
+                    'cantidad_agregada' => $request->cantidad_comprada,
+                    'stock_anterior' => $stockAnterior,
+                    'stock_nuevo' => $producto->stock,
+                    'inventario_id' => $inventario->id_inventario
+                ]
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::error('Error de validación:', $e->errors());
+            
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            Log::error('❌ Producto no encontrado: ' . $e->getMessage());
+            
             return response()->json([
                 'success' => false,
-                'message' => 'Error de validación',
-                'errors' => $e->errors()
+                'message' => 'Producto no encontrado'
+            ], 404);
+            
+        } catch (\Exception $e) {
+            Log::error('❌ Error en compra: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar la compra: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+public function destroy($id)
+{
+    try {
+        DB::beginTransaction();
+
+        $producto = Producto::find($id);
+        
+        if (!$producto) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+
+        // Verificar si tiene compras asociadas
+        $comprasRelacionadas = \App\Models\Compra::where('id_producto', $id)->count();
+        
+        if ($comprasRelacionadas > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => "No se puede eliminar el producto porque tiene {$comprasRelacionadas} compra(s) asociada(s)"
             ], 422);
-            
-        } catch (\Exception $e) {
-            Log::error('Error al actualizar producto: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error interno del servidor: ' . $e->getMessage()
-            ], 500);
         }
-    }
 
-    public function destroy($id)
-    {
-        try {
-            $producto = Producto::find($id);
-            
-            if (!$producto) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Producto no encontrado'
-                ], 404);
-            }
-            
-            $producto->delete();
-         
-            return response()->json([
-                'success' => true,
-                'message' => 'Producto eliminado correctamente'
-            ]);
-            
-        } catch (\Exception $e) {
+        // Verificar si tiene movimientos de inventario
+        $inventarioRelacionado = \App\Models\Inventario::where('id_producto', $id)->count();
+        
+        if ($inventarioRelacionado > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al eliminar el producto: ' . $e->getMessage()
-            ], 500);
+                'message' => "No se puede eliminar el producto porque tiene {$inventarioRelacionado} movimiento(s) de inventario"
+            ], 422);
         }
+
+        // Eliminar imagen física si existe
+        if ($producto->imagen) {
+            $rutaImagen = public_path(str_replace('storage/', 'storage/app/public/', $producto->imagen));
+            if (file_exists($rutaImagen)) {
+                unlink($rutaImagen);
+            }
+        }
+
+        // Eliminar el producto
+        $producto->delete();
+
+        DB::commit();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto eliminado correctamente'
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error al eliminar producto: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar el producto: ' . $e->getMessage()
+        ], 500);
     }
+}
+
 }
