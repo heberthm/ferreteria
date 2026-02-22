@@ -442,379 +442,360 @@
     </div>
 </div>
 
+                   
+
 @endsection
 
 @push('js')
 <script>
-/* ============================================================
-   MÓDULO COMPRAS
-   ============================================================ */
-
-var productoActual = null;
-var buscarTimer    = null;   // debounce
-var CSRF_TOKEN     = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-/* ── Polyfill mínimo de SweetAlert2 ──────────────────────── */
-if (typeof Swal === 'undefined') {
-    console.warn('⚠️ SweetAlert2 no cargado. Usando alert() nativo.');
-    window.Swal = {
-        fire: function(opts) {
-            var msg = (opts.title || '') + '\n' + (opts.text || opts.html || '');
-            alert(msg.trim());
-            return Promise.resolve({ isConfirmed: true });
-        }
-    };
-}
-
-/* ── INICIO ────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('✅ Página de compras cargada');
-    inicializar();
-});
-
-function inicializar() {
-
-    var inputBuscar   = document.getElementById('inputBuscar');
-    var listaBusqueda = document.getElementById('listaBusqueda');
-    var btnGuardar    = document.getElementById('btnGuardar');
-    var inputCantidad = document.getElementById('inputCantidad');
-    var inputPrecio   = document.getElementById('inputPrecio');
-
-    if (!inputBuscar) { console.error('❌ #inputBuscar no encontrado'); return; }
-
-    /* ── Búsqueda con debounce de 250 ms ─────────────────── */
-    inputBuscar.addEventListener('input', function () {
+$(document).ready(function() {
+    console.log('✅ Document ready - Módulo Compras');
+    
+    // =========================================
+    // VARIABLES GLOBALES
+    // =========================================
+    let productoActual = null;
+    let buscarTimer = null;
+    let CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+    
+    // =========================================
+    // BÚSQUEDA DE PRODUCTOS
+    // =========================================
+    $('#inputBuscar').on('input', function() {
+        let termino = $(this).val().trim();
+        console.log('🔍 Input detectado:', termino);
+        
         clearTimeout(buscarTimer);
-        buscarTimer = setTimeout(buscarProducto, 250);
-    });
-
-    /* ── Ocultar lista al hacer clic fuera ───────────────── */
-    document.addEventListener('click', function (e) {
-        if (e.target !== inputBuscar && !listaBusqueda.contains(e.target)) {
-            ocultarLista();
+        
+        if (termino.length < 2) {
+            $('#listaBusqueda').hide();
+            return;
         }
+        
+        buscarTimer = setTimeout(function() {
+            buscarProductos(termino);
+        }, 300);
     });
-
-    /* ── Tecla Escape cierra la lista ───────────────────── */
-    inputBuscar.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') ocultarLista();
-    });
-
-    /* ── Eventos del modal ───────────────────────────────── */
-    var modal = document.getElementById('modalCompra');
-
-    modal.addEventListener('show.bs.modal',  limpiarFormulario);
-
-    modal.addEventListener('shown.bs.modal', function () {
-        setTimeout(function () { inputBuscar.focus(); }, 200);
-    });
-
-    /* ── Botón guardar ───────────────────────────────────── */
-    if (btnGuardar) btnGuardar.addEventListener('click', guardarCompra);
-
-    /* ── Cálculo del total ───────────────────────────────── */
-    if (inputCantidad) inputCantidad.addEventListener('input', calcularTotal);
-    if (inputPrecio)   inputPrecio.addEventListener('input',   calcularTotal);
-
-    /* ── Inicializar DataTable y stats ───────────────────── */
-    cargarTabla();
-    cargarEstadisticas();
-
-    console.log('✅ Módulo inicializado');
-}
-
-/* ── BÚSQUEDA ───────────────────────────────────────────────── */
-function buscarProducto() {
-    var input  = document.getElementById('inputBuscar');
-    var lista  = document.getElementById('listaBusqueda');
-    var termino = input.value.trim();
-
-    if (termino.length < 2) { ocultarLista(); return; }
-
-    /* Mostrar spinner */
-    lista.innerHTML =
-        '<div class="list-group-item text-center py-2">' +
-        '<span class="spinner-border spinner-border-sm text-primary me-1"></span>' +
-        ' Buscando...</div>';
-    lista.style.display = 'block';
-
-    fetch('/productos/buscar?termino=' + encodeURIComponent(termino), {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json',
-            'X-CSRF-TOKEN': CSRF_TOKEN,
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(function (res) {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-    })
-    .then(function (data) {
-        if (data.success && data.productos && data.productos.length > 0) {
-            renderResultados(data.productos);
-        } else {
-            lista.innerHTML =
-                '<div class="list-group-item text-center text-muted py-2">' +
-                '<i class="fas fa-search me-1"></i>No se encontraron productos</div>';
-            lista.style.display = 'block';
-        }
-    })
-    .catch(function (err) {
-        console.error('❌ Error búsqueda:', err);
-        lista.innerHTML =
-            '<div class="list-group-item text-danger py-2">' +
-            '<i class="fas fa-exclamation-triangle me-1"></i>' +
-            'Error al buscar: ' + err.message + '</div>';
-        lista.style.display = 'block';
-    });
-}
-
-/* Renderiza los ítems de resultado usando createElement (sin onclick inline) */
-function renderResultados(productos) {
-    var lista = document.getElementById('listaBusqueda');
-    lista.innerHTML = '';           // limpiar
-
-    productos.forEach(function (prod) {
-        var stockClass = prod.stock > 10 ? 'bg-success'
-                       : prod.stock > 0  ? 'bg-warning text-dark'
-                       :                   'bg-danger';
-
-        var item = document.createElement('button');
-        item.type = 'button';
-        item.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2';
-
-        item.innerHTML =
-            '<div>' +
-              '<strong>' + escapeHtml(prod.nombre) + '</strong>' +
-              '<br><small class="text-muted">' + escapeHtml(prod.codigo || '') + '</small>' +
-            '</div>' +
-            '<span class="badge ' + stockClass + '">Stock: ' + prod.stock + '</span>';
-
-        /* Guardar datos en dataset para evitar problemas de escapado */
-        item.dataset.id     = prod.id_producto;
-        item.dataset.nombre = prod.nombre;
-        item.dataset.codigo = prod.codigo  || '';
-        item.dataset.stock  = prod.stock;
-        item.dataset.precio = prod.precio_compra || 0;
-
-        item.addEventListener('click', function () {
-            seleccionarProducto(
-                this.dataset.id,
-                this.dataset.nombre,
-                this.dataset.codigo,
-                parseInt(this.dataset.stock),
-                parseFloat(this.dataset.precio)
-            );
+    
+    function buscarProductos(termino) {
+        console.log('🔎 Buscando productos con término:', termino);
+        
+        // Mostrar spinner
+        $('#listaBusqueda').html(
+            '<div class="list-group-item text-center py-2">' +
+            '<span class="spinner-border spinner-border-sm text-primary me-1"></span>' +
+            ' Buscando...</div>'
+        ).show();
+        
+        // Hacer la petición AJAX
+        $.ajax({
+            url: '/compras/buscar-productos', // Ajusta la URL según tu ruta
+            method: 'GET',
+            data: { termino: termino },
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            success: function(response) {
+                console.log('📦 Respuesta recibida:', response);
+                
+                if (response.success && response.productos && response.productos.length > 0) {
+                    mostrarResultados(response.productos);
+                } else {
+                    $('#listaBusqueda').html(
+                        '<div class="list-group-item text-center text-muted py-2">' +
+                        '<i class="fas fa-search me-1"></i>No se encontraron productos</div>'
+                    ).show();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error en búsqueda:', error);
+                console.error('Status:', xhr.status);
+                console.error('Response:', xhr.responseText);
+                
+                $('#listaBusqueda').html(
+                    '<div class="list-group-item text-danger py-2">' +
+                    '<i class="fas fa-exclamation-triangle me-1"></i>' +
+                    'Error al buscar productos</div>'
+                ).show();
+            }
         });
-
-        lista.appendChild(item);
+    }
+    
+   function mostrarResultados(productos) {
+    let html = '';
+    
+    productos.forEach(function(producto) {
+        let stockClass = producto.stock > 10 ? 'bg-success' :
+                        producto.stock > 0 ? 'bg-warning text-dark' : 'bg-danger';
+        
+        html += `
+            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 producto-item"
+                    data-id="${producto.id_producto}"
+                    data-nombre="${producto.nombre}"
+                    data-codigo="${producto.codigo || ''}"
+                    data-stock="${producto.stock}"
+                    data-precio="${producto.precio_venta || 0}">
+                <div>
+                    <strong>${escapeHtml(producto.nombre)}</strong>
+                    ${producto.codigo ? `<br><small class="text-muted">${escapeHtml(producto.codigo)}</small>` : ''}
+                </div>
+                <span class="badge ${stockClass}">Stock: ${producto.stock}</span>
+            </button>
+        `;
     });
-
-    lista.style.display = 'block';
+    
+    $('#listaBusqueda').html(html).show();
+    
+    // Agregar evento click a cada resultado
+    $('.producto-item').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        let id = $(this).data('id');
+        let nombre = $(this).data('nombre');
+        let codigo = $(this).data('codigo');
+        let stock = parseInt($(this).data('stock'));
+        let precio = parseFloat($(this).data('precio'));
+        
+        console.log('🎯 Producto seleccionado:', { id, nombre, codigo, stock, precio });
+        
+        seleccionarProducto(id, nombre, codigo, stock, precio);
+    });
 }
 
-function ocultarLista() {
-    var lista = document.getElementById('listaBusqueda');
-    if (lista) lista.style.display = 'none';
-}
-
-/* ── SELECCIÓN DE PRODUCTO ──────────────────────────────────── */
+// =========================================
+// SELECCIONAR PRODUCTO Y MOSTRAR SECCIÓN
+// =========================================
 function seleccionarProducto(id, nombre, codigo, stock, precio) {
     console.log('✅ Producto seleccionado:', { id, nombre, codigo, stock, precio });
-
-    productoActual = { id: id, nombre: nombre, codigo: codigo, stock: stock, precio: precio };
-
-    /* Rellenar campos ocultos y de texto */
-    document.getElementById('hiddenIdProducto').value = id;
-    document.getElementById('inputBuscar').value       = nombre;
-    document.getElementById('txtProducto').textContent = nombre + (codigo ? ' (' + codigo + ')' : '');
-    document.getElementById('txtStock').textContent    = stock;
-    document.getElementById('inputPrecio').value       = precio > 0 ? precio : '';
-
-    /* MOSTRAR sección del producto */
-    var seccion = document.getElementById('seccionProducto');
-    seccion.style.display = 'block';
-
-    /* Scroll suave dentro del modal */
-    setTimeout(function () {
-        seccion.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 50);
-
-    /* Cerrar lista */
-    ocultarLista();
-
-    /* Habilitar botón */
-    document.getElementById('btnGuardar').disabled = false;
-
-    /* Calcular total */
+    
+    // Guardar producto actual
+    productoActual = { id, nombre, codigo, stock, precio };
+    
+    // Llenar campos ocultos y de texto
+    $('#hiddenIdProducto').val(id);
+    $('#inputBuscar').val(nombre);
+    $('#txtProducto').text(nombre + (codigo ? ' (' + codigo + ')' : ''));
+    $('#txtStock').text(stock);
+    $('#inputPrecio').val(precio > 0 ? precio : '');
+    
+    // 👉 MOSTRAR LA SECCIÓN DEL PRODUCTO
+    $('#seccionProducto').show();
+    
+    // Ocultar lista de resultados
+    $('#listaBusqueda').hide();
+    
+    // Habilitar botón guardar
+    $('#btnGuardar').prop('disabled', false);
+    
+    // Calcular total inicial
     calcularTotal();
+    
+    // Scroll suave hacia la sección
+    setTimeout(function() {
+        $('html, body').animate({
+            scrollTop: $('#seccionProducto').offset().top - 100
+        }, 500);
+    }, 100);
+    
+    // Opcional: Enfocar el campo cantidad
+    setTimeout(function() {
+        $('#inputCantidad').focus();
+    }, 300);
 }
 
-/* ── CÁLCULO TOTAL ──────────────────────────────────────────── */
-function calcularTotal() {
-    var cantidad = parseFloat(document.getElementById('inputCantidad').value) || 0;
-    var precio   = parseFloat(document.getElementById('inputPrecio').value)   || 0;
-    document.getElementById('txtTotal').textContent = (cantidad * precio).toFixed(2);
-}
 
-/* ── GUARDAR COMPRA ─────────────────────────────────────────── */
-function guardarCompra() {
-    if (!productoActual || !document.getElementById('hiddenIdProducto').value) {
-        Swal.fire({ icon: 'warning', title: 'Producto requerido', text: 'Debe seleccionar un producto.' });
-        return;
+$(document).on('click', function(e) {
+    if (!$(e.target).closest('#inputBuscar, #listaBusqueda, .producto-item').length) {
+        $('#listaBusqueda').hide();
+    }
+});
+
+    // =========================================
+    // CÁLCULO DE TOTAL
+    // =========================================
+   
+    function calcularTotal() {
+    let cantidad = parseFloat($('#inputCantidad').val()) || 0;
+    let precio = parseFloat($('#inputPrecio').val()) || 0;
+    let total = cantidad * precio;
+    
+    $('#txtTotal').text(total.toFixed(2));
     }
 
-    var cantidad = parseInt(document.getElementById('inputCantidad').value);
+    // Actualizar total cuando cambien cantidad o precio
+    $('#inputCantidad, #inputPrecio').on('input', calcularTotal);
+    
+    // =========================================
+    // OCULTAR LISTA AL HACER CLICK FUERA
+    // =========================================
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('#inputBuscar, #listaBusqueda').length) {
+            $('#listaBusqueda').hide();
+        }
+    });
+    
+    // =========================================
+    // LIMPIAR FORMULARIO AL CERRAR MODAL
+    // =========================================
+    $('#modalCompra').on('hidden.bs.modal', function() {
+        console.log('🧹 Limpiando formulario');
+        
+        $('#formCompra')[0].reset();
+        $('#hiddenIdProducto').val('');
+        $('#txtProducto').text('');
+        $('#txtStock').text('');
+        $('#txtTotal').text('0.00');
+        $('#seccionProducto').hide();
+        $('#listaBusqueda').hide();
+        $('#btnGuardar').prop('disabled', true);
+        
+        productoActual = null;
+    });
+    
+    // =========================================
+    // FUNCIÓN PARA ESCAPAR HTML
+    // =========================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
+    // =========================================
+    // GUARDAR COMPRA
+    // =========================================
+    $('#btnGuardar').on('click', function(e) {
+    e.preventDefault();
+    
+    if (!productoActual) {
+        toastr.warning('Debe seleccionar un producto');
+        return;
+    }
+    
+    let cantidad = parseInt($('#inputCantidad').val());
+    let precio = parseFloat($('#inputPrecio').val());
+    let id_proveedor = $('#inputProveedor').val();
+    let fecha = $('#inputFecha').val();
+    
+    console.log('📦 Datos a enviar:', {
+        id_producto: $('#hiddenIdProducto').val(),
+        cantidad: cantidad,
+        precio_unitario: precio,
+        id_proveedor: id_proveedor || null,
+        numero_factura: $('#inputFactura').val(),
+        fecha_compra: fecha,
+        metodo_pago: $('#inputMetodo').val(),
+        notas: $('#inputNotas').val()
+    });
+    
+    // Validaciones básicas antes de enviar
     if (isNaN(cantidad) || cantidad <= 0) {
-        Swal.fire({ icon: 'warning', title: 'Cantidad inválida', text: 'La cantidad debe ser mayor a 0.' });
+        toastr.warning('La cantidad debe ser mayor a 0');
         return;
     }
-
-    var precio = parseFloat(document.getElementById('inputPrecio').value);
+    
     if (isNaN(precio) || precio < 0) {
-        Swal.fire({ icon: 'warning', title: 'Precio inválido', text: 'El precio debe ser mayor o igual a 0.' });
+        toastr.warning('El precio debe ser mayor o igual a 0');
         return;
     }
-
-    var datos = {
-        id_producto:       document.getElementById('hiddenIdProducto').value,
-        cantidad_comprada: cantidad,
-        precio_compra:     precio,
-        proveedor:         document.getElementById('inputProveedor').value || '',
-        numero_factura:    document.getElementById('inputFactura').value   || '',
-        fecha_compra:      document.getElementById('inputFecha').value,
-        metodo_pago:       document.getElementById('inputMetodo').value,
-        notas:             document.getElementById('inputNotas').value     || ''
+    
+    if (!fecha) {
+        toastr.warning('La fecha es requerida');
+        return;
+    }
+    
+    let datos = {
+        id_producto: $('#hiddenIdProducto').val(),
+        cantidad: cantidad,
+        precio_unitario: precio,
+        id_proveedor: id_proveedor || null,
+        numero_factura: $('#inputFactura').val() || '',
+        fecha_compra: fecha,
+        metodo_pago: $('#inputMetodo').val(),
+        notas: $('#inputNotas').val() || ''
     };
-
-    var btn = document.getElementById('btnGuardar');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-
-    fetch('/compras/guardar', {
-        method: 'POST',
-        headers: {
-            'Content-Type':     'application/json',
-            'X-CSRF-TOKEN':     CSRF_TOKEN,
-            'Accept':           'application/json'
-        },
-        body: JSON.stringify(datos)
-    })
-    .then(function (res) {
-        if (!res.ok) return res.json().then(function (e) { throw new Error(e.message || 'Error ' + res.status); });
-        return res.json();
-    })
-    .then(function (data) {
-        if (data.success) {
-            Swal.fire({
-                icon: 'success',
-                title: '¡Compra Registrada!',
-                html: '<strong>Producto:</strong> '   + data.data.producto.nombre   + '<br>' +
-                      '<strong>Cantidad:</strong> '   + data.data.cantidad_agregada + '<br>' +
-                      '<strong>Stock Anterior:</strong> ' + data.data.stock_anterior + '<br>' +
-                      '<strong>Stock Nuevo:</strong> '    + data.data.stock_nuevo,
-                timer: 3000,
-                showConfirmButton: true
-            });
-
-            var modalEl = document.getElementById('modalCompra');
-            var bsModal = bootstrap.Modal.getInstance(modalEl);
-            if (bsModal) bsModal.hide();
-
-            cargarTabla();
-            cargarEstadisticas();
-            limpiarFormulario();
-        } else {
-            throw new Error(data.message || 'Error desconocido');
-        }
-    })
-    .catch(function (err) {
-        console.error('❌ Error al guardar:', err);
-        Swal.fire({ icon: 'error', title: 'Error al Guardar', text: err.message });
-    })
-    .finally(function () {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save"></i> Guardar Compra';
+        
+        console.log('📦 Guardando compra:', datos);
+        
+        let btn = $(this);
+        btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Guardando...').prop('disabled', true);
+        
+        $.ajax({
+            url: '/compras/guardar',
+            method: 'POST',
+            data: JSON.stringify(datos),
+            contentType: 'application/json',
+            dataType: 'json',
+            headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN
+            },
+            success: function(response) {
+                console.log('✅ Compra guardada:', response);
+                
+                if (response.success) {
+                    toastr.success('Compra registrada correctamente');
+                    
+                    $('#modalCompra').modal('hide');
+                    
+                    // Recargar tabla si existe
+                    if ($.fn.DataTable && $('#tablaCompras').length) {
+                        $('#tablaCompras').DataTable().ajax.reload();
+                    }
+                    
+                    // Recargar estadísticas
+                    cargarEstadisticas();
+                } else {
+                    toastr.error(response.message || 'Error al guardar');
+                }
+            },
+            error: function(xhr) {
+                console.error('❌ Error:', xhr);
+                
+                let mensaje = 'Error al guardar la compra';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    mensaje = xhr.responseJSON.message;
+                } else if (xhr.responseJSON && xhr.responseJSON.errors) {
+                    mensaje = Object.values(xhr.responseJSON.errors).join('<br>');
+                }
+                
+                toastr.error(mensaje);
+            },
+            complete: function() {
+                btn.html('<i class="fas fa-save"></i> Guardar Compra').prop('disabled', false);
+            }
+        });
     });
-}
-
-/* ── LIMPIAR FORMULARIO ─────────────────────────────────────── */
-function limpiarFormulario() {
-    document.getElementById('inputBuscar').value      = '';
-    document.getElementById('hiddenIdProducto').value = '';
-    document.getElementById('inputCantidad').value    = '1';
-    document.getElementById('inputPrecio').value      = '';
-    document.getElementById('inputProveedor').value   = '';
-    document.getElementById('inputFactura').value     = '';
-    document.getElementById('inputNotas').value       = '';
-    document.getElementById('inputMetodo').value      = 'efectivo';
-    document.getElementById('inputFecha').value       = new Date().toISOString().split('T')[0];
-    document.getElementById('txtProducto').textContent = '';
-    document.getElementById('txtStock').textContent    = '';
-    document.getElementById('txtTotal').textContent    = '0.00';
-
-    /* OCULTAR sección del producto */
-    document.getElementById('seccionProducto').style.display = 'none';
-    ocultarLista();
-
-    document.getElementById('btnGuardar').disabled = true;
-    productoActual = null;
-}
-
-/* ── TABLA DataTables ───────────────────────────────────────── */
-function cargarTabla() {
-    // Verificar que las rutas existen antes de inicializar DataTable
-    fetch('/compras/listar', {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
-    })
-    .then(r => {
-        console.log('Status /compras/listar:', r.status, r.url);
-        return r.json();
-    })
-    .then(data => console.log('Datos recibidos:', data))
-    .catch(err => console.error('❌ Error listar:', err));
-}
-
-/* ── ESTADÍSTICAS ───────────────────────────────────────────── */
-function cargarEstadisticas() {
-    fetch('/compras/estadisticas', {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF_TOKEN }
-    })
-    .then(function (res) {
-        if (!res.ok) throw new Error('Error ' + res.status);
-        return res.json();
-    })
-    .then(function (data) {
-        if (data.success) {
-            actualizarCard('comprasHoy',         data.compras_hoy       || 0);
-            actualizarCard('totalInvertido',    '$' + (data.total_invertido  || 0).toFixed(2));
-            actualizarCard('productosComprados', data.productos_comprados || 0);
-            actualizarCard('comprasMes',         data.compras_mes        || 0);
-        }
-    })
-    .catch(function (err) {
-        console.error('❌ Error estadísticas:', err);
-        ['comprasHoy','productosComprados','comprasMes'].forEach(function (id) { actualizarCard(id, 0); });
-        actualizarCard('totalInvertido', '$0.00');
-    });
-}
-
-function actualizarCard(id, valor) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.style.opacity = '0';
-    setTimeout(function () { el.textContent = valor; el.style.opacity = '1'; }, 150);
-}
-
-/* ── UTILIDADES ─────────────────────────────────────────────── */
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g,'&amp;')
-              .replace(/</g,'&lt;')
-              .replace(/>/g,'&gt;')
-              .replace(/"/g,'&quot;')
-              .replace(/'/g,'&#039;');
-}
+    
+    // =========================================
+    // CARGAR ESTADÍSTICAS
+    // =========================================
+    function cargarEstadisticas() {
+        $.ajax({
+            url: '/compras/estadisticas',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $('#comprasHoy').text(response.compras_hoy || 0);
+                    $('#totalInvertido').text('$' + (response.total_invertido || 0).toFixed(2));
+                    $('#productosComprados').text(response.productos_comprados || 0);
+                    $('#comprasMes').text(response.compras_mes || 0);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error cargando estadísticas:', xhr);
+            }
+        });
+    }
+    
+    // Cargar estadísticas al inicio
+    cargarEstadisticas();
+});
 </script>
 @endpush

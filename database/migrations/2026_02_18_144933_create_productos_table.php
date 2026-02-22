@@ -43,7 +43,9 @@ return new class extends Migration
                 $table->text('descripcion')->nullable();
                 $table->integer('stock')->default(0);
                 $table->integer('stock_minimo')->default(0);
-                $table->decimal('precio_venta', 10, 2);
+                $table->string('precio_venta', 10);
+                $table->string('costo_promedio', 10)->default(0);
+                $table->string('ultimo_costo', 10)->default(0);
                 $table->string('imagen', 500)->nullable();
                 $table->boolean('activo')->default(true);
                 $table->string('unidad_medida')->nullable();

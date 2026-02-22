@@ -46,13 +46,13 @@ class ProductoController extends Controller
             })
             ->addColumn('action', function($producto) {
                 $btn = '<div class="btn-group" role="group">';
-                $btn .= '<button class="btn btn-xs btn-info verProducto" data-id="'.$producto->id_producto.'"><i class="fa fa-eye"></i></button>';
-                $btn .= '<button class="btn btn-xs btn-warning editarProducto" data-id="'.$producto->id_producto.'"><i class="fa fa-pencil"></i></button>';
-                $btn .= '<button class="btn btn-xs btn-danger eliminarProducto" data-id="'.$producto->id_producto.'" data-nombre="'.$producto->nombre.'"><i class="fa fa-trash"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-info verProducto" data-id="'.$producto->id_producto.'" data-target="#modalVerProducto" title="Ver datos del productos"><i class="fa fa-eye"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-warning editarProducto" data-id="'.$producto->id_producto.'" title="Editar datos del productos"><i class="fa fa-check"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-danger eliminarProducto" data-id="'.$producto->id_producto.'" data-nombre="'.$producto->nombre.'" title="Eliminar productos"><i class="fa fa-trash"></i></button>';
                 $btn .= '</div>';
                 return $btn;
             })
-            ->rawColumns(['action']) // Nota: No incluir 'imagen' aquí porque ya tiene HTML
+            ->rawColumns(['action']) 
             ->make(true);
     }
     
@@ -93,28 +93,27 @@ class ProductoController extends Controller
         // Código original
     }
 
-   public function store(Request $request)
+//Guardar producto
+
+ public function store(Request $request)
 {
     try {
         // Validar SOLO los campos que existen en la nueva tabla
         $validatedData = $request->validate([
             'codigo'        => 'required|string|max:50|unique:productos',
-            'nombre'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'precio_venta'  => 'required|numeric|min:0', // 👈 SOLO precio_venta
-            'stock'         => 'required|integer|min:0', // 👈 Stock inicial
-            'stock_minimo'  => 'required|integer|min:0',
-            'unidad_medida' => 'required|string|max:50',
-            'ubicacion'     => 'nullable|string|max:100',
-            'marca'         => 'nullable|string|max:100',
-            'id_categoria'  => 'required|exists:categorias,id_categoria', // 👈 ID de categoría
-            'id_proveedor'  => 'nullable|exists:proveedores,id_proveedor', // 👈 ID de proveedor
-            'frecuente'     => 'nullable|boolean',
-            'imagen'        => 'nullable|image|max:2048' // 2MB max
+            'nombre'         => 'required|string|max:255',
+            'descripcion'    => 'nullable|string',
+            'precio_venta'   => 'required|numeric|min:0',
+            'stock'          => 'required|integer|min:0',
+            'stock_minimo'   => 'required|integer|min:0',
+            'unidad_medida'  => 'required|string|max:50',
+            'ubicacion'      => 'nullable|string|max:100',
+            'marca'          => 'nullable|string|max:100',
+            'id_categoria'   => 'required|exists:categorias,id_categoria',
+            'id_proveedor'   => 'nullable|exists:proveedores,id_proveedor',
+            'frecuente'      => 'nullable|boolean',
+            'imagen'         => 'nullable|image|max:2048'
         ]);
-
-        // Calcular margen de ganancia (opcional, si lo necesitas)
-        // $margenGanancia = 0; // Ya no se usa precio_compra
 
         // Crear nuevo producto
         $producto = new Producto();
@@ -124,7 +123,7 @@ class ProductoController extends Controller
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio_venta = $request->precio_venta;
-        $producto->stock = $request->stock; // Stock inicial
+        $producto->stock = $request->stock;
         $producto->stock_minimo = $request->stock_minimo;
         $producto->unidad_medida = $request->unidad_medida;
         $producto->ubicacion = $request->ubicacion;
@@ -132,29 +131,18 @@ class ProductoController extends Controller
         $producto->id_categoria = $request->id_categoria;
         $producto->id_proveedor = $request->id_proveedor;
         $producto->frecuente = $request->has('frecuente') ? 1 : 0;
-        $producto->activo = 1; // Activo por defecto
+        $producto->activo = 1;
 
         // Manejo de la imagen
         if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
             $imagen = $request->file('imagen');
-            
-            // Generar nombre único para la imagen
             $nombreImagen = time() . '_' . uniqid() . '.' . $imagen->getClientOriginalExtension();
-            
-            // Guardar imagen en storage/app/public/productos
             $ruta = $imagen->storeAs('public/productos', $nombreImagen);
-            
-            // Ruta pública para la base de datos
             $producto->imagen = 'storage/productos/' . $nombreImagen;
-        } else {
-            // Si no se sube imagen, usar null o imagen por defecto
-            $producto->imagen = null; // O 'storage/images/default-product.png'
         }
 
-        // Guardar el producto
         $producto->save();
 
-        // Respuesta de éxito
         return response()->json([
             'success' => true,
             'message' => 'Producto creado correctamente',
@@ -166,9 +154,9 @@ class ProductoController extends Controller
             'success' => false,
             'errors' => $e->errors()
         ], 422);
-        
     } catch (\Exception $e) {
         \Log::error('Error al guardar producto: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
         
         return response()->json([
             'success' => false,
@@ -176,39 +164,6 @@ class ProductoController extends Controller
         ], 500);
     }
 }
-
-    public function obtenerCategorias()
-    {
-        try {
-            // Obtener categorías únicas
-            $categorias = DB::table('productos')
-                ->select('categoria')
-                ->whereNotNull('categoria')
-                ->where('categoria', '!=', '')
-                ->distinct()
-                ->orderBy('categoria')
-                ->pluck('categoria')
-                ->toArray();
-
-            // Si no hay categorías, usar por defecto
-            if (empty($categorias)) {
-                $categorias = ['Herramientas', 'Materiales', 'Fijaciones', 'Pinturas', 'Electricidad'];
-            }
-
-            return response()->json([
-                'success' => true,
-                'categorias' => $categorias,
-                'total' => count($categorias)
-            ]);
-
-        } catch (\Exception $e) {
-            // En caso de error, devolver categorías por defecto
-            return response()->json([
-                'success' => true,
-                'categorias' => ['Herramientas', 'Materiales', 'Fijaciones', 'Pinturas', 'Electricidad']
-            ]);
-        }
-    }
 
     /**
      * Buscar productos por término y categoría
@@ -223,7 +178,7 @@ public function buscarProductos(Request $request)
     $productos = Producto::where('nombre', 'LIKE', "%{$termino}%")
                         ->orWhere('codigo', 'LIKE', "%{$termino}%")
                         ->limit(10)
-                        ->get(['id_producto', 'nombre', 'codigo', 'stock', 'precio_compra']);
+                        ->get(['id_producto', 'nombre', 'codigo', 'stock', 'precio_venta']);
     
     \Log::info('Productos encontrados: ' . $productos->count());
     
@@ -367,99 +322,204 @@ public function estadisticasCompras()
         }
     }
 
-    public function registrarCompra(Request $request)
-    {
-        Log::info('📥 Recibiendo compra', $request->all());
-        
-        try {
-            // Validar datos
-            $validator = Validator::make($request->all(), [
-                'id_producto' => 'required|exists:productos,id_producto',
-                'cantidad_comprada' => 'required|numeric|min:1',
-                'precio_compra' => 'nullable|numeric|min:0',
-                'fecha_compra' => 'required|date',
-            ]);
+// Registrar Compra
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Datos inválidos',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
+  public function registrarCompra(Request $request)
+{
+    Log::info('📥 Recibiendo compra', $request->all());
+    
+    try {
+        // Validar datos
+        $validator = Validator::make($request->all(), [
+            'id_producto' => 'required|exists:productos,id_producto',
+            'cantidad_comprada' => 'required|numeric|min:1',
+            'precio_compra' => 'required|numeric|min:0', // Ahora es requerido
+            'fecha_compra' => 'required|date',
+            'proveedor' => 'nullable|string|max:255',
+            'numero_factura' => 'nullable|string|max:50',
+            'metodo_pago' => 'nullable|string|max:50',
+            'notas' => 'nullable|string',
+        ]);
 
-            // Buscar el producto
-            $producto = Producto::findOrFail($request->id_producto);
-            
-            // Guardar stock anterior
-            $stockAnterior = $producto->stock;
-            
-            // Actualizar stock del producto
-            $producto->stock += $request->cantidad_comprada;
-            
-            // Actualizar precio de compra si se proporcionó
-            if ($request->filled('precio_compra')) {
-                $producto->precio_compra = $request->precio_compra;
-            }
-            
-            $producto->save();
-            
-            // Registrar en inventario
-            $inventario = new Inventario();
-            $inventario->id_producto = $producto->id_producto;
-            $inventario->tipo_movimiento = 'entrada';
-            $inventario->cantidad = $request->cantidad_comprada;
-            $inventario->stock_anterior = $stockAnterior;
-            $inventario->stock_nuevo = $producto->stock;
-            $inventario->precio_compra = $request->precio_compra ?? $producto->precio_compra;
-            $inventario->proveedor = $request->proveedor;
-            $inventario->numero_factura = $request->numero_factura;
-            $inventario->fecha_movimiento = $request->fecha_compra;
-            $inventario->metodo_pago = $request->metodo_pago ?? 'efectivo';
-            $inventario->notas = $request->notas;
-            $inventario->id_usuario = auth()->id(); // Usuario autenticado
-            $inventario->save();
-            
-            Log::info('✅ Compra registrada exitosamente', [
-                'inventario_id' => $inventario->id_inventario,
-                'producto' => $producto->nombre,
-                'stock_nuevo' => $producto->stock
-            ]);
-            
-            return response()->json([
-                'success' => true,
-                'message' => 'Compra registrada exitosamente',
-                'data' => [
-                    'producto' => [
-                        'id' => $producto->id_producto,
-                        'nombre' => $producto->nombre,
-                        'codigo' => $producto->codigo
-                    ],
-                    'cantidad_agregada' => $request->cantidad_comprada,
-                    'stock_anterior' => $stockAnterior,
-                    'stock_nuevo' => $producto->stock,
-                    'inventario_id' => $inventario->id_inventario
-                ]
-            ]);
-            
-        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-            Log::error('❌ Producto no encontrado: ' . $e->getMessage());
-            
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Producto no encontrado'
-            ], 404);
-            
-        } catch (\Exception $e) {
-            Log::error('❌ Error en compra: ' . $e->getMessage());
-            Log::error('Stack trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al registrar la compra: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Datos inválidos',
+                'errors' => $validator->errors()
+            ], 422);
         }
+
+        // Buscar el producto
+        $producto = Producto::findOrFail($request->id_producto);
+        
+        // Guardar stock anterior y costo promedio anterior
+        $stockAnterior = $producto->stock;
+        $costoPromedioAnterior = $producto->costo_promedio ?? 0;
+        
+        // Actualizar stock del producto
+        $producto->stock += $request->cantidad_comprada;
+        
+        // ACTUALIZAR COSTO PROMEDIO PONDERADO
+        $producto->actualizarCostoPromedio(
+            $request->cantidad_comprada, 
+            $request->precio_compra
+        );
+        
+        $producto->save();
+        
+        // Calcular el nuevo costo promedio para mostrarlo
+        $nuevoCostoPromedio = $producto->costo_promedio;
+        
+        // Registrar en inventario
+        $inventario = new Inventario();
+        $inventario->id_producto = $producto->id_producto;
+        $inventario->tipo_movimiento = 'entrada';
+        $inventario->cantidad = $request->cantidad_comprada;
+        $inventario->stock_anterior = $stockAnterior;
+        $inventario->stock_nuevo = $producto->stock;
+        $inventario->costo_unitario = $request->precio_compra; // Costo de esta compra
+        $inventario->costo_promedio_anterior = $costoPromedioAnterior;
+        $inventario->costo_promedio_nuevo = $nuevoCostoPromedio;
+        $inventario->precio_compra = $request->precio_compra;
+        $inventario->proveedor = $request->proveedor;
+        $inventario->numero_factura = $request->numero_factura;
+        $inventario->fecha_movimiento = $request->fecha_compra;
+        $inventario->metodo_pago = $request->metodo_pago ?? 'efectivo';
+        $inventario->notas = $request->notas;
+        $inventario->id_usuario = auth()->id();
+        $inventario->save();
+        
+        Log::info('✅ Compra registrada exitosamente', [
+            'inventario_id' => $inventario->id_inventario,
+            'producto' => $producto->nombre,
+            'costo_promedio_anterior' => $costoPromedioAnterior,
+            'costo_nuevo_compra' => $request->precio_compra,
+            'costo_promedio_nuevo' => $nuevoCostoPromedio,
+            'stock_nuevo' => $producto->stock
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Compra registrada exitosamente',
+            'data' => [
+                'producto' => [
+                    'id' => $producto->id_producto,
+                    'nombre' => $producto->nombre,
+                    'codigo' => $producto->codigo
+                ],
+                'cantidad_agregada' => $request->cantidad_comprada,
+                'costo_compra' => $request->precio_compra,
+                'costo_promedio_anterior' => $costoPromedioAnterior,
+                'costo_promedio_nuevo' => $nuevoCostoPromedio,
+                'stock_anterior' => $stockAnterior,
+                'stock_nuevo' => $producto->stock,
+                'inventario_id' => $inventario->id_inventario
+            ]
+        ]);
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        Log::error('❌ Producto no encontrado: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Producto no encontrado'
+        ], 404);
+        
+    } catch (\Exception $e) {
+        Log::error('❌ Error en compra: ' . $e->getMessage());
+        Log::error('Stack trace: ' . $e->getTraceAsString());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al registrar la compra: ' . $e->getMessage()
+        ], 500);
     }
+}
+
+/**
+ * Obtener historial de costos del producto
+ */
+public function historialCostos()
+{
+    return Inventario::where('id_producto', $this->id_producto)
+                     ->where('tipo_movimiento', 'entrada')
+                     ->orderBy('fecha_movimiento', 'desc')
+                     ->get(['fecha_movimiento', 'cantidad', 'costo_unitario', 'costo_promedio_anterior', 'costo_promedio_nuevo', 'proveedor', 'numero_factura']);
+}
+
+    //Actualizar producto
+public function update(Request $request, $id)
+{
+    try {
+        // Validar SOLO los campos
+        // 👇 ELIMINADO: 'unique:productos,codigo,' . $id . ',id_producto'
+        $validatedData = $request->validate([
+            'codigo'        => 'required|string|max:50|unique:productos',            
+            'nombre'        => 'required|string|max:255',
+            'descripcion'   => 'nullable|string',
+            'precio_venta'  => 'required|numeric|min:0',
+            'stock'         => 'required|integer|min:0',
+            'stock_minimo'  => 'required|integer|min:0',
+            'unidad_medida' => 'required|string|max:50',
+            'ubicacion'     => 'nullable|string|max:100',
+            'marca'         => 'nullable|string|max:100',
+            'id_categoria'  => 'required|exists:categorias,id_categoria',
+            'id_proveedor'  => 'nullable|exists:proveedores,id_proveedor',
+            'frecuente'     => 'nullable|boolean',
+            'imagen'        => 'nullable|image|max:2048'
+        ]);
+
+        // Buscar el producto
+        $producto = Producto::findOrFail($id);
+        
+        // Actualizar campos
+        $producto->codigo = $request->codigo;
+        $producto->nombre = $request->nombre;
+        $producto->descripcion = $request->descripcion;
+        $producto->precio_venta = $request->precio_venta;
+        $producto->stock = $request->stock;
+        $producto->stock_minimo = $request->stock_minimo;
+        $producto->unidad_medida = $request->unidad_medida;
+        $producto->ubicacion = $request->ubicacion;
+        $producto->marca = $request->marca;
+        $producto->id_categoria = $request->id_categoria;
+        $producto->id_proveedor = $request->id_proveedor;
+        $producto->frecuente = $request->has('frecuente') ? 1 : 0;
+
+        // Manejo de imagen
+        if ($request->hasFile('imagen')) {
+            if ($producto->imagen && file_exists(public_path($producto->imagen))) {
+                unlink(public_path($producto->imagen));
+            }
+            
+            $imagen = $request->file('imagen');
+            $nombreImagen = time() . '_' . uniqid() . '.' . $imagen->getClientOriginalExtension();
+            $imagen->move(public_path('storage/productos'), $nombreImagen);
+            $producto->imagen = 'storage/productos/' . $nombreImagen;
+        }
+
+        $producto->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Producto actualizado correctamente',
+            'data' => $producto
+        ]);
+
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Error al actualizar producto: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al actualizar: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 
 public function destroy($id)
 {

@@ -11,6 +11,21 @@
             display: none;
         }
 
+      /* Asegurar que los botones sean visibles */
+        .btn-group {
+            display: flex;
+            gap: 3px;
+        }
+
+        .btn-group .btn {
+            padding: 0.25rem 0.4rem;
+            font-size: 0.8rem;
+        }
+
+        /* Opcional: hacer la tabla responsive */
+        #tablaProductos {
+            width: 100% !important;
+        }
 
     .producto-imagen-tabla {
         width: 50px;
@@ -327,6 +342,22 @@
                                     <div class="invalid-feedback"></div>
                                 </div>
                             </div>
+
+                            <div class="form-group row mb-3">
+                                <label for="imagen_editar" class="col-sm-4 col-form-label">Imagen</label>
+                                <div class="col-sm-8">
+                                    <input type="file" id="imagen_editar" name="imagen" class="form-control" 
+                                           accept=".webp,.jpeg,.jpg,.png,.gif"
+                                           onchange="previewImage(this, 'preview_editar')">
+                                    <small class="form-text text-muted">
+                                        Formatos: JPEG, PNG, JPG, GIF, WEBP. Máximo 2MB.
+                                    </small>
+                                  </div>
+                            </div>
+                            
+                            <input type="hidden" name="activo" value="1">
+
+
                         </div>
                         
                         <!-- Columna 2 -->
@@ -379,28 +410,17 @@
                                         <label class="form-check-label" for="frecuente_producto">Marcar como producto de uso frecuente</label>
                                     </div>
                                 </div>
-                            </div>
+                            </div>                           
                             
-                            <div class="form-group row mb-3">
-                                <label for="imagen_editar" class="col-sm-4 col-form-label">Imagen</label>
-                                <div class="col-sm-8">
-                                    <input type="file" id="imagen_editar" name="imagen" class="form-control" 
-                                           accept=".webp,.jpeg,.jpg,.png,.gif"
-                                           onchange="previewImage(this, 'preview_editar')">
-                                    <small class="form-text text-muted">
-                                        Formatos: JPEG, PNG, JPG, GIF, WEBP. Máximo 2MB.
-                                    </small>
-                                    <div id="mensaje-archivo-editar" class="small"></div>
+                            <div id="mensaje-archivo-editar" class="small"></div>
                                     
                                     <!-- Preview de imagen actual -->
                                     <div class="mt-2">
                                         <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; display: none;">
                                         <img id="preview_editar" style="max-width: 100px; max-height: 100px; display: none;">
+                                       
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <input type="hidden" name="activo" value="1">
+
                         </div>
                     </div>
                 </div>
@@ -520,16 +540,7 @@
                                 <input type="text" class="form-control-plaintext" id="ver_frecuente" readonly>
                             </div>
                         </div>
-
-
-                        <div class="form-group row mb-3">
-                                <div class="col-sm-8 offset-sm-4">
-                                    <img id="preview_editar" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
-                                    <!-- Preview de la imagen actual -->
-                                    <img id="previewVerProducto" style="max-width: 100px; max-height: 100px; margin-top: 5px; display: none;">
-                                </div>
-                            </div>
-                        
+                                                
                         <div class="form-group row mb-3">
                             <label class="col-sm-4 col-form-label font-weight-bold">Imagen:</label>
                             <div class="col-sm-8">
@@ -707,7 +718,8 @@ $.ajaxSetup({
                 data: 'action',
                 name: 'action',
                 orderable: false,
-                searchable: false
+                searchable: false,
+                width: '80px'  
             }
         ],
 
@@ -1025,87 +1037,70 @@ function eliminarProducto(id_producto) {
 
 </script>
 
-
 <script>
-
-
 // =========================================
-
-/// VER REGISTROS DEL PRODUCTO
-
+/// VER REGISTROS DEL PRODUCTO - CORREGIDO
 // =========================================
-
 $(document).on('click', '.verProducto', function(e) {    
     e.preventDefault();
     
     let id_producto = $(this).data('id');
+    console.log('Ver producto ID:', id_producto);
     
     $.ajax({
-        url: "{{ url('mostrar_producto') }}/" + id_producto,
+        url: "/mostrar_producto/" + id_producto,
         method: 'GET',
         dataType: 'json',
         success: function(data) {
-            console.log('Datos del producto recibidos:', data);
+            console.log('Datos recibidos:', data);
             
-            // Llenar campos del modal VER
-            $('#modalVerProducto input[name="codigo"]').val(data.codigo || '');
-            $('#modalVerProducto input[name="nombre"]').val(data.nombre || '');
-            $('#modalVerProducto input[name="descripcion"]').val(data.descripcion || '');
-            $('#modalVerProducto input[name="marca"]').val(data.marca || '');
-            $('#modalVerProducto input[name="categoria"]').val(data.categoria || '');
-            $('#modalVerProducto input[name="unidad_medida"]').val(data.unidad_medida || '');
-            $('#modalVerProducto input[name="ubicacion"]').val(data.ubicacion || '');
-            $('#modalVerProducto input[name="cantidad"]').val(data.cantidad || '');
-            $('#modalVerProducto input[name="precio_compra"]').val(data.precio_compra || '');
-            $('#modalVerProducto input[name="precio_venta"]').val(data.precio_venta || '');
-            $('#modalVerProducto input[name="stock"]').val(data.stock || '');
-            $('#modalVerProducto input[name="stock_minimo"]').val(data.stock_minimo || '');
-            $('#modalVerProducto input[name="proveedor"]').val(data.proveedor || '');
-
-             // Actualizar solo el nombre en el título
+            // Llenar campos del modal VER con los IDs correctos
+            $('#ver_codigo').val(data.codigo || '');
+            $('#ver_nombre').val(data.nombre || '');
+            $('#ver_descripcion').val(data.descripcion || '');
+            $('#ver_marca').val(data.marca || '');
+            
+            // Categoría y proveedor (accede correctamente)
+            $('#ver_categoria').val(data.categoria?.nombre || data.categoria || '');
+            $('#ver_proveedor').val(data.proveedor?.nombre || data.proveedor || '');
+            
+            $('#ver_precio_venta').val('$' + parseFloat(data.precio_venta || 0).toFixed(2));
+            $('#ver_stock').val(data.stock || '0');
+            $('#ver_stock_minimo').val(data.stock_minimo || '0');
+            $('#ver_unidad_medida').val(data.unidad_medida || '');
+            $('#ver_ubicacion').val(data.ubicacion || '');
+            $('#ver_frecuente').val(data.frecuente ? 'Sí' : 'No');
+            
+            // Actualizar título
             $('#nombre_producto_titulo').text(data.nombre || '');
-
-            // Manejo de imagen en modal VER
+            
+            // Manejo de imagen
             const preview = $('#previewVerProducto');
-    
-                if(data.imagen && data.imagen.trim() !== '') {
-                    let cleanImagePath = data.imagen.replace('storage/', '');
-                    let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
-                    
-                    preview.attr('src', imageUrl);
-                    preview.css({
-                        'display': 'block',
-                        'max-width': '150px',
-                        'max-height': '150px',
-                        'border': '1px solid #ddd',
-                        'border-radius': '4px',
-                        'padding': '5px'
-                    });
-                } else {
-                    preview.attr('src', "{{ asset('storage/images/default-product.png') }}");
-                    preview.show();
-                }
-            }
-                
+            
+            if(data.imagen && data.imagen.trim() !== '') {
+                let imageUrl = "{{ asset('') }}" + data.imagen;
+                preview.attr('src', imageUrl);
+                preview.show();
             } else {
-                console.log('No hay imagen disponible');
-                preview.hide();
-                preview.attr('src', '');
+                preview.attr('src', "{{ asset('storage/images/default-product.png') }}");
+                preview.show();
             }
             
-            // CORRECCIÓN: Abrir el modal VER, no el EDITAR
-            $('#modalVerProducto').modal('show');  // ← CAMBIADO A modalVerProducto
+            // Abrir modal
+            $('#modalVerProducto').modal('show');
         },
-        error: function(xhr, status, error) {
-            console.error('Error en AJAX:', xhr);
-            toastr["error"]("Error al cargar los datos del producto.");
+        error: function(xhr) {
+            console.error('Error:', xhr);
+            toastr.error("Error al cargar los datos del producto.");
         }
     });
 });
 </script>
 
-<script>
 
+
+
+<script>
 
   // =========================================
 /// EDITAR REGISTROS DEL PRODUCTO
@@ -1192,18 +1187,11 @@ $(document).on('click', '.editarProducto', function(e) {
     });
 });
 
-//==============================
-//GUardar datos editados.
-//===============================
-
+// =========================================
+/// ACTUALIZAR PRODUCTO - USANDO POST
+// =========================================
 $(document).on('submit', '#form_editar_productos', function(event) {
     event.preventDefault();
-
-    $.ajaxSetup({
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        }
-    });
 
     let id_producto = $('#id_producto_producto').val();
     
@@ -1212,132 +1200,45 @@ $(document).on('submit', '#form_editar_productos', function(event) {
         return;
     }
 
-    // ✅ VALIDACIÓN MEJORADA DE IMAGEN
-    const imagenInput = document.getElementById('imagen_editar');
-    let imagenValida = true;
-    let mensajeError = '';
-
-    if (imagenInput.files.length > 0) {
-        const imagenFile = imagenInput.files[0];
-        
-        console.log('Validando imagen:', {
-            nombre: imagenFile.name,
-            tipo: imagenFile.type,
-            tamaño: imagenFile.size,
-            extension: imagenFile.name.split('.').pop()
-        });
-
-        // Validar tipo MIME
-        const tiposPermitidos = [
-            'image/webp', 
-            'image/jpeg', 
-            'image/png', 
-            'image/jpg', 
-            'image/gif'
-        ];
-        
-        if (!tiposPermitidos.includes(imagenFile.type)) {
-            imagenValida = false;
-            mensajeError = 'Tipo de archivo no permitido. Formatos aceptados: WEBP, JPEG, PNG, JPG, GIF';
-            console.error('Tipo MIME no permitido:', imagenFile.type);
-        }
-        
-        // Validar extensión por si acaso
-        const extension = imagenFile.name.toLowerCase().split('.').pop();
-        const extensionesPermitidas = ['webp', 'jpeg', 'jpg', 'png', 'gif'];
-        if (!extensionesPermitidas.includes(extension)) {
-            imagenValida = false;
-            mensajeError = 'Extensión no permitida. Use: .webp, .jpeg, .jpg, .png o .gif';
-            console.error('Extensión no permitida:', extension);
-        }
-        
-        // Validar tamaño (2MB máximo)
-        if (imagenFile.size > 2 * 1024 * 1024) {
-            imagenValida = false;
-            mensajeError = 'La imagen es demasiado grande. Máximo permitido: 2MB';
-            console.error('Tamaño excedido:', imagenFile.size);
-        }
-        
-        // Validar que sea realmente una imagen
-        if (!imagenFile.type.startsWith('image/')) {
-            imagenValida = false;
-            mensajeError = 'El archivo debe ser una imagen válida';
-            console.error('No es una imagen:', imagenFile.type);
-        }
-    }
-
-    if (!imagenValida) {
-        toastr.error(mensajeError);
-        
-        // Limpiar el input de imagen
-        imagenInput.value = '';
-        
-        // Ocultar preview y mostrar imagen actual
-        $('#preview_editar').hide();
-        $('#preview_imagen_actual').show();
-        
-        return;
-    }
-
-    // Configurar botón submit
+    // Configurar botón
     let btn = $('#BtnEditar_producto');
     let existingHTML = btn.html();
     btn.html('<span class="spinner-border spinner-border-sm mr-2"></span>Procesando...').prop('disabled', true);
 
     var formData = new FormData(this);
-
-    // ✅ DEBUG: Mostrar datos que se envían
-    console.log('Enviando FormData:');
-    for (let pair of formData.entries()) {
-        console.log(pair[0] + ':', pair[1]);
-    }
+    // 👇 ELIMINA ESTA LÍNEA: formData.append('_method', 'PUT');
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     $.ajax({
         url: "/actualizar_producto/" + id_producto,
-        method: 'POST',
+        method: 'POST', // 👈 AHORA ES SOLO POST
         data: formData,
         processData: false, 
         contentType: false,  
         dataType: 'json',
         success: function(data) {
-            console.log('✅ Respuesta exitosa:', data);
+            console.log('✅ Producto actualizado:', data);
             
-            // Recargar tabla
-            if (window.table && typeof window.table.ajax !== 'undefined') {
+            if (window.table) {
                 window.table.ajax.reload(null, false);
             }
             
             $('#form_editar_productos')[0].reset();      
             $('#modalEditarProducto').modal('hide');
-            $('.modal-backdrop').remove();              
             
             toastr.success("Producto actualizado correctamente");
             btn.html(existingHTML).prop('disabled', false);
         },
-        error: function(xhr, status, error) {
-            console.error('❌ Error en AJAX:', xhr);
+        error: function(xhr) {
+            console.error('❌ Error:', xhr);
             
             if (xhr.status === 422) {
                 const errors = xhr.responseJSON.errors;
-                let errorMessage = "Errores de validación:<br>";
-                
+                let errorMessage = "Errores:<br>";
                 for (const field in errors) {
                     errorMessage += `- ${errors[field][0]}<br>`;
-                    
-                    // Resaltar campo con error
-                    $(`[name="${field}"]`).addClass('is-invalid');
-                    $(`#error-${field}`).remove();
-                    $(`[name="${field}"]`).after(`<div class="invalid-feedback" id="error-${field}">${errors[field][0]}</div>`);
                 }
-                
                 toastr.error(errorMessage);
-                
-                // Si el error es de imagen, limpiar el input
-                if (errors.imagen) {
-                    $('#imagen_editar').val('');
-                    $('#preview_editar').hide();
-                    $('#preview_imagen_actual').show();
-                }
             } else {
                 toastr.error("Error al actualizar el producto");
             }

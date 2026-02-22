@@ -94,4 +94,39 @@ class Producto extends Model
         
         return $this->stock;
     }
+
+/**
+ * Actualizar el costo promedio ponderado del producto
+ * 
+ * Fórmula: ((stock_anterior * costo_promedio_anterior) + (cantidad_nueva * costo_nuevo)) / (stock_anterior + cantidad_nueva)
+ */
+public function actualizarCostoPromedio($cantidad_nueva, $costo_nuevo)
+{
+    // Stock actual antes de la compra
+    $stock_anterior = $this->stock;
+    
+    // Costo promedio actual (si no existe, usar 0)
+    $costo_promedio_anterior = $this->costo_promedio ?? 0;
+    
+    // Calcular nuevo costo promedio ponderado
+    if ($stock_anterior + $cantidad_nueva > 0) {
+        $nuevo_costo_promedio = (($stock_anterior * $costo_promedio_anterior) + ($cantidad_nueva * $costo_nuevo)) / ($stock_anterior + $cantidad_nueva);
+    } else {
+        $nuevo_costo_promedio = $costo_nuevo;
+    }
+    
+    // Guardar el último costo
+    $this->ultimo_costo = $costo_nuevo;
+    
+    // Actualizar el costo promedio
+    $this->costo_promedio = round($nuevo_costo_promedio, 2);
+    
+    // Opcional: Actualizar precio de venta basado en el nuevo costo + margen
+    // $this->precio_venta = $this->costo_promedio * (1 + $this->margen_ganancia);
+    
+    $this->save();
+    
+    return $this->costo_promedio;
+}
+
 }

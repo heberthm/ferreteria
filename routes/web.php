@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\compraController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
@@ -140,15 +141,15 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
 
 // ======================================================
 
-Route::post('/compras/guardar',     [ProductoController::class, 'registrarCompra'])->name('compras.guardar');
-Route::get('/compras/listar',       [ProductoController::class, 'listarCompras'])->name('compras.listar');
-Route::get('/compras/estadisticas', [ProductoController::class, 'estadisticasCompras'])->name('compras.estadisticas');
-Route::get('compras', [App\Http\Controllers\ProductoController::class, 'index'])->name('compras');
+Route::post('/compras/guardar', [App\Http\Controllers\compraController::class, 'registrarCompra'])->name('compras.guardar');
+Route::get('/compras/listar',  [App\Http\Controllers\compraController::class, 'listarCompras'])->name('compras.listar');
+Route::get('/compras/estadisticas', [App\Http\Controllers\compraController::class, 'estadisticasCompras'])->name('compras.estadisticas');
+Route::get('compras', [App\Http\Controllers\compraController::class, 'index'])->name('compras');
 
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
 Route::post('/productos-guardar', [ProductoController::class, 'store'])->name('producto.guardar');
 
-Route::get('/productos/buscar', [ProductoController::class, 'buscarProductos'])->name('buscar.producto');
+Route::get('/compras/buscar-productos', [ProductoController::class, 'buscarProductos'])->name('buscar.producto');
 Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'show'])->name('productos.show');
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
 Route::post('/compras/guardar',     [ProductoController::class, 'registrarCompra'])->name('compras.guardar');
@@ -156,8 +157,7 @@ Route::get('/compras/listar',       [ProductoController::class, 'listarCompras']
 Route::get('/compras/estadisticas', [ProductoController::class, 'estadisticasCompras'])->name('compras.estadisticas');
 
 
-
-Route::post('actualizar_producto/{id_producto}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
+Route::post('/actualizar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
 Route::delete('eliminar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'destroy'])->name('productos.destroy');
 
 Route::get('/obtener-categorias', [App\Http\Controllers\ProductoController::class, 'obtenerCategorias'])->name('categorias.obtener');
