@@ -41,11 +41,12 @@ return new class extends Migration
                 $table->string('codigo');
                 $table->string('nombre');
                 $table->text('descripcion')->nullable();
-                $table->integer('stock')->default(0);
-                $table->integer('stock_minimo')->default(0);
-                $table->string('precio_venta', 10);
-                $table->string('costo_promedio', 10)->default(0);
-                $table->string('ultimo_costo', 10)->default(0);
+               $table->integer('stock_actual')->default(0);      // ← Stock actual (se actualiza con cada movimiento)
+                $table->integer('stock_minimo')->default(0);      // ← Stock mínimo (alerta de reposición)
+                $table->integer('stock_maximo')->nullable();      // ← Opcional: stock máximo
+                $table->decimal('costo_promedio', 10, 2)->nullable();
+                $table->decimal('ultimo_costo', 10, 2)->nullable();
+                $table->decimal('precio_venta', 10, 2)->nullable();
                 $table->string('imagen', 500)->nullable();
                 $table->boolean('activo')->default(true);
                 $table->string('unidad_medida')->nullable();

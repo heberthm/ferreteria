@@ -383,7 +383,7 @@ return [
                  [
                     'text' => 'Clientes',
                     'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
+                    'url' => 'clientes',
                 ],  
                 [
                     'text' => 'gastos',
@@ -403,54 +403,13 @@ return [
             ]
           
         ],
-         //    ['header' => 'account_settings'],
-        [
-            'text' => 'Compras',
-            'url' => 'admin/settings',
-            'icon' => 'nav-icon fas fa-shopping-cart',
-            'submenu' => [
-                [
-                    'text' => 'Nueva compra',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => 'compras',
-                ],
-                [
-                    'text' => 'Proveedores',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
-                ],
-                   [
-                    'text' => 'Historial compras',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
-                ],
-            ]
-        ],
 
-        [
-            'text' => 'Inventarios',
-            'url' => 'admin/settings',
-            'icon' => 'nav-icon fas fa-boxes',
-            'submenu' => [
-                                        
-                [
-                    'text' => 'Categorías',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => 'categorias',
-                ],
-                 [
-                    'text' => 'Productos',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => 'productos',
-                ],
-                
-            ]
-        ],
-          [
+         [
             'text' => 'Cotizaciones',
             'icon' => 'nav-icon fas fa-comments-dollar',
-            'url' => 'contizaciones',
+            'url' => 'cotizaciones',
         ],       
+
         [
             'text' => 'Remisiones',
             'icon' => 'nav-icon fas fa-clipboard-list',
@@ -468,9 +427,50 @@ return [
             'url' => 'admin/settings',
             'icon' => 'nav-icon fas fa-undo',
         ],
-     
+
+         //    ['header' => 'account_settings'],
         [
-            
+            'text' => 'Compras',
+            'url' => 'admin/settings',
+            'icon' => 'nav-icon fas fa-shopping-cart',
+            'submenu' => [
+                [
+                    'text' => 'Categorías',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'categorias',
+                ],
+                 [
+                    'text' => 'Productos',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'productos',
+                ],
+                [
+                    'text' => 'Nueva compra',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'compras',
+                ],
+                [
+                    'text' => 'Proveedores',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'proveedores',
+                ],
+                   [
+                    'text' => 'Historial compras',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => '#',
+                ],
+            ]
+        ],
+
+        [
+            'text' => 'Inventarios',
+            'url' => 'admin/settings',
+            'icon' => 'nav-icon fas fa-boxes',        
+                 
+          
+        ],
+                   
+        [
                 'text' => 'Reportes',
                 'url' => 'admin/settings',
                 'icon' => 'nav-icon fas fa-chart-bar',
@@ -567,7 +567,7 @@ return [
             ],
         ],
         'bootstrap' => [
-            'active' => true,
+            'active' => false,
             'files' => [
                 [
                     'type' => 'js',
@@ -597,6 +597,18 @@ return [
                 ],
             ],
         ],
+
+        'Moment' => [
+                    'active' => true,
+                    'files' => [
+                        [
+                            'type' => 'js',
+                            'asset' => true,
+                            'location' => '//cdn.jsdelivr.net/npm/moment@2.24.0/min/moment.min.js',
+                        ],
+                    ],
+                ],
+
         'Select2' => [
             'active' => true,
             'files' => [

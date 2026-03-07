@@ -6,7 +6,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Venta;
+use App\Exports\VentasExport; 
+use Maatwebsite\Excel\Facades\Excel;
 use App\Models\Cliente;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Models\User;
 use App\Models\Producto;
 use App\Models\VentaDetalle;
@@ -463,41 +466,48 @@ class HistorialVentasController extends Controller
         }
     }
 
-    /**
-     * Exportar reporte de ventas
-     */
-    public function exportarReporte(Request $request)
-    {
-        try {
-            $query = Venta::select('ventas.*')
-                ->leftJoin('clientes', 'ventas.id_cliente', '=', 'clientes.id_cliente')
-                ->leftJoin('users', 'ventas.userId', '=', 'users.id');
+/**
+ * Exportar ventas a Excel
+ */
+public function exportarExcel(Request $request)
+{
+    try {
+        // Validar que no haya salida previa
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
+        
+        $filters = [
+            'fecha_desde' => $request->fecha_desde,
+            'fecha_hasta' => $request->fecha_hasta,
+            'estado' => $request->estado,
+            'metodo_pago' => $request->metodo_pago,
+            'cliente' => $request->cliente,
+            'factura' => $request->factura,
+        ];
 
-            if ($request->filled('fecha_inicio')) {
-                $query->whereDate('ventas.fecha_venta', '>=', $request->fecha_inicio);
-            }
-
-            if ($request->filled('fecha_fin')) {
-                $query->whereDate('ventas.fecha_venta', '<=', $request->fecha_fin);
-            }
-
-            $ventas = $query->orderBy('ventas.fecha_venta', 'desc')->get();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Función de exportación lista',
-                'count' => $ventas->count(),
-                'total' => $ventas->sum('total')
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('Error en exportarReporte: ' . $e->getMessage());
+        $nombreArchivo = 'ventas_' . date('Y-m-d_His') . '.xlsx';
+        
+        // Usar Excel::download() que es el método correcto
+        return Excel::download(new VentasExport($filters), $nombreArchivo);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error exportando a Excel: ' . $e->getMessage());
+        \Log::error('Stack trace: ' . $e->getTraceAsString());
+        
+        // Si la petición es AJAX, devolver JSON
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al generar el reporte'
+                'message' => 'Error al exportar: ' . $e->getMessage()
             ], 500);
         }
+        
+        // Si es una petición normal, redirigir con error
+        return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
     }
+}
+    
 
     /**
      * Ver todas las ventas (vista alternativa)

@@ -9,24 +9,30 @@ class Cliente extends Model
 {
     use HasFactory;
 
-     protected $table = 'clientes';
+    protected $table = 'clientes';
     protected $primaryKey = 'id_cliente';
 
-    
     protected $fillable = [
         'userId',
+        'cedula',
         'nombre',
-        'cedula', 
-        'email',
         'telefono',
-        'direccion'
+        'email',
+        'direccion',
+        'estado'
     ];
 
+    protected $casts = [
+        'estado' => 'string'
+    ];
+
+    // Relación con el usuario que creó/modificó
     public function user()
     {
         return $this->belongsTo(User::class, 'userId');
     }
 
+    // Relación con las ventas
     public function ventas()
     {
         return $this->hasMany(Venta::class, 'id_cliente');

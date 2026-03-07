@@ -4,168 +4,241 @@ namespace App\Http\Controllers;
 
 use App\Models\Cliente;
 use Illuminate\Http\Request;
+use DataTables;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\DB;
 
 class ClienteController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        try {
-            $clientes = Cliente::select('id_cliente', 'nombre', 'cedula', 'telefono', 'email', 'direccion')
-                              ->orderBy('nombre', 'asc')
-                              ->get();
-            
-            return response()->json($clientes);
-            
-        } catch (\Exception $e) {
-            \Log::error('Error al obtener clientes: ' . $e->getMessage());
-            return response()->json([], 500);
-        }
+        return view('clientes');
     }
 
-    private function normalizarCedula($cedula)
-    {
-        // Quitar TODOS los puntos y espacios
-        // Ejemplo: "1.234.567.234" → "1234567234"
-        // Ejemplo: "34.567.821" → "34567821"
-        return preg_replace('/[\.\s]/', '', $cedula);
-    }
-
-   public function store(Request $request)
+    /**
+     * Get data for DataTable.
+     */
+   public function getData()
 {
-    DB::beginTransaction();
-    
     try {
-        // Normalizar la cédula
-        $cedulaNormalizada = preg_replace('/[\.\s]/', '', $request->cedula);
-        
-        // Validar si la cédula ya existe
-        if (!empty($cedulaNormalizada)) {
-            $existente = Cliente::where('cedula', $cedulaNormalizada)->first();
-            if ($existente) {
-                DB::rollBack();
-                return response()->json([
-                    'success' => false,
-                    'message' => 'La cédula/NIT ya existe en el sistema'
-                ], 409);
-            }
-        }
-
-        $validator = Validator::make($request->all(), [
-            'nombre' => 'required|string|max:255',
-            'cedula' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'telefono' => 'nullable|string|max:50',
-            'direccion' => 'nullable|string',
-            'userId' => 'required|integer'
+        $clientes = Cliente::select([
+            'id_cliente',
+            'userId',
+            'cedula',
+            'nombre',
+            'telefono',
+            'email',
+            'direccion',
+            'estado',
+            'created_at',
+            'updated_at'
         ]);
 
-        if ($validator->fails()) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de validación',
-                'errors' => $validator->errors()
-            ], 422);
-        }
-
-        // Crear el cliente
-        $cliente = Cliente::create([
-            'userId' => $request->userId,
-            'nombre' => $request->nombre,
-            'cedula' => $cedulaNormalizada, // Usar la cédula normalizada
-            'email' => $request->email,
-            'telefono' => $request->telefono,
-            'direccion' => $request->direccion
-        ]);
-
-        DB::commit();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Cliente guardado exitosamente',
-            'cliente' => [
-                'id' => $cliente->id_cliente,
-                'nombre' => $cliente->nombre,
-                'cedula' => $cliente->cedula,
-                'email' => $cliente->email,
-                'telefono' => $cliente->telefono,
-                'direccion' => $cliente->direccion
-            ]
-        ], 201);
-
+        return DataTables::of($clientes)
+            ->addColumn('acciones', function($cliente) {
+                return '
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-info btn-sm btn-ver" data-id="'.$cliente->id_cliente.'" title="Ver">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-warning btn-sm btn-editar" data-id="'.$cliente->id_cliente.'" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm btn-eliminar" data-id="'.$cliente->id_cliente.'" data-nombre="'.$cliente->nombre.'" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                ';
+            })
+            ->editColumn('estado', function($cliente) {
+                // Para mostrar en la tabla
+                if ($cliente->estado == 'activo') {
+                    return '<span class="badge badge-success">Activo</span>';
+                } else {
+                    return '<span class="badge badge-danger">Inactivo</span>';
+                }
+            })
+            ->filterColumn('estado', function($query, $keyword) {
+                // Permitir búsqueda por texto del estado
+                $query->where('estado', 'like', "%{$keyword}%");
+            })
+            ->orderColumn('estado', function($query, $order) {
+                // Ordenar por el valor real de la columna
+                $query->orderBy('estado', $order);
+            })
+            ->editColumn('created_at', function($cliente) {
+                return $cliente->created_at ? $cliente->created_at->format('d/m/Y H:i') : '';
+            })
+            ->rawColumns(['estado', 'acciones'])
+            ->make(true);
+            
     } catch (\Exception $e) {
-        DB::rollBack();
-        \Log::error('Error al guardar cliente: ' . $e->getMessage());
-        
         return response()->json([
-            'success' => false,
-            'message' => 'Error interno del servidor'
+            'error' => $e->getMessage(),
+            'line' => $e->getLine(),
+            'file' => $e->getFile()
         ], 500);
     }
 }
 
-    public function verificarCliente(Request $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        if ($request->get('cedula')) {
-            $cedula = $request->get('cedula');
-            $data = DB::table("clientes")
-                ->where('cedula', $cedula)
-                ->count();
-            if ($data > 0) {
-                echo 'unique';
-            } else {
-                echo 'not_unique';
-            }
+        try {
+            $request->validate([
+                'userId' => 'required',
+                'cedula' => 'required|string|max:255|unique:clientes,cedula',
+                'nombre' => 'required|string|max:255',
+                'telefono' => 'required|string|max:50',
+                'email' => 'nullable|email|unique:clientes,email',
+                'direccion' => 'nullable|string',
+                'estado' => 'required|in:activo,inactivo'
+            ]);
+
+            $cliente = Cliente::create([
+                'userId' => $request->userId,
+                'cedula' => $request->cedula,
+                'nombre' => $request->nombre,
+                'telefono' => $request->telefono,
+                'email' => $request->email,
+                'direccion' => $request->direccion,
+                'estado' => $request->estado
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Cliente creado correctamente',
+                'data' => $cliente
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al crear cliente: ' . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
-     * Búsqueda de clientes para Select2
+     * Display the specified resource.
      */
-   public function buscar(Request $request)
- {
+    public function show($id)
+    {
+        try {
+            $cliente = Cliente::findOrFail($id);
+            return response()->json($cliente);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Cliente no encontrado'
+            ], 404);
+        }
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        try {
+            $cliente = Cliente::findOrFail($id);
+            return response()->json($cliente);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Cliente no encontrado'
+            ], 404);
+        }
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        try {
+            $cliente = Cliente::findOrFail($id);
+            
+            $request->validate([
+                'cedula' => 'required|string|max:255|unique:clientes,cedula,'.$id.',id_cliente',
+                'nombre' => 'required|string|max:255',
+                'telefono' => 'required|string|max:50',
+                'email' => 'nullable|email|unique:clientes,email,'.$id.',id_cliente',
+                'direccion' => 'nullable|string',
+                'estado' => 'required|in:activo,inactivo'
+            ]);
+
+            $data = [
+                'cedula' => $request->cedula,
+                'nombre' => $request->nombre,
+                'telefono' => $request->telefono,
+                'email' => $request->email,
+                'direccion' => $request->direccion,
+                'estado' => $request->estado,
+                'userId' => Auth::id()
+            ];
+            
+            $cliente->update($data);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Cliente actualizado correctamente'
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'success' => false,
+                'errors' => $e->errors()
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al actualizar cliente: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+  public function destroy($id)
+{
     try {
-        $termino = $request->input('q', '');
+        $cliente = Cliente::findOrFail($id);
+        
+        // Verificar si tiene ventas asociadas
+        $ventasCount = $cliente->ventas()->count();
+        
+        if ($ventasCount > 0) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'No se puede eliminar porque tiene ' . $ventasCount . ' ventas asociadas'
+            ], 400);
+        }
+        
+        $cliente->delete();
 
-        $clientes = Cliente::where(function($query) use ($termino) {
-                $query->where('nombre', 'LIKE', "%{$termino}%")
-                      ->orWhere('cedula', 'LIKE', "%{$termino}%")
-                      ->orWhere('email', 'LIKE', "%{$termino}%");
-            })
-            // IMPORTANTE: Usar 'id' en lugar de 'id_cliente' para Select2
-            ->select([
-                'id_cliente as id',  // Esto es clave - alias para Select2
-                'nombre',
-                'cedula',
-                'email',
-                'telefono',
-                'direccion'
-            ])
-            ->orderBy('nombre')
-            ->limit(10)
-            ->get()
-            ->map(function ($cliente) {
-                // Formato específico para Select2
-                return [
-                    'id' => $cliente->id,
-                    'text' => $cliente->nombre . ($cliente->cedula ? ' - ' . $cliente->cedula : ''),
-                    'nombre' => $cliente->nombre,
-                    'cedula' => $cliente->cedula,
-                    'email' => $cliente->email,
-                    'telefono' => $cliente->telefono,
-                    'direccion' => $cliente->direccion
-                ];
-            });
-
-        return response()->json($clientes);
-
+        return response()->json([
+            'success' => true, 
+            'message' => 'Cliente eliminado correctamente'
+        ]);
+        
     } catch (\Exception $e) {
-        \Log::error('Error en buscar clientes: ' . $e->getMessage());
-        return response()->json([]);
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al eliminar cliente: ' . $e->getMessage()
+        ], 500);
     }
 }
 }

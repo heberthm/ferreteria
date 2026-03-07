@@ -76,6 +76,7 @@
     </div>
   
     <div class="card-body">  
+    <div class="table-responsive">
         <table class="table table-hover" id="tablaProductos" style="width:100%;font-size:12.5px;">   
             <thead>  
                <tr>   
@@ -95,6 +96,7 @@
                 <!-- Datos se cargarán via AJAX -->   
             </tbody>   
         </table>   
+     </div>   
     </div>
 </div>
 
@@ -673,8 +675,8 @@ $.ajaxSetup({
                 }
             },
             {
-                data: 'stock',
-                name: 'stock',
+                data: 'stock_actual',
+                name: 'stock_actual',
                 render: function(data, type, row) {
                     let badgeClass = data <= row.stock_minimo ? 'badge-danger' : 'badge-success';
                     return '<span class="badge ' + badgeClass + '">' + data + '</span>';

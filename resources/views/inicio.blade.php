@@ -689,7 +689,7 @@
                             <h3 class="card-title" id="totalVentasHoy">
                                 <span class="loader"></span>
                             </h3>
-                            <small class="text-muted" id="comparativaVentas"></small>
+                          
                         </div>
                         <div class="card-icon text-primary">
                             <i class="fas fa-shopping-cart"></i>
@@ -723,7 +723,7 @@
                             <h3 class="card-title" id="promedioVenta">
                                 <span class="loader"></span>
                             </h3>
-                            <small class="text-muted">Valor promedio</small>
+                           
                         </div>
                         <div class="card-icon text-warning">
                             <i class="fas fa-chart-line"></i>
@@ -740,7 +740,7 @@
                             <h3 class="card-title" id="alertasStock">
                                 <span class="loader"></span>
                             </h3>
-                            <small class="text-muted" id="productosBajoStock"></small>
+                           
                         </div>
                         <div class="card-icon text-danger">
                             <i class="fas fa-exclamation-triangle"></i>
@@ -1883,7 +1883,7 @@ function prepararDatosVistaPrevia(tipo) {
                 <!-- INFORMACIÓN FACTURA Y CLIENTE -->
                 <div style="display: flex; margin-bottom: 20px;">
                     <div style="flex: 1; padding-right: 15px;">
-                        <h4>INFORMACIÓN DE LA FACTURA</h4>
+                        <h4>INFORMACIÓN DE FACTURA</h4>
                         <table style="width: 100%;">
                             <tr><td><strong>No. Factura:</strong></td><td>${datosVenta.numero_factura || 'N/A'}</td></tr>
                             <tr><td><strong>Fecha:</strong></td><td>${datosVenta.fecha || 'N/A'}</td></tr>
@@ -1937,8 +1937,8 @@ function prepararDatosVistaPrevia(tipo) {
                         <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.nombre || 'Producto sin nombre'}</td>
                         <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.codigo || 'N/A'}</td>
                         <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: center;">${cantidad}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${precioUnitario.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${subtotal.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${precioUnitario.toLocaleString('es-CO')}</td>
+                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${subtotal.toLocaleString('es-CO')}</td>
                     </tr>
                 `;
             });
@@ -1956,21 +1956,21 @@ function prepararDatosVistaPrevia(tipo) {
                         <div style="flex: 2;"></div>
                         <div style="flex: 1;">
                             <table style="width: 100%;">
-                                <tr><td><strong>Subtotal:</strong></td><td style="text-align: right;">$${subtotalProductos.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>
+                                <tr><td><strong>Subtotal:</strong></td><td style="text-align: right;">$${subtotalProductos.toLocaleString('es-CO')}</td></tr>
         `;
         
         if (tieneIVA) {
-            contenidoFacturaGenerado += `<tr><td>IVA (19%):</td><td style="text-align: right;">$${valorIVA.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`;
+            contenidoFacturaGenerado += `<tr><td>IVA (19%):</td><td style="text-align: right;">$${valorIVA.toLocaleString('es-CO')}</td></tr>`;
         }
         
         if (tieneDescuento) {
-            contenidoFacturaGenerado += `<tr><td>Descuento:</td><td style="text-align: right;">-$${valorDescuento.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td></tr>`;
+            contenidoFacturaGenerado += `<tr><td>Descuento:</td><td style="text-align: right;">-$${valorDescuento.toLocaleString('es-CO')}</td></tr>`;
         }
         
         contenidoFacturaGenerado += `
                                 <tr style="border-top: 1px solid #000;">
                                     <td><strong>TOTAL:</strong></td>
-                                    <td style="text-align: right;"><strong>$${totalVenta.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong></td>
+                                    <td style="text-align: right;"><strong>$${totalVenta.toLocaleString('es-CO')}</strong></td>
                                 </tr>
                             </table>
                         </div>
@@ -1988,7 +1988,8 @@ function prepararDatosVistaPrevia(tipo) {
                 </div>
             `;
         }
-        
+
+            
         contenidoFacturaGenerado += `
                 <!-- FIRMAS -->
                 <div style="margin-top: 50px; display: flex;">

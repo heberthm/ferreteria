@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\ProductoController;
+use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\compraController;
 use App\Http\Controllers\CategoriaController;
 use App\Http\Controllers\CajaMenorController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\PuntoVentaController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
 use App\http\Controllers\ventaController;
+use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialVentasController;
 
@@ -44,13 +46,14 @@ Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->na
 
 // ======================================================
 
-
-
-Route::get('clientes', [ClienteController::class, 'index'])->name('clientes');
-Route::post('guardar_clientes', [ClienteController::class, 'store'])->name('guardar_clientes');
-Route::get('buscar_cliente', [ClienteController::class, 'buscar'])->name('buscar_cliente');
-Route::post('verificar_cliente', [ClienteController::class, 'verificarCliente'])->name('verificar_cliente');
-
+// Rutas para clientes
+Route::get('clientes', [App\Http\Controllers\ClienteController::class, 'index'])->name('clientes.index');
+Route::get('clientes-data', [App\Http\Controllers\ClienteController::class, 'getData'])->name('clientes.data');
+Route::post('clientes', [App\Http\Controllers\ClienteController::class, 'store'])->name('clientes.store');
+Route::get('clientes/{id}', [App\Http\Controllers\ClienteController::class, 'show'])->name('clientes.show');
+Route::get('clientes/{id}/edit', [App\Http\Controllers\ClienteController::class, 'edit'])->name('clientes.edit');
+Route::put('clientes/{id}', [App\Http\Controllers\ClienteController::class, 'update'])->name('clientes.update');
+Route::delete('clientes/{id}', [App\Http\Controllers\ClienteController::class, 'destroy'])->name('clientes.destroy');
 
 
 // ======================================================
@@ -68,7 +71,7 @@ Route::get('/dashboard/check-updates', [DashboardController::class, 'checkUpdate
 
 // ======================================================
 
-//  RUTAS PARA VENTAS
+//  RUTAS PARA PUNTO DE VENTAS
 
 // ======================================================
 
@@ -83,7 +86,7 @@ Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])-
 
 // ======================================================
 
-//  RUTAS PARA VENTAS
+//  RUTAS PARA HISTORIAL VENTAS
 
 // ======================================================
 
@@ -108,7 +111,8 @@ Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])-
     Route::get('/ventas/reporte', [HistorialVentasController::class, 'exportarReporte'])->name('ventas.reporte');    
     // Ruta para vista de todas las ventas (opcional - como alternativa)
     Route::get('/ventas/todas', [HistorialVentasController::class, 'ventasTodas'])->name('ventas.todas');
-
+Route::get('/historial-ventas/exportar-excel', [App\Http\Controllers\HistorialVentasController::class, 'exportarExcel'])->name('historial.ventas.exportar.excel');
+  
 
 /*
 
@@ -153,8 +157,8 @@ Route::get('/compras/buscar-productos', [ProductoController::class, 'buscarProdu
 Route::get('mostrar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'show'])->name('productos.show');
 Route::get('editar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'edit'])->name('productos.edit');
 Route::post('/compras/guardar',     [ProductoController::class, 'registrarCompra'])->name('compras.guardar');
-Route::get('/compras/listar',       [ProductoController::class, 'listarCompras'])->name('compras.listar');
-Route::get('/compras/estadisticas', [ProductoController::class, 'estadisticasCompras'])->name('compras.estadisticas');
+Route::get('/compras/listar', [CompraController::class, 'listarCompras'])->name('compras.listar');
+Route::get('/compras/estadisticas', [CompraController::class, 'estadisticasCompras'])->name('compras.estadisticas');
 
 
 Route::post('/actualizar_producto/{id}', [App\Http\Controllers\ProductoController::class, 'update'])->name('productos.update');
@@ -165,8 +169,24 @@ Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'p
 //Route::get('/buscar-producto', [App\Http\Controllers\ProductoController::class, 'buscarProductos'])->name('buscar-producto');
 Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
 Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
-Route::get('/productos/frecuentes', [App\Http\Controllers\PuntoVentaController::class, 'productosFrecuentes'])->name('productos/frecuentes');
+Route::get('/productos/frecuentes', [App\Http\Controllers\productoController::class, 'productosFrecuentes'])->name('productos/frecuentes');
 
+// =================================
+
+// RUTAS PARA COTIZACIONES
+
+// ==================================
+
+Route::get('/cotizaciones',                      [CotizacionController::class, 'index'])          ->name('cotizaciones.index');
+Route::post('/cotizaciones',                     [CotizacionController::class, 'store'])           ->name('cotizaciones-guardar');
+Route::get('/cotizaciones/data',                 [CotizacionController::class, 'getData'])         ->name('cotizaciones.data');
+Route::get('/cotizaciones/numero-siguiente',     [CotizacionController::class, 'numeroSiguiente']) ->name('cotizaciones.numero-siguiente');
+Route::post('/buscar-productos-cotizacion',      [CotizacionController::class, 'buscarProductos']) ->name('buscar-productos-cotizacion');
+Route::get('/cotizaciones/{id}',                 [CotizacionController::class, 'show'])            ->name('cotizaciones.show');
+Route::put('/cotizaciones/{id}',                 [CotizacionController::class, 'update'])          ->name('cotizaciones.update');
+Route::delete('/cotizaciones/{id}',              [CotizacionController::class, 'destroy'])         ->name('cotizaciones.destroy');
+Route::post('/cotizaciones/{id}/cambiar-estado', [CotizacionController::class, 'cambiarEstado'])   ->name('cotizaciones.cambiar-estado');
+Route::get('/cotizaciones/{id}/pdf',             [CotizacionController::class, 'generarPDF'])      ->name('cotizaciones.pdf');
 
 
 // ======================================================
@@ -203,6 +223,15 @@ Route::get('/inventarios/estadisticas',[App\Http\Controllers\InventarioControlle
     Route::get('/movimientos-caja/export/pdf', [CajaMenorController::class, 'exportarPdf'])->name('movimientos.export.pdf');
 
 
+    // ======================================================
+
+//  RUTAS PARA PROVEEDORES
+
+// ======================================================
+
+
+   Route::resource('proveedores', ProveedorController::class);
+   Route::get('proveedores-data', [ProveedorController::class, 'getData'])->name('proveedores.data');
 
 
 

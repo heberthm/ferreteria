@@ -14,8 +14,11 @@ class Producto extends Model
         'codigo',
         'nombre',
         'descripcion',
-        'stock',
+        'precio_venta',
+        'stock_actual',      // ✅ DEBE ESTAR AQUÍ
         'stock_minimo',
+        'costo_promedio',
+        'ultimo_costo',
         'precio_venta',
         'imagen',
         'activo',

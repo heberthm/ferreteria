@@ -40,27 +40,27 @@ class DashboardController extends Controller
                 'ingresos' => $ingresosHoy
             ]);
             
-            // 2. STOCK BAJO
-            Log::info('Dashboard: Consultando stock bajo');
+            // 2. stock_actual BAJO
+            Log::info('Dashboard: Consultando stock_actual bajo');
             
-            $stockBajo = DB::table('productos')
-                ->whereRaw('stock <= stock_minimo')
-                ->orWhere('stock', '<=', 2)
-                ->orderBy('stock', 'asc')
+            $stock_actualBajo = DB::table('productos')
+                ->whereRaw('stock_actual <= stock_minimo')
+                ->orWhere('stock_actual', '<=', 2)
+                ->orderBy('stock_actual', 'asc')
                 ->limit(10)
-                ->get(['id_producto', 'nombre', 'codigo', 'stock', 'stock_minimo'])
+                ->get(['id_producto', 'nombre', 'codigo', 'stock_actual', 'stock_minimo'])
                 ->map(function($producto) {
                     return [
                         'id' => $producto->id_producto,
                         'nombre' => $producto->nombre,
                         'codigo' => $producto->codigo ?? '',
-                        'stock_actual' => $producto->stock ?? 0,
+                        'stock_actual_actual' => $producto->stock_actual ?? 0,
                         'stock_minimo' => $producto->stock_minimo ?? 5,
-                        'estado' => ($producto->stock ?? 0) <= 2 ? 'CRÍTICO' : 'BAJO'
+                        'estado' => ($producto->stock_actual ?? 0) <= 2 ? 'CRÍTICO' : 'BAJO'
                     ];
                 });
             
-            Log::info('Dashboard: Stock bajo OK', ['cantidad' => $stockBajo->count()]);
+            Log::info('Dashboard: stock_actual bajo OK', ['cantidad' => $stock_actualBajo->count()]);
             
             // 3. PRODUCTOS MÁS VENDIDOS
             Log::info('Dashboard: Consultando productos vendidos');
@@ -139,9 +139,9 @@ class DashboardController extends Controller
                         'ventas_hoy' => (int)$ventasHoy,
                         'ingresos_hoy' => (float)$ingresosHoy,
                         'promedio_venta' => (float)round($promedioVenta, 2),
-                        'productos_stock_bajo' => $stockBajo->count()
+                        'productos_stock_actual_bajo' => $stock_actualBajo->count()
                     ],
-                    'stock_bajo' => $stockBajo,
+                    'stock_actual_bajo' => $stock_actualBajo,
                     'productos_vendidos' => $productosVendidos,
                     'ventas_recientes' => $ventasRecientes,
                     'periodo' => $periodo

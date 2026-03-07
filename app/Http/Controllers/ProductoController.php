@@ -14,9 +14,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class ProductoController extends Controller
+
 {
+    // ✅ CONSTRUCTOR DENTRO DE LA CLASE
+    public function __construct()
+    {
+        $this->middleware('auth')->only(['registrarCompra', 'store', 'update', 'destroy']);
+    }
+
     public function index(Request $request)
-{
+    {
     if ($request->ajax()) {
         // Para DataTable - incluir TODOS los campos necesarios
         $productos = Producto::with(['categoria', 'proveedor'])
@@ -26,7 +33,7 @@ class ProductoController extends Controller
                 'nombre', 
                 'descripcion', 
                 'precio_venta',
-                'stock', 
+                'stock_actual',
                 'stock_minimo', 
                 'ubicacion',
                 'marca',
@@ -69,7 +76,7 @@ class ProductoController extends Controller
         $productos = Producto::where('codigo', 'like', "%{$search}%")
                             ->orWhere('nombre', 'like', "%{$search}%")
                             ->orWhere('categoria', 'like', "%{$search}%")
-                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock', 'stock_minimo', 
+                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock_actual', 'stock_minimo', 
                                     'categoria', 'imagen', 'unidad', 'frecuente')
                             ->orderBy('nombre')
                             ->get();
@@ -80,7 +87,7 @@ class ProductoController extends Controller
     public function frecuentes()
     {
         $productos = Producto::where('frecuente', true)
-                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock', 'stock_minimo', 
+                            ->select('id_producto', 'codigo', 'nombre', 'precio', 'stock_actual as stock', 'stock_minimo', 
                                     'categoria', 'imagen', 'unidad', 'frecuente')
                             ->orderBy('nombre')
                             ->get();
@@ -123,7 +130,7 @@ class ProductoController extends Controller
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio_venta = $request->precio_venta;
-        $producto->stock = $request->stock;
+        $producto->stock_actual = $request->stock; 
         $producto->stock_minimo = $request->stock_minimo;
         $producto->unidad_medida = $request->unidad_medida;
         $producto->ubicacion = $request->ubicacion;
@@ -178,7 +185,7 @@ public function buscarProductos(Request $request)
     $productos = Producto::where('nombre', 'LIKE', "%{$termino}%")
                         ->orWhere('codigo', 'LIKE', "%{$termino}%")
                         ->limit(10)
-                        ->get(['id_producto', 'nombre', 'codigo', 'stock', 'precio_venta']);
+                        ->get(['id_producto', 'nombre', 'codigo', 'stock_actual as stock', 'precio_venta']);
     
     \Log::info('Productos encontrados: ' . $productos->count());
     
@@ -203,7 +210,7 @@ public function buscarProductos(Request $request)
                 $query->where('categoria', $categoria);
             }
 
-            $productos = $query->select(['id_producto', 'codigo', 'nombre', 'precio', 'stock', 'categoria'])
+            $productos = $query->select(['id_producto', 'codigo', 'nombre', 'precio', 'stock_actual as stock', 'categoria'])
                 ->orderBy('nombre')
                 ->get();
 
@@ -222,14 +229,7 @@ public function buscarProductos(Request $request)
         }
     }
 
-public function listarCompras()
-{
-    $compras = \App\Models\Compra::with('producto')
-        ->orderBy('id_compra', 'desc')
-        ->get();
 
-    return response()->json(['compras' => $compras]);
-}
 
 public function estadisticasCompras()
 {
@@ -246,62 +246,127 @@ public function estadisticasCompras()
     ]);
 }
 
-    /**
-     * Obtener todos los productos activos
-     */
-    public function todosLosProductos()
-    {
-        try {
-            $productos = Producto::where('activo', 1) 
-                ->where('stock', '>', 0)
-                ->select(['id_producto', 'codigo', 'nombre', 'precio_venta as precio', 'stock', 'categoria'])
-                ->orderBy('nombre')
-                ->get();
+ /**
+ * Obtener todos los productos activos
+ */
+public function todosLosProductos()
+{
+    try {
+        $productos = Producto::with('categoria')  // Cargar la relación
+            ->where('activo', 1) 
+            ->where('stock_actual', '>', 0)  // Cambiado de 'stock' a 'stock_actual'
+            ->select([
+                'id_producto', 
+                'codigo', 
+                'nombre', 
+                'precio_venta',  // Sin alias aquí
+                'stock_actual',
+                'id_categoria'    // Incluir la FK para la relación
+            ])
+            ->orderBy('nombre')
+            ->get()
+            ->map(function($producto) {
+                return [
+                    'id_producto' => $producto->id_producto,
+                    'codigo' => $producto->codigo,
+                    'nombre' => $producto->nombre,
+                    'precio' => $producto->precio_venta,  // Alias en el mapeo
+                    'stock' => $producto->stock_actual,    // Alias en el mapeo
+                    'categoria' => $producto->categoria ? $producto->categoria->nombre : null
+                ];
+            });
 
-            return response()->json([
-                'success' => true,
-                'productos' => $productos,
-                'total' => $productos->count()
-            ]);
+        return response()->json([
+            'success' => true,
+            'productos' => $productos,
+            'total' => $productos->count()
+        ]);
 
-        } catch (\Exception $e) {
-            // Agrega logging para ver el error
-            \Log::error('Error en todosLosProductos: ' . $e->getMessage());
-            \Log::error('Trace: ' . $e->getTraceAsString());
-            
-            return response()->json([
-                'success' => false,
-                'productos' => [],
-                'message' => 'Error al cargar productos'
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        \Log::error('Error en todosLosProductos: ' . $e->getMessage());
+        \Log::error('Trace: ' . $e->getTraceAsString());
+        
+        return response()->json([
+            'success' => false,
+            'productos' => [],
+            'message' => 'Error al cargar productos: ' . $e->getMessage()
+        ], 500);
     }
-
+}
     /**
      * Obtener productos frecuentes
      */
-    public function productosFrecuentes()
-    {
-        try {
-            $productos = Producto::where('activo', 1)
-                ->where('stock', '>', 0)
-                ->select(['id_producto', 'codigo', 'nombre', 'precio', 'stock', 'categoria'])
-                ->orderBy('stock', 'desc')
-                ->limit(8)
+  public function productosFrecuentes()
+{
+    try {
+        // PASO 1: Intentar con historial de ventas (productos más vendidos)
+        $frecuentes = collect();
+        
+        // Verificar si existe la tabla detalle_ventas
+        if (DB::getSchemaBuilder()->hasTable('detalle_ventas')) {
+            $frecuentes = DB::table('detalle_ventas')
+                ->join('productos', 'detalle_ventas.id_producto', '=', 'productos.id_producto')
+                ->select(
+                    'productos.id_producto  as id',
+                    'productos.codigo',
+                    'productos.nombre',
+                    DB::raw('productos.precio_venta as precio'),   // alias "precio"
+                    DB::raw('productos.stock_actual as stock'),    // alias "stock"
+                    'productos.categoria',
+                    DB::raw('SUM(detalle_ventas.cantidad) as total_vendido')
+                )
+                ->where('productos.stock_actual', '>', 0)
+                ->groupBy(
+                    'productos.id_producto',
+                    'productos.codigo',
+                    'productos.nombre',
+                    'productos.precio_venta',
+                    'productos.stock_actual',
+                    'productos.categoria'
+                )
+                ->orderByDesc('total_vendido')
+                ->limit(6)
                 ->get();
-
-            return response()->json([
-                'success' => true,
-                'productos' => $productos
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'productos' => []
-            ], 500);
         }
+
+        // PASO 2: Fallback — simplemente los 6 con mayor stock
+        if ($frecuentes->isEmpty()) {
+            \Log::info('📦 productosFrecuentes: sin historial, usando fallback por stock');
+            
+            $frecuentes = DB::table('productos')
+                ->select(
+                    DB::raw('id_producto as id'),
+                    'codigo',
+                    'nombre',
+                    DB::raw('precio_venta as precio'),   // alias "precio"
+                    DB::raw('stock_actual as stock'),    // alias "stock"
+                    'categoria'
+                )
+                ->where('stock_actual', '>', 0)
+                ->orderByDesc('stock_actual')
+                ->limit(6)
+                ->get();
+        }
+
+        \Log::info('⭐ productosFrecuentes devuelve ' . $frecuentes->count() . ' productos', 
+            $frecuentes->toArray());
+
+        return response()->json([
+            'success'   => true,
+            'productos' => $frecuentes,
+            'count'     => $frecuentes->count(),
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('❌ productosFrecuentes error: ' . $e->getMessage());
+        
+        return response()->json([
+            'success'   => false,
+            'message'   => 'Error: ' . $e->getMessage(),
+            'productos' => [],
+        ]);
     }
+}
 
     public function show($id)
     {
@@ -333,7 +398,7 @@ public function estadisticasCompras()
         $validator = Validator::make($request->all(), [
             'id_producto' => 'required|exists:productos,id_producto',
             'cantidad_comprada' => 'required|numeric|min:1',
-            'precio_compra' => 'required|numeric|min:0', // Ahora es requerido
+            'precio_compra' => 'required|numeric|min:0',
             'fecha_compra' => 'required|date',
             'proveedor' => 'nullable|string|max:255',
             'numero_factura' => 'nullable|string|max:50',
@@ -353,11 +418,11 @@ public function estadisticasCompras()
         $producto = Producto::findOrFail($request->id_producto);
         
         // Guardar stock anterior y costo promedio anterior
-        $stockAnterior = $producto->stock;
+        $stockAnterior = $producto->stock_actual; // CAMBIADO: stock → stock_actual
         $costoPromedioAnterior = $producto->costo_promedio ?? 0;
         
         // Actualizar stock del producto
-        $producto->stock += $request->cantidad_comprada;
+        $producto->stock_actual += $request->cantidad_comprada; // CAMBIADO: stock → stock_actual
         
         // ACTUALIZAR COSTO PROMEDIO PONDERADO
         $producto->actualizarCostoPromedio(
@@ -370,32 +435,40 @@ public function estadisticasCompras()
         // Calcular el nuevo costo promedio para mostrarlo
         $nuevoCostoPromedio = $producto->costo_promedio;
         
-        // Registrar en inventario
+        // Registrar en inventario - VERSIÓN CORREGIDA
         $inventario = new Inventario();
         $inventario->id_producto = $producto->id_producto;
         $inventario->tipo_movimiento = 'entrada';
         $inventario->cantidad = $request->cantidad_comprada;
+        
+        // CAMBIADO: Verificar qué columnas existen realmente
+        // Intenta con estos nombres primero (los más comunes)
         $inventario->stock_anterior = $stockAnterior;
-        $inventario->stock_nuevo = $producto->stock;
-        $inventario->costo_unitario = $request->precio_compra; // Costo de esta compra
-        $inventario->costo_promedio_anterior = $costoPromedioAnterior;
-        $inventario->costo_promedio_nuevo = $nuevoCostoPromedio;
+        $inventario->stock_nuevo = $producto->stock_actual;
+        
+        // Si los campos anteriores fallan, comenta estas líneas y prueba con:
+        // $inventario->stock_inicial = $stockAnterior;
+        // $inventario->stock_final = $producto->stock_actual;
+        
+        $inventario->precio_venta = $producto->precio_venta; // Precio de venta del producto
+        $inventario->costo_promedio = $nuevoCostoPromedio; // Nuevo costo promedio
+        $inventario->ultimo_costo = $request->precio_compra; // Costo de esta compra
         $inventario->precio_compra = $request->precio_compra;
         $inventario->proveedor = $request->proveedor;
         $inventario->numero_factura = $request->numero_factura;
         $inventario->fecha_movimiento = $request->fecha_compra;
         $inventario->metodo_pago = $request->metodo_pago ?? 'efectivo';
         $inventario->notas = $request->notas;
-        $inventario->id_usuario = auth()->id();
+        $inventario->userId = auth()->id();
         $inventario->save();
         
         Log::info('✅ Compra registrada exitosamente', [
-            'inventario_id' => $inventario->id_inventario,
+            'inventario_id' => $inventario->id_inventario ?? null,
             'producto' => $producto->nombre,
             'costo_promedio_anterior' => $costoPromedioAnterior,
             'costo_nuevo_compra' => $request->precio_compra,
             'costo_promedio_nuevo' => $nuevoCostoPromedio,
-            'stock_nuevo' => $producto->stock
+            'stock_nuevo' => $producto->stock_actual
         ]);
         
         return response()->json([
@@ -412,8 +485,8 @@ public function estadisticasCompras()
                 'costo_promedio_anterior' => $costoPromedioAnterior,
                 'costo_promedio_nuevo' => $nuevoCostoPromedio,
                 'stock_anterior' => $stockAnterior,
-                'stock_nuevo' => $producto->stock,
-                'inventario_id' => $inventario->id_inventario
+                'stock_nuevo' => $producto->stock_actual,
+                'inventario_id' => $inventario->id_inventario ?? null
             ]
         ]);
         
@@ -458,7 +531,7 @@ public function update(Request $request, $id)
             'nombre'        => 'required|string|max:255',
             'descripcion'   => 'nullable|string',
             'precio_venta'  => 'required|numeric|min:0',
-            'stock'         => 'required|integer|min:0',
+            'stock_actual'  => 'required|integer|min:0',
             'stock_minimo'  => 'required|integer|min:0',
             'unidad_medida' => 'required|string|max:50',
             'ubicacion'     => 'nullable|string|max:100',
@@ -477,7 +550,7 @@ public function update(Request $request, $id)
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio_venta = $request->precio_venta;
-        $producto->stock = $request->stock;
+        $producto->stock_actual = $request->stock;
         $producto->stock_minimo = $request->stock_minimo;
         $producto->unidad_medida = $request->unidad_medida;
         $producto->ubicacion = $request->ubicacion;
@@ -583,5 +656,4 @@ public function destroy($id)
         ], 500);
     }
 }
-
 }

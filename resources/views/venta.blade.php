@@ -1757,51 +1757,122 @@
         $('#montoEfectivoMixto, #montoTarjetaMixto').on('input', calcularTotalMixto);
     }
 
-    function cargarProductosFrecuentes() {
-        $.ajax({
-            url: '{{ route("productos/frecuentes") }}',
-            method: 'GET',
-            success: function(response) {
-                if (response.success && response.productos) {
-                    mostrarProductosFrecuentes(response.productos);
-                }
-            },
-            error: function(xhr) {
-                console.error('Error al cargar productos frecuentes:', xhr);
+ function cargarProductosFrecuentes() {
+    console.log('⭐ Iniciando carga de productos frecuentes...');
+    
+    const contenedor = $('#productosFrecuentes');
+    contenedor.html('<p class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> Cargando...</p>');
+
+    $.ajax({
+        url: '{{ route("productos/frecuentes") }}',
+        method: 'GET',
+        success: function(response) {
+            console.log('📦 Respuesta COMPLETA de frecuentes:', JSON.stringify(response, null, 2));
+            console.log('✅ success:', response.success);
+            console.log('📋 productos:', response.productos);
+            console.log('📊 count:', response.count);
+
+            if (response.success && response.productos && response.productos.length > 0) {
+                console.log('✅ Mostrando', response.productos.length, 'productos frecuentes');
+                console.log('🔍 Primer producto:', response.productos[0]);
+                mostrarProductosFrecuentes(response.productos);
+            } else {
+                console.warn('⚠️ Sin productos en respuesta, usando fallback desde objeto productos{}');
+                // FALLBACK: usar los productos ya cargados en memoria
+                usarFallbackFrecuentes();
             }
-        });
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error al cargar frecuentes:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                responseText: xhr.responseText,
+                error: error
+            });
+            // FALLBACK: usar los productos ya cargados en memoria
+            usarFallbackFrecuentes();
+        }
+    });
+}
+
+// FALLBACK: si la ruta falla, tomar los primeros 6 del objeto productos{}
+function usarFallbackFrecuentes() {
+    console.log('🔄 Usando fallback de frecuentes desde objeto productos{}');
+    console.log('📦 Productos disponibles en memoria:', Object.keys(productos).length);
+    
+    const lista = Object.values(productos)
+        .filter(p => p.stock > 0)
+        .slice(0, 6);
+    
+    console.log('📋 Fallback lista:', lista);
+    
+    if (lista.length > 0) {
+        mostrarProductosFrecuentes(lista);
+    } else {
+        $('#productosFrecuentes').html(
+            '<p class="text-muted text-center col-12">No hay productos con stock disponible</p>'
+        );
+    }
+}
+
+   function mostrarProductosFrecuentes(productosFrecuentes) {
+    console.log('🎨 mostrarProductosFrecuentes llamada con:', productosFrecuentes.length, 'productos');
+    console.log('🔍 Datos del primer producto:', productosFrecuentes[0]);
+    
+    const contenedor = $('#productosFrecuentes');
+    contenedor.empty();
+
+    if (!productosFrecuentes || productosFrecuentes.length === 0) {
+        contenedor.html('<p class="text-muted text-center col-12">No hay productos frecuentes</p>');
+        return;
     }
 
-    function mostrarProductosFrecuentes(productosFrecuentes) {
-        const contenedor = $('#productosFrecuentes');
-        contenedor.empty();
-        
-        if (productosFrecuentes.length === 0) {
-            contenedor.html('<p class="text-muted text-center">No hay productos frecuentes</p>');
-            return;
-        }
-        
-        productosFrecuentes.forEach(function(producto) {
-            const card = `
-                <div class="col-6 col-md-4 mb-3">
-                    <div class="producto-card" onclick="window.agregarProductoFrecuente(${producto.id})">
-                        <div class="text-center">
-                            <i class="fas fa-star text-warning mb-2"></i>
-                            <h6 class="mb-1">${producto.nombre}</h6>
-                            <small class="text-muted d-block">${producto.codigo}</small>
-                            <span class="badge badge-success">${formatoDinero(producto.precio)}</span>
-                            <small class="d-block mt-1">Stock: ${producto.stock}</small>
-                        </div>
+    productosFrecuentes.forEach(function(producto) {
+        // Soporte para CUALQUIER nombre de campo que llegue del servidor
+        const id     = producto.id          || producto.id_producto;
+        const nombre = producto.nombre      || 'Sin nombre';
+        const codigo = producto.codigo      || 'S/C';
+        // precio: puede llegar como "precio", "precio_venta", o cualquier alias
+        const precio = parseFloat(producto.precio || producto.precio_venta || 0);
+        // stock: puede llegar como "stock", "stock_actual"
+        const stock  = parseInt(producto.stock  || producto.stock_actual  || 0);
+
+        console.log(`  → Producto: ${nombre}, precio: ${precio}, stock: ${stock}, id: ${id}`);
+
+        const claseStock = stock <= 0  ? 'badge-danger' :
+                           stock <= 5  ? 'badge-warning' :
+                           stock <= 10 ? 'badge-info'    : 'badge-success';
+
+        const badgeStock = stock <= 0
+            ? `<span class="badge badge-danger">Sin stock</span>`
+            : `<span class="badge ${claseStock}">Stock: ${stock}</span>`;
+
+        const card = `
+            <div class="col-6 col-md-4 mb-3">
+                <div class="producto-card h-100" 
+                     onclick="window.agregarProductoFrecuente(${id})"
+                     style="cursor:pointer; min-height: 110px;">
+                    <div class="text-center">
+                        <i class="fas fa-star text-warning mb-1 d-block"></i>
+                        <h6 class="mb-1" style="font-size:0.82rem; line-height:1.2;"
+                            title="${nombre}">${nombre.length > 22 ? nombre.substring(0,22)+'…' : nombre}</h6>
+                        <small class="text-muted d-block mb-1">${codigo}</small>
+                        <span class="badge badge-success d-block mb-1">${formatoDinero(precio)}</span>
+                        ${badgeStock}
                     </div>
                 </div>
-            `;
-            contenedor.append(card);
-        });
-    }
+            </div>
+        `;
+        contenedor.append(card);
+    });
+    
+    console.log('✅ Tarjetas de frecuentes renderizadas:', productosFrecuentes.length);
+}
 
     // =============================================
     // 8. PROCESAR VENTA - FUNCIÓN PRINCIPAL CORREGIDA
     // =============================================
+
 
 $(document).on('click', '#btnProcesarVenta', function(e) {
     e.preventDefault();
@@ -1809,7 +1880,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
     console.log('📦 Estado del carrito:', carrito);
     console.log('📊 Longitud del carrito:', carrito.length);
     
-    // Verificar que hay productos en el carrito
+    // CORRECCIÓN: Verificar que hay productos en el carrito
     if (!carrito || carrito.length === 0) {
         console.error('❌ Carrito vacío o indefinido');
         toastr.error('El carrito está vacío', 'Error');
@@ -1840,7 +1911,7 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
         return;
     }
     
-    // Crear una copia del carrito ANTES de preparar datos
+    // CORRECCIÓN: Crear una copia del carrito ANTES de preparar datos
     const carritoParaEnviar = JSON.parse(JSON.stringify(carrito));
     console.log('📋 Copia del carrito creada:', carritoParaEnviar.length, 'items');
     
@@ -1896,48 +1967,52 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             'X-CSRF-TOKEN': csrfToken,
             'Accept': 'application/json'
         },
-        success: function(response) {
-            console.log('✅ Respuesta del servidor:', response);
-            
-            if (response.success) {
-                // CORRECCIÓN: Mostrar mensaje de éxito cuando la venta se guarda correctamente
-                toastr.success('Venta guardada correctamente', 'Éxito');
-                
-                // Actualizar stock localmente usando la copia
-                carritoParaEnviar.forEach(function(item) {
-                    if (productos[item.id]) {
-                        productos[item.id].stock -= item.cantidad;
-                    }
+      success: function(response) {
+    console.log('✅ Respuesta del servidor:', response);
+
+    if (response.success) {
+        toastr.success('Venta realizada con éxito');
+
+        // Actualizar tabla y frecuentes con datos reales del servidor
+        if (response.productos_actualizados && response.productos_actualizados.length > 0) {
+            actualizarProductosLocales(response.productos_actualizados);
+        } else {
+            // Fallback si el servidor no devolvió datos actualizados
+            carritoParaEnviar.forEach(function(item) {
+                if (productos[item.id]) {
+                    productos[item.id].stock -= item.cantidad;
+                }
+            });
+            mostrarTodosLosProductos();
+            cargarProductosFrecuentes();
+        }
+
+        // Mostrar ticket
+        if (response.venta_completa) {
+            mostrarTicketAutomatico(response.venta_completa);
+        } else {
+            mostrarVistaPrevia(response.numero_factura);
+        }
+
+        // Reiniciar formulario
+        setTimeout(function() {
+            reiniciarFormularioVenta();
+        }, 1000);
+
+    } else {
+        console.error('❌ Error en respuesta:', response);
+        toastr.error(response.message || 'Error al procesar la venta', 'Error');
+
+        if (response.errors) {
+            Object.keys(response.errors).forEach(function(field) {
+                response.errors[field].forEach(function(error) {
+                    toastr.error(error, 'Error de validación');
                 });
-                
-                // MOSTRAR TICKET AUTOMÁTICAMENTE
-                if (response.venta_completa) {
-                    console.log('🎫 Mostrando ticket con datos del servidor');
-                    mostrarTicketAutomatico(response.venta_completa);
-                } else {
-                    console.log('🎫 Mostrando ticket con datos locales');
-                    mostrarVistaPrevia(response.numero_factura);
-                }
-                
-                // REINICIAR FORMULARIO DESPUÉS DE 1 SEGUNDO
-                setTimeout(function() {
-                    console.log('🔄 Reiniciando formulario...');
-                    reiniciarFormularioVenta();
-                }, 1000);
-                
-            } else {
-                console.error('❌ Error en respuesta:', response);
-                toastr.error(response.message || 'Error al procesar la venta', 'Error');
-                
-                if (response.errors) {
-                    Object.keys(response.errors).forEach(function(field) {
-                        response.errors[field].forEach(function(error) {
-                            toastr.error(error, 'Error de validación');
-                        });
-                    });
-                }
-            }
-        },
+            });
+        }
+    }
+},
+
         error: function(xhr, status, error) {
             console.error('❌ Error en AJAX:', {
                 status: xhr.status,
@@ -2700,7 +2775,32 @@ $(document).on('click', '#btnProcesarVenta', function(e) {
             console.log('✅ Modal cerrado manualmente');
         }, 100);
     }
-    
+
+
+   function actualizarProductosLocales(productosActualizados) {
+    console.log('🔄 Actualizando stock local:', productosActualizados.length, 'productos');
+
+    productosActualizados.forEach(function(p) {
+        const id = p.id_producto || p.id;
+        if (productos[id]) {
+            productos[id].stock = parseInt(p.stock || p.stock_actual || 0);
+            console.log('✅', productos[id].nombre, '→ stock nuevo:', productos[id].stock);
+        }
+    });
+
+    // Refrescar tabla de búsqueda
+    const busquedaActual = $('#busquedaRapida').val().trim();
+    if (busquedaActual.length >= 2) {
+        buscarProductos(busquedaActual);
+    } else {
+        mostrarTodosLosProductos();
+    }
+
+    // Refrescar tarjetas frecuentes
+    cargarProductosFrecuentes();
+}
+
+
     // =============================================
     // 13. INICIALIZACIÓN CORREGIDA
     // =============================================

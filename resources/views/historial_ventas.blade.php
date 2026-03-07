@@ -1755,9 +1755,89 @@ jQuery(document).ready(function($) {
     });
     
     // Reportes
-    $('#descargarReporte').on('click', function() {
-        $('#modalReporte').modal('show');
+   // ============================================
+// EXPORTAR A EXCEL (NUEVO CÓDIGO)
+// ============================================
+// Reportes
+$('#descargarReporte').on('click', function(e) {
+    e.preventDefault();
+    
+    // 1. Obtener los valores de los filtros actuales
+    var params = new URLSearchParams({
+        fecha_desde: $('#fecha_desde').val(),
+        fecha_hasta: $('#fecha_hasta').val(),
+        estado: $('#estado_venta').val(),
+        metodo_pago: $('#metodo_pago').val(),
+        cliente: $('#buscar_cliente').val(),
+        factura: $('#buscar_factura').val()
     });
+
+    // 2. Mostrar loading
+    Swal.fire({
+        title: 'Generando reporte...',
+        text: 'Por favor, espera.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // 3. Hacer la petición AJAX para obtener el archivo
+    $.ajax({
+        url: "{{ route('historial.ventas.exportar.excel') }}?" + params.toString(),
+        type: 'GET',
+        xhrFields: {
+            responseType: 'blob' // Importante: esperar un blob (archivo binario)
+        },
+        success: function(data, status, xhr) {
+            Swal.close();
+            
+            // Obtener el nombre del archivo del header Content-Disposition
+            var filename = '';
+            var disposition = xhr.getResponseHeader('Content-Disposition');
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                var matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            
+            // Si no se pudo obtener el nombre, usar uno por defecto
+            if (!filename) {
+                filename = 'ventas_' + new Date().toISOString().slice(0,19).replace(/:/g, '-') + '.xlsx';
+            }
+            
+            // Crear URL del blob y forzar la descarga
+            var blob = new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            
+            // Limpiar
+            window.URL.revokeObjectURL(link.href);
+        },
+        error: function(xhr, status, error) {
+            Swal.close();
+            
+            var errorMsg = 'Error al generar el reporte';
+            try {
+                var response = JSON.parse(xhr.responseText);
+                errorMsg = response.message || errorMsg;
+            } catch(e) {
+                errorMsg = xhr.responseText || errorMsg;
+            }
+            
+            Swal.fire({
+                title: 'Error',
+                text: errorMsg,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
+        }
+    });
+});
     
     $('#btnGenerarReporte').on('click', function() {
         var params = new URLSearchParams({

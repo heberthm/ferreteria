@@ -83,35 +83,7 @@ class InventarioController extends Controller
         ]);
     }
 
-    /**
- * Listar inventarios para DataTables
- */
-public function listar(Request $request)
-{
-    $query = Inventario::with(['producto', 'usuario'])
-        ->where('tipo_movimiento', 'entrada')
-        ->orderBy('created_at', 'desc');
-    
-    // Filtros
-    if ($request->filled('fecha_inicio')) {
-        $query->whereDate('fecha_movimiento', '>=', $request->fecha_inicio);
-    }
-    
-    if ($request->filled('fecha_fin')) {
-        $query->whereDate('fecha_movimiento', '<=', $request->fecha_fin);
-    }
-    
-    if ($request->filled('proveedor')) {
-        $query->where('proveedor', $request->proveedor);
-    }
-    
-    $inventarios = $query->get();
-    
-    return response()->json([
-        'success' => true,
-        'inventarios' => $inventarios
-    ]);
-}
+ 
 
 /**
  * Mostrar detalle de un inventario
