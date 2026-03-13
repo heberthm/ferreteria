@@ -173,6 +173,15 @@ class CotizacionController extends Controller
                 $subtotal  += $item['cantidad'] * $item['precio_unitario'];
                 $descuento += $item['descuento'] ?? 0;
             }
+            
+            $tipoIva   = (int) $request->tipo_iva; // -1, 0, 5 o 19
+            $base      = $subtotal - $descuento;
+            $iva       = $tipoIva > 0 ? $base * ($tipoIva / 100) : 0;
+
+           
+            $cotizacion->iva       = $iva;
+            $cotizacion->tipo_iva  = $tipoIva;
+            $cotizacion->total     = $base + $iva;
 
             $cotizacion->subtotal  = $subtotal;
             $cotizacion->descuento = $descuento;
@@ -301,17 +310,13 @@ class CotizacionController extends Controller
     }
 
     // ── SHOW ─────────────────────────────────────────────────────────────────
-    public function show($id)
+ public function show($id)
     {
-        try {
-            $cotizacion = Cotizacion::with(['cliente', 'vendedor', 'detalles.producto'])
-                ->findOrFail($id);
-            return response()->json($cotizacion);
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'No encontrada'], 404);
-        }
+        $cotizacion = Cotizacion::with(['cliente', 'vendedor', 'detalles.producto'])
+            ->where('id_cotizacion', $id)
+            ->firstOrFail();
+        return response()->json($cotizacion);
     }
-
     // ── DESTROY ──────────────────────────────────────────────────────────────
     public function destroy($id)
     {
@@ -350,29 +355,34 @@ class CotizacionController extends Controller
     }
 
     // ── GENERAR PDF ──────────────────────────────────────────────────────────
-    public function generarPDF($id)
-    {
-        try {
-            $cotizacion = Cotizacion::with(['cliente', 'vendedor', 'detalles'])->findOrFail($id);
+ public function generarPDF($id)
+{
+    try {
+        $cotizacion = Cotizacion::with(['cliente', 'vendedor', 'detalles'])
+            ->where('id_cotizacion', $id)
+            ->firstOrFail();
 
-            $pdf = PDF::loadView('cotizaciones.pdf', [
-                'cotizacion' => $cotizacion,
-                'empresa'    => [
-                    'nombre'    => 'Ferretería XYZ',
-                    'nit'       => '123456789-0',
-                    'direccion' => 'Calle 123 #45-67',
-                    'telefono'  => '(601) 123-4567',
-                    'email'     => 'info@ferreteriaxyz.com',
-                ],
-            ]);
+        $empresa = [
+            'nombre'    => 'Ferretería XYZ',
+            'nit'       => '123456789-0',
+            'direccion' => 'Calle 123 #45-67',
+            'telefono'  => '(601) 123-4567',
+            'email'     => 'info@ferreteriaxyz.com',
+        ];
 
+        // Si piden descarga real del PDF
+        if (request('download') == 1) {
+            $pdf = PDF::loadView('pdf-cotizacion', compact('cotizacion', 'empresa'));
             return $pdf->download('cotizacion_' . $cotizacion->numero_cotizacion . '.pdf');
-
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-    }
 
+        // Por defecto retorna HTML para el iframe
+        return view('pdf-cotizacion', compact('cotizacion', 'empresa'));
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
     // ── BÚSQUEDAS AJAX PARA SELECT2 ──────────────────────────────────────────
 
     public function buscarClientes(Request $request)

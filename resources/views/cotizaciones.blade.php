@@ -5,7 +5,12 @@
 /* ================================================
    ESTILOS GENERALES
 ================================================ */
-.select2-container { width: 100% !important; }
+./* ================================================
+   ESTILOS SELECT2 PERSONALIZADOS (CORREGIDO)
+================================================ */
+.select2-container {
+    width: 100% !important;
+}
 
 /* Z-index alto para que el dropdown quede sobre el overlay */
 .select2-container--open,
@@ -13,53 +18,109 @@
     z-index: 99999 !important;
 }
 
-/* ── Tema Bootstrap: bordes y colores coherentes ── */
-.select2-container--bootstrap .select2-selection {
+/* Estilos base del select2 */
+.select2-selection {
     border: 1px solid #ced4da !important;
     border-radius: 4px !important;
-    height: 38px !important;
-    padding: 6px 12px !important;
+    min-height: 38px !important;
+    padding: 4px 12px !important;
     font-size: 14px !important;
-    color: #495057 !important;
+    line-height: 1.5 !important;
     background-color: #fff !important;
-    box-shadow: inset 0 1px 1px rgba(0,0,0,.075) !important;
 }
-.select2-container--bootstrap .select2-selection--single .select2-selection__rendered {
+
+.select2-selection--single {
+    height: 38px !important;
+}
+
+.select2-selection__rendered {
+    line-height: 28px !important;
+    padding-left: 0 !important;
     color: #495057 !important;
-    line-height: 24px !important;
-    padding: 0 !important;
 }
-.select2-container--bootstrap .select2-selection--single .select2-selection__placeholder {
+
+.select2-selection__placeholder {
     color: #6c757d !important;
 }
-.select2-container--bootstrap .select2-selection--single .select2-selection__arrow {
-    top: 6px !important;
-    right: 8px !important;
+
+/* Estilo para el botón "X" de limpiar */
+.select2-selection__clear {
+    position: absolute !important;
+    right: 25px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+    color: #dc3545 !important;
+    cursor: pointer !important;
+    z-index: 10 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
 }
-.select2-container--bootstrap.select2-container--focus .select2-selection,
-.select2-container--bootstrap.select2-container--open .select2-selection {
+
+.select2-selection__clear:hover {
+    color: #bd2130 !important;
+    background: transparent !important;
+}
+
+/* Flecha del select */
+.select2-selection__arrow {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: auto !important;
+    width: 20px !important;
+}
+
+.select2-selection__arrow b {
+    border-color: #6c757d transparent transparent transparent !important;
+    border-width: 5px 4px 0 4px !important;
+    margin-left: -8px !important;
+}
+
+/* Estado focus */
+.select2-container--open .select2-selection {
     border-color: #80bdff !important;
     outline: 0 !important;
-    box-shadow: 0 0 0 .2rem rgba(0,123,255,.25) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
 }
-.select2-container--bootstrap .select2-dropdown {
+
+/* Dropdown */
+.select2-dropdown {
     border: 1px solid #ced4da !important;
     border-radius: 4px !important;
     font-size: 14px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1) !important;
 }
-.select2-container--bootstrap .select2-search--dropdown .select2-search__field {
+
+.select2-search--dropdown .select2-search__field {
     border: 1px solid #ced4da !important;
     border-radius: 4px !important;
-    padding: 4px 8px !important;
-    font-size: 13px !important;
+    padding: 6px 12px !important;
+    font-size: 14px !important;
 }
-.select2-container--bootstrap .select2-results__option {
-    padding: 7px 12px !important;
+
+.select2-results__option {
+    padding: 8px 12px !important;
     color: #212529 !important;
 }
-.select2-container--bootstrap .select2-results__option--highlighted {
+
+.select2-results__option--highlighted {
     background-color: #e9ecef !important;
     color: #212529 !important;
+}
+
+.select2-results__option[aria-selected=true] {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Cuando el select está deshabilitado o vacío */
+.select2-selection--single .select2-selection__clear:not([style*="display: none"]) {
+    display: inline-block !important;
 }
 
 #tabla-productos td { vertical-align: middle !important; padding: 5px 6px !important; }
@@ -111,6 +172,132 @@
 #overlayCrearCotizacion .modal-content {
     overflow: visible !important;
 }
+
+/* ================================================
+   ESTILOS ESPECÍFICOS PARA SELECT2 DE PRODUCTOS
+================================================ */
+#overlayCrearCotizacion .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    position: relative !important;
+}
+
+#overlayCrearCotizacion .select2-container--default .select2-selection__rendered {
+    line-height: 36px !important;
+    padding-right: 50px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+
+#overlayCrearCotizacion .select2-container--default .select2-selection__clear {
+    position: absolute !important;
+    right: 30px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    font-size: 20px !important;
+    font-weight: bold !important;
+    color: #dc3545 !important;
+    cursor: pointer !important;
+    z-index: 1000 !important;
+    background: transparent !important;
+    border: none !important;
+    padding: 0 5px !important;
+    margin: 0 !important;
+    display: inline-block !important;
+    line-height: 1 !important;
+    height: auto !important;
+    width: auto !important;
+    text-decoration: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#overlayCrearCotizacion .select2-container--default .select2-selection__clear:hover {
+    color: #bd2130 !important;
+    background: transparent !important;
+}
+
+#overlayCrearCotizacion .select2-container--default .select2-selection__arrow {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    height: auto !important;
+    width: 20px !important;
+}
+
+#overlayCrearCotizacion .select2-container--default .select2-selection__arrow b {
+    border-color: #6c757d transparent transparent transparent !important;
+    border-width: 5px 4px 0 4px !important;
+    margin-left: -8px !important;
+}
+
+/* Estilos para el dropdown de búsqueda */
+#overlayCrearCotizacion .select2-dropdown {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1) !important;
+}
+
+#overlayCrearCotizacion .select2-search--dropdown {
+    padding: 8px !important;
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #ced4da !important;
+}
+
+#overlayCrearCotizacion .select2-search--dropdown .select2-search__field {
+    border: 1px solid #ced4da !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: white !important;
+}
+
+#overlayCrearCotizacion .select2-search--dropdown .select2-search__field:focus {
+    border-color: #80bdff !important;
+    outline: 0 !important;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25) !important;
+}
+
+/* Resultados */
+#overlayCrearCotizacion .select2-results__option {
+    padding: 8px 12px !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+}
+
+#overlayCrearCotizacion .select2-results__option:last-child {
+    border-bottom: none !important;
+}
+
+#overlayCrearCotizacion .select2-results__option--highlighted {
+    background-color: #e9ecef !important;
+    color: #212529 !important;
+}
+
+#overlayCrearCotizacion .select2-results__option[aria-selected=true] {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+/* Ocultar flechas del input number para cantidad */
+#tabla-productos input[type=number].cantidad::-webkit-inner-spin-button,
+#tabla-productos input[type=number].cantidad::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+#tabla-productos input[type=number].cantidad {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* SweetAlert2 siempre encima de los modales */
+.swal-sobre-modal {
+    z-index: 99999 !important;
+}
+
 </style>
 
 <br>
@@ -314,9 +501,21 @@
                             <div class="row mb-3">
                                 <div class="col-md-12">
                                     <!-- Select2 AJAX productos -->
-                                    <select class="form-control" id="select-buscar-producto">
-                                        <option value=""></option>
-                                    </select>
+                                 <div class="col-md-12" style="position:relative;">
+                                        <select class="form-control" id="select-buscar-producto">
+                                            <option value=""></option>
+                                        </select>
+                                        <!-- Botón X independiente, siempre visible -->
+                                        <button type="button" id="btn-limpiar-producto"
+                                                title="Limpiar búsqueda"
+                                                style="display:none; position:absolute; right:30px; top:50%;
+                                                    transform:translateY(-50%); z-index:9999;
+                                                    background:transparent; border:none;
+                                                    color:#dc3545; font-size:18px; font-weight:bold;
+                                                    cursor:pointer; padding:0 6px; line-height:1;">
+                                            &times;
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -345,37 +544,49 @@
                         </div>
 
                         <!-- Totales -->
-                        <div class="card-footer bg-light">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <small class="text-muted">
-                                        <i class="fas fa-info-circle"></i>
-                                        Los valores se actualizan automáticamente.
-                                    </small>
-                                </div>
-                                <div class="col-md-6">
-                                    <table class="table table-sm table-borderless mb-0">
-                                        <tr>
-                                            <td class="text-right"><strong>Subtotal:</strong></td>
-                                            <td class="text-right" id="subtotal" style="min-width:120px; font-size:14px;">$0</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-right"><strong>Descuento:</strong></td>
-                                            <td class="text-right text-danger" id="descuento_total" style="font-size:14px;">$0</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-right"><strong>IVA (19%):</strong></td>
-                                            <td class="text-right text-info" id="iva_total" style="font-size:14px;">$0</td>
-                                        </tr>
-                                        <tr class="border-top">
-                                            <td class="text-right"><strong style="font-size:16px;">TOTAL:</strong></td>
-                                            <td class="text-right text-primary" id="total" style="font-size:16px; font-weight:bold;">$0</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+            <div class="card-footer bg-light">
+            <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i>
+                            Los valores se actualizan automáticamente.
+                        </small>
                     </div>
+                    <div class="col-md-6">
+                        <table class="table table-sm table-borderless mb-0">
+                            <tr>
+                                <td class="text-right"><strong>Subtotal:</strong></td>
+                                <td class="text-right" id="subtotal" style="min-width:120px; font-size:14px;">$0</td>
+                            </tr>
+                            <tr>
+                                <td class="text-right"><strong>Descuento:</strong></td>
+                                <td class="text-right text-danger" id="descuento_total" style="font-size:14px;">$0</td>
+                            </tr>
+                            <tr id="fila_iva">
+                                <td class="text-right">
+                                    <!-- Selector IVA inline junto al label -->
+                                    <select class="form-control form-control-sm d-inline-block" 
+                                            id="tipo_iva" name="tipo_iva" 
+                                            style="width:auto; font-size:12px; padding:2px 6px; height:28px; vertical-align:middle;">
+                                        <option value="0">Selccione IVA</option>
+                                        <option value="0">0% — Exento</option>
+                                        <option value="5">5%</option>
+                                        <option value="10">10%</option>
+                                        <option value="16">16%</option>
+                                        <option value="19" selected>19%</option>
+                                        <option value="-1">No aplica</option>
+                                    </select>
+                                </td>
+                                <td class="text-right text-info" id="iva_total" style="font-size:14px;">$0</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td class="text-right"><strong style="font-size:16px;">TOTAL:</strong></td>
+                                <td class="text-right text-primary" id="total" style="font-size:16px; font-weight:bold;">$0</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
 
                     <!-- Observaciones -->
                     <div class="row">
@@ -407,7 +618,8 @@
         </div>
     </div>
 </div>
-
+</div>
+</div>
 
 <!-- ================================================
      MODAL NUEVO CLIENTE
@@ -603,22 +815,31 @@
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title">
-                    <i class="fas fa-file-pdf text-danger"></i> Vista Previa PDF
+                    <i class="fas fa-file-pdf text-danger"></i> Vista Previa PDF Contización
                 </h5>
                 <button type="button" class="close btn-cerrar-modal" data-overlay="overlayVerPDF">
                     <span>&times;</span>
                 </button>
             </div>
-            <div class="modal-body p-0">
-                <iframe id="pdfIframe" src="" style="width:100%; height:600px; border:none;"></iframe>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-cerrar-modal"
-                        data-overlay="overlayVerPDF">Cerrar</button>
-                <a href="#" id="btnDescargarPDF" class="btn btn-success" target="_blank">
-                    <i class="fas fa-download"></i> Descargar PDF
-                </a>
-            </div>
+           <div class="modal-body p-0">
+           <div style="max-width: 900px; margin: 30px auto; padding: 30px 40px; background: white;">
+                    <iframe id="pdfIframe" src="" 
+                        style="width:100%; height:75vh; border:none;"
+                        id="pdfIframe">
+                    </iframe>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-cerrar-modal"
+                            data-overlay="overlayVerPDF">Cerrar</button>
+                    <a href="#" id="btnDescargarPDF" class="btn btn-success" target="_blank">
+                        <i class="fas fa-download"></i> Descargar PDF
+                    </a>
+                    <button type="button" onclick="$('#pdfIframe')[0].contentWindow.print()" 
+                            class="btn btn-primary">
+                        <i class="fas fa-print"></i> Imprimir
+                    </button>
+                </div>
+             </div>   
         </div>
     </div>
 </div>
@@ -742,89 +963,221 @@ $(document).ready(function () {
     // ================================================
     // SELECT2 — helpers
     // ================================================
-    function destroySelect2(selector) {
-        var $el = $(selector);
+   function destroySelect2(selector) {
+    var $el = $(selector);
         if ($el.length && $el.hasClass('select2-hidden-accessible')) {
             try { $el.select2('destroy'); } catch(e) {}
         }
     }
 
-    function initSelect2Cliente() {
-        destroySelect2('#id_cliente');
-        $('#id_cliente').select2({
-            width: '100%',
-            theme: 'bootstrap',
-            placeholder: 'Buscar cliente por nombre o cédula...',
-            allowClear: true,
-            minimumInputLength: 1,
-            dropdownParent: $('#overlayCrearCotizacion .modal-content'),
-            language: {
-                inputTooShort: function() { return 'Ingrese al menos 1 caracter'; },
-                searching:     function() { return 'Buscando...'; },
-                noResults:     function() { return 'No se encontraron clientes'; }
+
+
+
+// ================================================
+// SELECT2 — PRODUCTOS 
+// ================================================
+// ================================================
+// FOCO — único método confiable con dropdownParent
+// Se ejecuta cuando el dropdown ya está en el DOM
+// ================================================
+$(document).on('select2:open', function(e) {
+    // Buscar el input de búsqueda dentro del dropdown abierto
+    // Usar un delay mayor para garantizar que el DOM esté listo
+    var selectId = e.target.id;
+    setTimeout(function() {
+        var $input = $('body').find(
+            '.select2-container--open .select2-search--dropdown .select2-search__field'
+        );
+        if ($input.length) {
+            $input.get(0).focus();
+        }
+    }, 200);
+});
+
+// ================================================
+// SELECT2 CLIENTES
+// ================================================
+function initSelect2Cliente() {
+    destroySelect2('#id_cliente');
+    $('#id_cliente').empty().append('<option value=""></option>');
+
+    $('#id_cliente').select2({
+        placeholder: 'Buscar cliente por nombre o cédula...',
+        allowClear: true,
+        minimumInputLength: 1,
+        dropdownParent: $('#overlayCrearCotizacion .modal-content'),
+        width: '100%',
+        language: {
+            inputTooShort: function() { return 'Ingrese al menos 1 caracter'; },
+            searching:     function() { return 'Buscando...'; },
+            noResults:     function() { return 'No se encontraron clientes'; }
+        },
+        ajax: {
+            url: "{{ route('buscar-clientes-cotizacion') }}",
+            type: 'GET',
+            dataType: 'json',
+            delay: 400,
+            data: function(params) {
+                return { q: params.term, _token: $('meta[name="csrf-token"]').attr('content') };
             },
-            ajax: {
-                url: ROUTE_CLIENTES,
-                type: 'POST',
-                dataType: 'json',
-                delay: 400,
-                data: function(params) { return { q: params.term, _token: $('meta[name="csrf-token"]').attr('content') }; },
-                processResults: function(data) { return { results: data.results || [] }; },
-                cache: false
+            processResults: function(data) {
+                return { results: data.results || [] };
+            },
+            cache: false
+        }
+    });
+
+    $('#id_cliente').on('select2:select', function(e) {
+        var d = e.params.data;
+        $('#cliente_nombre').val(d.nombre || d.text).prop('readonly', true);
+        $('#cliente_cedula').val(d.cedula   || '').prop('readonly', true);
+        $('#cliente_telefono').val(d.telefono || '').prop('readonly', false);
+        $('#cliente_email').val(d.email     || '').prop('readonly', false);
+        $('#cliente_general').prop('checked', false);
+    });
+
+    $('#id_cliente').on('select2:clear', function() {
+        if (!$('#cliente_general').is(':checked')) {
+            limpiarCamposCliente(false);
+        }
+    });
+}
+
+// ================================================
+// SELECT2 PRODUCTOS — definición única
+// ================================================
+function initSelect2Producto() {
+    destroySelect2('#select-buscar-producto');
+    $('#select-buscar-producto').empty().append('<option value=""></option>');
+    $('#btn-limpiar-producto').hide();
+
+    $('#select-buscar-producto').select2({
+        width: '100%',
+        theme: 'bootstrap',
+        placeholder: 'Buscar producto por nombre o código...',
+        allowClear: false,
+        minimumInputLength: 1,
+        dropdownParent: $('#overlayCrearCotizacion .modal-content'),
+        language: {
+            inputTooShort: function() { return 'Ingrese al menos 1 caracter'; },
+            searching:     function() { return 'Buscando...'; },
+            noResults:     function() { return 'No se encontraron productos'; }
+        },
+        ajax: {
+            url: ROUTE_PRODUCTOS,
+            type: 'GET',
+            dataType: 'json',
+            delay: 400,
+            data: function(params) {
+                return { q: params.term };
+            },
+            processResults: function(data) {
+                return { results: data.results || [] };
+            },
+            cache: false
+        },
+        templateResult: function(item) {
+            if (item.loading) return 'Buscando...';
+            if (!item.precio) return item.text;
+            return $('<div style="padding:3px 0;"><strong>' + item.text + '</strong><br>' +
+                '<small class="text-muted">$' + parseFloat(item.precio).toLocaleString('es-CO') +
+                ' | Stock: ' + item.stock + ' unidades</small></div>');
+        },
+        templateSelection: function(item) { return item.text || item.id; }
+    });
+
+    // .off() antes de .on() — evita listeners acumulados entre aperturas del modal
+    $('#select-buscar-producto').off('select2:select').on('select2:select', function(e) {
+        var data = e.params.data;
+
+        // Verificar duplicado ANTES de limpiar
+        var yaExiste = false;
+        $('#tbody-productos .fila-producto').each(function() {
+            if ($(this).find('input[name*="[id_producto]"]').val() == data.id) {
+                yaExiste = true;
+                return false;
             }
         });
 
-        $('#id_cliente').on('select2:select', function(e) {
-            var d = e.params.data;
-            $('#cliente_nombre').val(d.nombre   || d.text).prop('readonly', true);
-            $('#cliente_cedula').val(d.cedula   || '').prop('readonly', true);
-            $('#cliente_telefono').val(d.telefono || '').prop('readonly', false);
-            $('#cliente_email').val(d.email     || '').prop('readonly', false);
-            $('#cliente_general').prop('checked', false);
-        });
+        // Limpiar select siempre
+        $(this).val(null).trigger('change');
+        $('#btn-limpiar-producto').hide();
 
-        $('#id_cliente').on('select2:clear', function() {
-            if (!$('#cliente_general').is(':checked')) limpiarCamposCliente(false);
-        });
-    }
+        if (yaExiste) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Producto duplicado',
+                text: 'El producto "' + data.text + '" ya está en la lista. Ajusta la cantidad si necesitas más.',
+                timer: 2500,
+                showConfirmButton: false,
+                customClass: { container: 'swal-sobre-modal' }
+            });
+            return;
+        }
 
-    function initSelect2Producto() {
-        destroySelect2('#select-buscar-producto');
-        $('#select-buscar-producto').select2({
-            width: '100%',
-            theme: 'bootstrap',
-            minimumInputLength: 1,
-            dropdownParent: $('#overlayCrearCotizacion .modal-content'),
-            language: {
-                inputTooShort: function() { return 'Ingrese al menos 1 caracter'; },
-                searching:     function() { return 'Buscando...'; },
-                noResults:     function() { return 'No se encontraron productos'; }
-            },
-            ajax: {
-                url: ROUTE_PRODUCTOS,
-                type: 'POST',
-                dataType: 'json',
-                delay: 400,
-                data: function(params) { return { q: params.term, _token: $('meta[name="csrf-token"]').attr('content') }; },
-                processResults: function(data) { return { results: data.results || [] }; },
-                cache: false
-            },
-            templateResult: function(item) {
-                if (item.loading) return 'Buscando...';
-                if (!item.precio) return item.text;
-                return $('<div style="padding:3px 0;"><strong>' + item.text + '</strong><br>' +
-                    '<small class="text-muted">$' + parseFloat(item.precio).toLocaleString('es-CO') +
-                    ' | Stock: ' + item.stock + ' unidades</small></div>');
-            },
-            templateSelection: function(item) { return item.text || item.id; }
-        });
+        agregarRenglonProducto(data);
+    });
+}
 
-        $('#select-buscar-producto').on('select2:select', function(e) {
-            var data = e.params.data;
-            $(this).val(null).trigger('change');
-            agregarRenglonProducto(data);
-        });
-    }
+// ================================================
+// PRODUCTOS — TABLA (MODIFICADO: cantidad sin decimales)
+// ================================================
+function agregarRenglonProducto(data) {
+    $('#sin-productos-msg').hide();
+    $('#tabla-productos-container').show();
+
+    var idx    = productoIndex++;
+    var precio = parseFloat(data.precio) || 0;
+    var stock  = data.stock || 0;
+
+    var fila = `
+        <tr class="fila-producto" data-index="${idx}">
+            <td>
+                <span class="d-block font-weight-bold" style="font-size:12px;">${data.text}</span>
+                <small class="text-success"><i class="fas fa-cubes"></i> Stock: ${stock} unidades</small>
+                <input type="hidden" name="productos[${idx}][id_producto]"     value="${data.id}">
+                <input type="hidden" name="productos[${idx}][nombre_producto]" value="${data.text}">
+            </td>
+            <td>
+                <input type="number" class="form-control form-control-sm cantidad text-center"
+                       name="productos[${idx}][cantidad]"
+                       step="1" min="1" value="1" required 
+                       onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
+                       style="width:70px; -moz-appearance: textfield;" 
+                       oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            </td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                    <input type="number" class="form-control precio-unitario"
+                           name="productos[${idx}][precio_unitario]"
+                           step="0.01" min="0" value="${precio}" required>
+                </div>
+            </td>
+            <td>
+                <div class="input-group input-group-sm">
+                    <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                    <input type="number" class="form-control descuento"
+                           name="productos[${idx}][descuento]"
+                           step="0.01" min="0" value="0">
+                </div>
+            </td>
+            <td class="text-right">
+                <strong class="text-primary item-total" style="font-size:13px;">
+                    $${precio.toLocaleString('es-CO')}
+                </strong>
+            </td>
+            <td class="text-center">
+                <button type="button" class="btn btn-danger btn-sm btn-eliminar-fila" title="Quitar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        </tr>`;
+
+    $('#tbody-productos').append(fila);
+    $('#tbody-productos .fila-producto').last().find('.cantidad').focus().select();
+    calcularTotales();
+}
 
     // ================================================
     // ABRIR MODAL COTIZACIÓN
@@ -864,56 +1217,73 @@ $(document).ready(function () {
         setTimeout(function() { $('#nuevo_cliente_nombre').focus(); }, 100);
     });
 
-    $('#formNuevoCliente').on('submit', function(e) {
-        e.preventDefault();
+   $('#formNuevoCliente').off('submit').on('submit', function(e) {
+    e.preventDefault();
 
-        $('#spinner_cliente').removeClass('d-none');
-        $('#texto_btn_cliente').text('Guardando...');
-        $('#btnGuardarCliente').prop('disabled', true);
+    $('#spinner_cliente').removeClass('d-none');
+    $('#texto_btn_cliente').text('Guardando...');
+    $('#btnGuardarCliente').prop('disabled', true);
 
-        $.ajax({
-            url: "{{ route('clientes.store') }}",
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                if (response.success) {
-                    // Agregar al Select2 de clientes y seleccionarlo
-                    var opt = new Option(
-                        response.data.nombre + ' - ' + response.data.cedula,
-                        response.data.id_cliente, true, true
-                    );
-                    $('#id_cliente').append(opt).trigger('change');
+    $.ajax({
+        url: "{{ route('clientes.store') }}",
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(response) {
+            if (response.success) {
+                // Usar el id correcto — puede ser id_cliente o id según el modelo
+                var clienteId  = response.data.id_cliente || response.data.id;
+                var clienteNom = response.data.nombre;
+                var clienteCed = response.data.cedula;
 
-                    $('#cliente_nombre').val(response.data.nombre).prop('readonly', true);
-                    $('#cliente_cedula').val(response.data.cedula).prop('readonly', true);
-                    $('#cliente_telefono').val(response.data.telefono || '').prop('readonly', false);
-                    $('#cliente_email').val(response.data.email || '').prop('readonly', false);
+                // Agregar opción al Select2 y seleccionarla
+                var opt = new Option(
+                    clienteNom + ' - ' + clienteCed,
+                    clienteId, true, true
+                );
+                $('#id_cliente').append(opt).trigger('change');
 
-                    cerrarOverlay('overlayNuevoCliente');
+                // Rellenar campos del formulario de cotización
+                $('#cliente_nombre').val(clienteNom).prop('readonly', true);
+                $('#cliente_cedula').val(clienteCed).prop('readonly', true);
+                $('#cliente_telefono').val(response.data.telefono || '').prop('readonly', false);
+                $('#cliente_email').val(response.data.email || '').prop('readonly', false);
+                $('#cliente_general').prop('checked', false);
 
-                    Swal.fire({
-                        icon: 'success', title: 'Cliente creado',
-                        text: 'El cliente se guardó correctamente',
-                        timer: 1500, showConfirmButton: false
-                    });
-                }
-            },
-            error: function(xhr) {
-                var msg = 'Error al guardar el cliente';
-                if (xhr.status === 422) {
-                    var errors = [];
-                    $.each(xhr.responseJSON.errors, function(k, v) { errors.push(v[0]); });
-                    msg = errors.join('<br>');
-                }
-                Swal.fire({ icon: 'error', title: 'Error', html: msg });
-            },
-            complete: function() {
-                $('#spinner_cliente').addClass('d-none');
-                $('#texto_btn_cliente').text('Guardar Cliente');
-                $('#btnGuardarCliente').prop('disabled', false);
+                // Cerrar modal y mostrar Swal
+                cerrarOverlay('overlayNuevoCliente');
+
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Cliente creado!',
+                    text: 'El cliente ' + clienteNom + ' fue guardado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    timerProgressBar: true,
+                    customClass: { container: 'swal-sobre-modal' } 
+                });
+
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: response.message || 'No se pudo guardar el cliente' });
             }
-        });
+        },
+        error: function(xhr) {
+            var msg = 'Error al guardar el cliente';
+            if (xhr.status === 422) {
+                var errors = [];
+                $.each(xhr.responseJSON.errors, function(k, v) { errors.push(v[0]); });
+                msg = errors.join('<br>');
+            } else if (xhr.responseJSON && xhr.responseJSON.message) {
+                msg = xhr.responseJSON.message;
+            }
+            Swal.fire({ icon: 'error', title: 'Error', html: msg });
+        },
+        complete: function() {
+            $('#spinner_cliente').addClass('d-none');
+            $('#texto_btn_cliente').text('Guardar Cliente');
+            $('#btnGuardarCliente').prop('disabled', false);
+        }
     });
+});
 
     // ================================================
     // PRODUCTOS — TABLA
@@ -930,7 +1300,7 @@ $(document).ready(function () {
             <tr class="fila-producto" data-index="${idx}">
                 <td>
                     <span class="d-block font-weight-bold" style="font-size:12px;">${data.text}</span>
-                    <small class="text-success"><i class="fas fa-cubes"></i> Stock: ${stock}</small>
+                    <small class="text-success"><i class="fas fa-cubes"></i> Stock: ${stock} unidades</small>
                     <input type="hidden" name="productos[${idx}][id_producto]"     value="${data.id}">
                     <input type="hidden" name="productos[${idx}][nombre_producto]" value="${data.text}">
                 </td>
@@ -980,37 +1350,45 @@ $(document).ready(function () {
         calcularTotales();
     }
 
-    function calcularTotales() {
-        var subtotal = 0, descTotal = 0;
-        $('#tbody-productos .fila-producto').each(function() {
-            subtotal  += (parseFloat($(this).find('.cantidad').val())        || 0) *
-                         (parseFloat($(this).find('.precio-unitario').val()) || 0);
-            descTotal += (parseFloat($(this).find('.descuento').val())       || 0);
-        });
-        var iva   = subtotal * 0.19;
-        var total = (subtotal - descTotal) + iva;
-        $('#subtotal').text('$'        + subtotal.toLocaleString('es-CO'));
-        $('#descuento_total').text('$' + descTotal.toLocaleString('es-CO'));
-        $('#iva_total').text('$'       + iva.toLocaleString('es-CO'));
-        $('#total').text('$'           + total.toLocaleString('es-CO'));
-    }
-
-    $(document).on('input',
-        '#tbody-productos .cantidad, #tbody-productos .precio-unitario, #tbody-productos .descuento',
-        function() { calcularFila($(this).closest('.fila-producto')); }
-    );
-
-    $(document).on('click', '.btn-eliminar-fila', function() {
-        $(this).closest('.fila-producto').fadeOut(200, function() {
-            $(this).remove();
-            if ($('#tbody-productos .fila-producto').length === 0) {
-                $('#sin-productos-msg').show();
-                $('#tabla-productos-container').hide();
-            }
-            calcularTotales();
-        });
+   function calcularTotales() {
+    var subtotal = 0, descTotal = 0;
+    $('#tbody-productos .fila-producto').each(function() {
+        subtotal  += (parseFloat($(this).find('.cantidad').val())        || 0) *
+                     (parseFloat($(this).find('.precio-unitario').val()) || 0);
+        descTotal += (parseFloat($(this).find('.descuento').val())       || 0);
     });
 
+    var tipoIva = parseInt($('#tipo_iva').val());
+    var base    = subtotal - descTotal;
+    var iva     = 0;
+
+    if (tipoIva === -1) {
+        $('#fila_iva').hide();
+    } else if (tipoIva === 0) {
+        $('#fila_iva').show();
+        iva = 0;
+    } else {
+        iva = base * (tipoIva / 100);
+        $('#fila_iva').show();
+    }
+
+    var total = base + iva;
+
+    $('#subtotal').text('$'        + subtotal.toLocaleString('es-CO'));
+    $('#descuento_total').text('$' + descTotal.toLocaleString('es-CO'));
+    $('#iva_total').text('$'       + iva.toLocaleString('es-CO'));
+    $('#total').text('$'           + total.toLocaleString('es-CO'));
+}
+
+// ← Este evento es el que dispara el recálculo al cambiar el selector
+$(document).on('change', '#tipo_iva', function() {
+    calcularTotales();
+});
+
+$(document).on('input',
+    '#tbody-productos .cantidad, #tbody-productos .precio-unitario, #tbody-productos .descuento',
+    function() { calcularFila($(this).closest('.fila-producto')); }
+);
     // ================================================
     // CHECKBOX CLIENTE GENERAL
     // ================================================
@@ -1084,20 +1462,20 @@ $(document).ready(function () {
                 var filas = '';
                 var subtotal = 0, descTotal = 0;
                 if (c.detalles && c.detalles.length) {
-                    c.detalles.forEach(function(d) {
-                        var tot = (d.cantidad * d.precio_unitario) - (d.descuento || 0);
-                        subtotal  += d.cantidad * d.precio_unitario;
-                        descTotal += parseFloat(d.descuento) || 0;
-                        filas += '<tr>'
-                            + '<td>' + (d.producto ? (d.producto.codigo || '—') : '—') + '</td>'
-                            + '<td>' + (d.nombre_producto || (d.producto ? d.producto.nombre : '—')) + '</td>'
-                            + '<td class="text-center">' + d.cantidad + '</td>'
-                            + '<td>' + (d.unidad_medida || '—') + '</td>'
-                            + '<td class="text-right">$' + parseFloat(d.precio_unitario).toLocaleString('es-CO') + '</td>'
-                            + '<td class="text-right">$' + parseFloat(d.descuento || 0).toLocaleString('es-CO') + '</td>'
-                            + '<td class="text-right text-primary"><strong>$' + tot.toLocaleString('es-CO') + '</strong></td>'
-                            + '</tr>';
-                    });
+                   c.detalles.forEach(function(d) {
+                    var tot = (d.cantidad * d.precio_unitario) - (d.descuento || 0);
+                    subtotal  += d.cantidad * d.precio_unitario;
+                    descTotal += parseFloat(d.descuento) || 0;
+                    filas += '<tr>'
+                        + '<td>' + (d.codigo_producto || (d.producto ? d.producto.codigo : '') || '—') + '</td>'
+                        + '<td>' + (d.nombre_producto || (d.producto ? d.producto.nombre : '—')) + '</td>'
+                        + '<td class="text-center">' + parseInt(d.cantidad) + '</td>'
+                        + '<td>' + (d.unidad_medida || '—') + '</td>'
+                        + '<td class="text-right">$' + parseFloat(d.precio_unitario).toLocaleString('es-CO') + '</td>'
+                        + '<td class="text-right">$' + parseFloat(d.descuento || 0).toLocaleString('es-CO') + '</td>'
+                        + '<td class="text-right text-primary"><strong>$' + tot.toLocaleString('es-CO') + '</strong></td>'
+                        + '</tr>';
+                });
                 } else {
                     filas = '<tr><td colspan="7" class="text-center text-muted">Sin productos</td></tr>';
                 }
@@ -1132,67 +1510,60 @@ $(document).ready(function () {
     // ================================================
     // BOTÓN EDITAR — precarga formulario crear con datos existentes
     // ================================================
-    $(document).on('click', '.btn-editar', function() {
-        var id = $(this).data('id');
-        $.ajax({
-            url: APP_URL + '/cotizaciones/' + id,
-            type: 'GET',
-            success: function(c) {
-                // Resetear form y reinicializar Select2
-                resetForm();
-                initSelect2Cliente();
-                initSelect2Producto();
+   $(document).on('click', '.btn-editar', function() {
+    var id = $(this).data('id');
+    $.ajax({
+        url: APP_URL + '/cotizaciones/' + id,
+        type: 'GET',
+        success: function(c) {
+            resetForm();
+            initSelect2Cliente();
+            initSelect2Producto();
 
-                // Cambiar título y modo del formulario
-                $('.modal-title').first().html('<i class="fas fa-edit"></i> Editar Cotización');
-                $('#formCotizacion').data('modo', 'editar').data('id', id);
-                $('#btnGuardarCotizacion').find('#texto_btn_guardar').text('Actualizar Cotización');
+            $('.modal-title').first().html('<i class="fas fa-edit"></i> Editar Cotización');
+            $('#formCotizacion').data('modo', 'editar').data('id', id);
+            $('#btnGuardarCotizacion').find('#texto_btn_guardar').text('Actualizar Cotización');
 
-                // Rellenar campos generales
-                $('#numero_cotizacion').val(c.numero_cotizacion);
-                $('#fecha_validez').val(c.fecha_validez ? c.fecha_validez.substring(0, 10) : '');
-                $('#metodo_pago').val(c.metodo_pago || '');
-                $('#observaciones').val(c.observaciones || '');
-                $('#terminos_condiciones').val(c.terminos_condiciones || '');
+            $('#numero_cotizacion').val(c.numero_cotizacion);
+            $('#fecha_validez').val(c.fecha_validez ? c.fecha_validez.substring(0, 10) : '');
+            $('#metodo_pago').val(c.metodo_pago || '');
+            $('#observaciones').val(c.observaciones || '');
+            $('#terminos_condiciones').val(c.terminos_condiciones || '');
 
-                // Rellenar cliente
-                if (c.cliente) {
-                    var opt = new Option(c.cliente.nombre + ' - ' + c.cliente.cedula, c.cliente.id_cliente, true, true);
-                    $('#id_cliente').append(opt).trigger('change');
-                    $('#cliente_nombre').val(c.cliente.nombre).prop('readonly', true);
-                    $('#cliente_cedula').val(c.cliente.cedula).prop('readonly', true);
-                    $('#cliente_telefono').val(c.cliente.telefono || '').prop('readonly', false);
-                    $('#cliente_email').val(c.cliente.email || '').prop('readonly', false);
-                } else if (c.cliente_nombre) {
-                    $('#cliente_general').prop('checked', true).trigger('change');
-                    $('#cliente_nombre').val(c.cliente_nombre).prop('readonly', false);
-                }
-
-                // Rellenar productos
-                if (c.detalles && c.detalles.length) {
-                    c.detalles.forEach(function(d) {
-                        agregarRenglonProducto({
-                            id:     d.id_producto,
-                            text:   d.nombre_producto || (d.producto ? d.producto.nombre : ''),
-                            precio: d.precio_unitario,
-                            stock:  d.producto ? d.producto.stock : 0
-                        });
-                        // Actualizar cantidad y descuento de la última fila agregada
-                        var $lastRow = $('#tbody-productos .fila-producto').last();
-                        $lastRow.find('.cantidad').val(d.cantidad);
-                        $lastRow.find('.descuento').val(d.descuento || 0);
-                        calcularFila($lastRow);
-                    });
-                }
-
-                abrirOverlay('overlayCrearCotizacion');
-            },
-            error: function() {
-                Swal.fire('Error', 'No se pudo cargar la cotización', 'error');
+            if (c.cliente) {
+                var opt = new Option(c.cliente.nombre + ' - ' + c.cliente.cedula, c.cliente.id_cliente, true, true);
+                $('#id_cliente').append(opt).trigger('change');
+                $('#cliente_nombre').val(c.cliente.nombre).prop('readonly', true);
+                $('#cliente_cedula').val(c.cliente.cedula).prop('readonly', true);
+                $('#cliente_telefono').val(c.cliente.telefono || '').prop('readonly', false);
+                $('#cliente_email').val(c.cliente.email || '').prop('readonly', false);
+            } else if (c.cliente_nombre) {
+                $('#cliente_general').prop('checked', true).trigger('change');
+                $('#cliente_nombre').val(c.cliente_nombre).prop('readonly', false);
             }
-        });
-    });
 
+            if (c.detalles && c.detalles.length) {
+               c.detalles.forEach(function(d) {
+                agregarRenglonProducto({
+                    id:     d.id_producto,
+                    text:   d.nombre_producto || (d.producto ? d.producto.nombre : ''),
+                    precio: d.precio_unitario,
+                    stock:  d.producto ? d.producto.stock_actual : 0  // ← stock_actual
+                });
+                var $lastRow = $('#tbody-productos .fila-producto').last();
+                $lastRow.find('.cantidad').val(parseInt(d.cantidad));
+                $lastRow.find('.descuento').val(d.descuento || 0);
+                calcularFila($lastRow);
+            });
+            }
+
+            abrirOverlay('overlayCrearCotizacion');
+        },
+        error: function() {
+            Swal.fire('Error', 'No se pudo cargar la cotización', 'error');
+        }
+    });
+});
     // Al guardar: detectar si es crear o editar y usar la ruta correcta
     $('#formCotizacion').off('submit').on('submit', function(e) {
         e.preventDefault();
@@ -1267,12 +1638,13 @@ $(document).ready(function () {
     // ================================================
     // BOTÓN PDF (desde tabla y desde modal Ver)
     // ================================================
-    function abrirPDF(id) {
-        var url = APP_URL + '/cotizaciones/' + id + '/pdf';
-        $('#pdfIframe').attr('src', url);
-        $('#btnDescargarPDF').attr('href', url);
-        abrirOverlay('overlayVerPDF');
-    }
+   function abrirPDF(id) {
+    var url = APP_URL + '/cotizaciones/' + id + '/pdf';
+    $('#pdfIframe').attr('src', url);
+    // Botón descargar apunta a la misma ruta pero con ?download=1
+    $('#btnDescargarPDF').attr('href', url + '?download=1');
+    abrirOverlay('overlayVerPDF');
+}
 
     $(document).on('click', '.btn-pdf', function() {
         abrirPDF($(this).data('id'));

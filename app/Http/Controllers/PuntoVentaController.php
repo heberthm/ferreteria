@@ -63,6 +63,27 @@ class PuntoVentaController extends Controller
         }
     }
 
+    public function buscarClientes(Request $request)
+    {
+        $term = $request->get('term', '');
+        
+        $clientes = Cliente::where('nombre', 'LIKE', "%{$term}%")
+                          ->orWhere('email', 'LIKE', "%{$term}%")
+                          ->orWhere('documento', 'LIKE', "%{$term}%")
+                          ->limit(10)
+                          ->get();
+        
+        $results = [];
+        foreach ($clientes as $cliente) {
+            $results[] = [
+                'id' => $cliente->id,
+                'text' => $cliente->nombre . ' - ' . $cliente->documento
+            ];
+        }
+        
+        return response()->json($results);
+    }
+
     /**
      * Todos los productos.
      * IMPORTANTE: el JS espera los campos: id, codigo, nombre, precio, stock,
@@ -93,7 +114,7 @@ class PuntoVentaController extends Controller
             ], 500);
         }
     }
-
+  
     /**
      * Productos frecuentes — los 6 más vendidos (por cantidad en detalle_ventas).
      * Si no hay ventas aún, devuelve los 6 con mayor stock_actual.

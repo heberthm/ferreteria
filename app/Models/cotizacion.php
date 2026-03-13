@@ -33,13 +33,9 @@ class Cotizacion extends Model
         'terminos_condiciones'
     ];
 
-    protected $casts = [
-        'fecha_cotizacion' => 'datetime',
-        'fecha_validez' => 'date',
-        'subtotal' => 'decimal:2',
-        'impuesto' => 'decimal:2',
-        'descuento' => 'decimal:2',
-        'total' => 'decimal:2'
+   protected $casts = [
+    'fecha_cotizacion' => 'datetime',
+    'fecha_validez'    => 'date',
     ];
 
     public function cliente()

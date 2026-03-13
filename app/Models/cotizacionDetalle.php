@@ -27,6 +27,7 @@ class CotizacionDetalle extends Model
         'observaciones'
     ];
 
+    /*
     protected $casts = [
         'cantidad' => 'decimal',
         'precio_unitario' => 'decimal',
@@ -34,6 +35,8 @@ class CotizacionDetalle extends Model
         'subtotal' => 'decimal',
         'total' => 'decimal'
     ];
+
+    */
 
     public function cotizacion()
     {

@@ -11,6 +11,7 @@ use App\Http\Controllers\CajaMenorController;
 use App\Http\Controllers\PuntoVentaController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
+use App\Http\Controllers\RemisionController;
 use App\http\Controllers\ventaController;
 use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\DashboardController;
@@ -49,7 +50,10 @@ Route::get('/inicio', [App\Http\Controllers\HomeController::class, 'index'])->na
 // Rutas para clientes
 Route::get('clientes', [App\Http\Controllers\ClienteController::class, 'index'])->name('clientes.index');
 Route::get('clientes-data', [App\Http\Controllers\ClienteController::class, 'getData'])->name('clientes.data');
-Route::post('clientes', [App\Http\Controllers\ClienteController::class, 'store'])->name('clientes.store');
+Route::get('busqueda-clientes', [App\Http\Controllers\ClienteController::class, 'busquedaClientes'])->name('busqueda-clientes');
+Route::get('verificar-cliente', [App\Http\Controllers\ClienteController::class, 'verificarCliente'])->name('verificar-cliente');
+Route::get('clientes-data', [App\Http\Controllers\ClienteController::class, 'getData'])->name('clientes.data');
+Route::post('guardar_clientes', [App\Http\Controllers\ClienteController::class, 'store'])->name('clientes.store');
 Route::get('clientes/{id}', [App\Http\Controllers\ClienteController::class, 'show'])->name('clientes.show');
 Route::get('clientes/{id}/edit', [App\Http\Controllers\ClienteController::class, 'edit'])->name('clientes.edit');
 Route::put('clientes/{id}', [App\Http\Controllers\ClienteController::class, 'update'])->name('clientes.update');
@@ -80,6 +84,7 @@ Route::get('venta', [PuntoVentaController::class, 'index'])->name('venta');
 Route::post('/buscar-productos', [PuntoVentaController::class, 'buscarProductos'])->name('buscar-productos');
 Route::post('/buscar-clientes', [PuntoVentaController::class, 'buscarClientes'])->name('buscar-clientes');
 Route::post('/procesar-venta', [PuntoVentaController::class, 'procesarVenta'])->name('procesar-venta');
+Route::get('/productos-frecuentes', [PuntoVentaController::class, 'productosFrecuentes'])->name('productos.frecuentes');
 Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
 Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
 
@@ -177,16 +182,41 @@ Route::get('/productos/frecuentes', [App\Http\Controllers\productoController::cl
 
 // ==================================
 
+// 1. Rutas estáticas PRIMERO (sin parámetros)
 Route::get('/cotizaciones',                      [CotizacionController::class, 'index'])          ->name('cotizaciones.index');
-Route::post('/cotizaciones',                     [CotizacionController::class, 'store'])           ->name('cotizaciones-guardar');
 Route::get('/cotizaciones/data',                 [CotizacionController::class, 'getData'])         ->name('cotizaciones.data');
-Route::get('/cotizaciones/numero-siguiente',     [CotizacionController::class, 'numeroSiguiente']) ->name('cotizaciones.numero-siguiente');
-Route::post('/buscar-productos-cotizacion',      [CotizacionController::class, 'buscarProductos']) ->name('buscar-productos-cotizacion');
-Route::get('/cotizaciones/{id}',                 [CotizacionController::class, 'show'])            ->name('cotizaciones.show');
-Route::put('/cotizaciones/{id}',                 [CotizacionController::class, 'update'])          ->name('cotizaciones.update');
-Route::delete('/cotizaciones/{id}',              [CotizacionController::class, 'destroy'])         ->name('cotizaciones.destroy');
-Route::post('/cotizaciones/{id}/cambiar-estado', [CotizacionController::class, 'cambiarEstado'])   ->name('cotizaciones.cambiar-estado');
-Route::get('/cotizaciones/{id}/pdf',             [CotizacionController::class, 'generarPDF'])      ->name('cotizaciones.pdf');
+Route::get('/cotizaciones/numero-siguiente',     [CotizacionController::class, 'numeroSiguiente'])->name('cotizaciones.numero-siguiente');
+Route::post('/cotizaciones',                     [CotizacionController::class, 'store'])           ->name('cotizaciones-guardar');
+Route::get('/buscar-clientes-cotizacion',       [CotizacionController::class, 'buscarClientes'])  ->name('buscar-clientes-cotizacion');
+Route::get('/buscar-productos-cotizacion',      [CotizacionController::class, 'buscarProductos'])->name('buscar-productos-cotizacion');
+
+// 2. Rutas con {id} AL FINAL (van después de todas las estáticas)
+Route::get('/cotizaciones/{id}/pdf',             [CotizacionController::class, 'generarPDF'])     ->name('cotizaciones.pdf');
+Route::post('/cotizaciones/{id}/cambiar-estado', [CotizacionController::class, 'cambiarEstado'])  ->name('cotizaciones.cambiar-estado');
+Route::get('/cotizaciones/{id}',                 [CotizacionController::class, 'show'])           ->name('cotizaciones.show');
+Route::put('/cotizaciones/{id}',                 [CotizacionController::class, 'update'])         ->name('cotizaciones.update');
+Route::delete('/cotizaciones/{id}',              [CotizacionController::class, 'destroy'])        ->name('cotizaciones.destroy');
+
+
+// Vista principal + DataTable
+Route::get('/remisiones',               [RemisionController::class, 'index'])->name('remisiones.index');
+Route::get('/remisiones/data',          [RemisionController::class, 'data'])->name('remisiones.data');
+
+// Número siguiente (llamado al abrir modal)
+Route::get('/remisiones/numero-siguiente', [RemisionController::class, 'numeroSiguiente'])->name('remisiones.numero-siguiente');
+
+// Búsqueda de productos para Select2
+Route::get('/buscar-productos-remision', [RemisionController::class, 'buscarProductos'])->name('buscar-productos-remision');
+
+// CRUD
+Route::post('/remisiones',              [RemisionController::class, 'store'])->name('remisiones.store');
+Route::get('/remisiones/{id}',          [RemisionController::class, 'show'])->name('remisiones.show');
+Route::put('/remisiones/{id}',          [RemisionController::class, 'update'])->name('remisiones.update');
+Route::delete('/remisiones/{id}',       [RemisionController::class, 'destroy'])->name('remisiones.destroy');
+
+// Cambiar estado
+Route::post('/remisiones/{id}/cambiar-estado', [RemisionController::class, 'cambiarEstado'])->name('remisiones.cambiar-estado');
+
 
 
 // ======================================================
