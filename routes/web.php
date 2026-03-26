@@ -12,6 +12,8 @@ use App\Http\Controllers\PuntoVentaController;
 use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\RemisionController;
+use App\Http\Controllers\DevolucionController;
+use App\Http\Controllers\UserController;
 use App\http\Controllers\ventaController;
 use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\DashboardController;
@@ -137,11 +139,12 @@ Route::post('crear_venta', [App\Http\Controllers\VentaController::class, 'create
 
 
 Route::get('categorias', [App\Http\Controllers\CategoriaController::class, 'index'])->name('categorias');
-Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('crear_categorias');
+Route::post('/categorias', [App\Http\Controllers\CategoriaController::class, 'store'])->name('categorias.store');
 Route::get('mostrar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'show'])->name('mostrar_categoria');
 Route::get('editar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'edit'])->name('editar_categoria');
 Route::post('actualizar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'update'])->name('categoria.update');
-Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaController::class, 'destroy'])->name('categoria.destroy');
+Route::delete('/categorias/{id}', [CategoriaController::class, 'destroy'])->name('categorias.destroy');
+
 
 
 // ======================================================
@@ -149,11 +152,6 @@ Route::delete('eliminar_categoria/{id}', [App\Http\Controllers\CategoriaControll
 //  RUTAS PARA PRODUCTOS
 
 // ======================================================
-
-Route::post('/compras/guardar', [App\Http\Controllers\compraController::class, 'registrarCompra'])->name('compras.guardar');
-Route::get('/compras/listar',  [App\Http\Controllers\compraController::class, 'listarCompras'])->name('compras.listar');
-Route::get('/compras/estadisticas', [App\Http\Controllers\compraController::class, 'estadisticasCompras'])->name('compras.estadisticas');
-Route::get('compras', [App\Http\Controllers\compraController::class, 'index'])->name('compras');
 
 Route::get('/productos', [ProductoController::class, 'index'])->name('productos.index');
 Route::post('/productos-guardar', [ProductoController::class, 'store'])->name('producto.guardar');
@@ -175,6 +173,24 @@ Route::get('/por-categoria', [App\Http\Controllers\ProductoController::class, 'p
 Route::get('/filtrar-productos', [App\Http\Controllers\ProductoController::class, 'porCategoria'])->name('filtrar-productos');
 Route::get('/productos-todos', [App\Http\Controllers\ProductoController::class, 'todosLosProductos'])->name('productos-todos');
 Route::get('/productos/frecuentes', [App\Http\Controllers\productoController::class, 'productosFrecuentes'])->name('productos/frecuentes');
+
+
+Route::get('/compras', [CompraController::class, 'index'])->name('compras.index');
+Route::get('/compras/listar', [CompraController::class, 'listarCompras'])->name('compras.listar');
+Route::post('/compras/guardar', [CompraController::class, 'guardar'])->name('compras.guardar');
+Route::get('/compras/estadisticas', [CompraController::class, 'estadisticasCompras'])->name('compras.estadisticas');
+Route::get('/compras/buscar-productos', [CompraController::class, 'buscarProductos'])->name('compras.buscar-productos');
+
+// Nuevas rutas para acciones en compras
+Route::get('/compras/mostrar/{id}', [CompraController::class, 'mostrarCompra'])->name('compras.mostrar');
+Route::post('/compras/actualizar/{id}', [CompraController::class, 'actualizarCompra'])->name('compras.actualizar');
+Route::delete('/compras/anular/{id}', [CompraController::class, 'anularCompra'])->name('compras.anular');
+
+
+Route::get('/mostrar_producto/{id}', [ProductoController::class, 'show'])->name('productos.show');
+Route::get('/editar_producto/{id}', [ProductoController::class, 'edit'])->name('productos.edit');
+Route::post('/actualizar_producto/{id}', [ProductoController::class, 'update'])->name('productos.update');
+
 
 // =================================
 
@@ -221,18 +237,63 @@ Route::post('/remisiones/{id}/cambiar-estado', [RemisionController::class, 'camb
 
 // ======================================================
 
+//  RUTAS PARA DEVOLUCIONES
+
+// ======================================================
+
+Route::get('devoluciones', [DevolucionController::class, 'index'])->name('devoluciones.index');
+Route::post('devoluciones', [DevolucionController::class, 'store'])->name('devoluciones.store');
+
+Route::get('devoluciones/data', [DevolucionController::class, 'getData'])->name('devoluciones.data');
+Route::get('devoluciones/next-number', [DevolucionController::class, 'numeroSiguiente'])->name('devoluciones.next-number');
+Route::get('devoluciones/siguiente-numero', [DevolucionController::class, 'numeroSiguiente'])->name('devoluciones.siguiente-numero');
+Route::get('clientes/buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar');
+Route::get('devoluciones/buscar-ventas', [DevolucionController::class, 'buscarVentasCliente'])->name('devoluciones.buscar-ventas');
+
+
+
+// Luego las rutas resource o con parámetros
+Route::get('devoluciones/{id}', [DevolucionController::class, 'show'])->name('devoluciones.show');
+Route::put('devoluciones/{id}', [DevolucionController::class, 'update'])->name('devoluciones.update');
+Route::delete('devoluciones/{id}', [DevolucionController::class, 'destroy'])->name('devoluciones.destroy');
+Route::get('devoluciones/detalles-venta/{id}', [DevolucionController::class, 'getDetallesVenta'])->name('devoluciones.detalles-venta');
+Route::post('devoluciones/aprobar/{id}', [DevolucionController::class, 'aprobar'])->name('devoluciones.aprobar');
+Route::post('devoluciones/rechazar/{id}', [DevolucionController::class, 'rechazar'])->name('devoluciones.rechazar');
+Route::post('devoluciones/completar/{id}', [DevolucionController::class, 'completar'])->name('devoluciones.completar');
+Route::post('devoluciones/cancelar/{id}', [DevolucionController::class, 'cancelar'])->name('devoluciones.cancelar');
+Route::get('devoluciones/pdf/{id}', [DevolucionController::class, 'pdf'])->name('devoluciones.pdf');
+
+// Rutas adicionales
+Route::get('devoluciones/data', [DevolucionController::class, 'getData'])->name('devoluciones.data');
+Route::get('devoluciones/buscar-ventas', [DevolucionController::class, 'buscarVentasCliente'])->name('devoluciones.buscar-ventas');
+Route::get('devoluciones/detalles-venta/{id}', [DevolucionController::class, 'getDetallesVenta'])->name('devoluciones.detalles-venta');
+Route::post('devoluciones/aprobar/{id}', [DevolucionController::class, 'aprobar'])->name('devoluciones.aprobar');
+Route::post('devoluciones/rechazar/{id}', [DevolucionController::class, 'rechazar'])->name('devoluciones.rechazar');
+Route::post('devoluciones/completar/{id}', [DevolucionController::class, 'completar'])->name('devoluciones.completar');
+Route::post('devoluciones/cancelar/{id}', [DevolucionController::class, 'cancelar'])->name('devoluciones.cancelar');
+Route::get('devoluciones/pdf/{id}', [DevolucionController::class, 'pdf'])->name('devoluciones.pdf');
+
+
+// ======================================================
+
 //  RUTAS PARA INVETARIO
 
 // ======================================================
 
- 
-Route::get('/inventarios', [App\Http\Controllers\InventarioController::class, 'index']);
-Route::get('/inventarios/kardex/{id_producto}',[App\Http\Controllers\InventarioController::class, 'kardex']);
-Route::get('/inventarios/reporte',[App\Http\Controllers\InventarioController::class, 'reporte']);
-Route::get('/inventarios/listar',[App\Http\Controllers\InventarioController::class, 'listar']);
-Route::get('/inventarios/{id}',[App\Http\Controllers\InventarioController::class, 'show']);
-Route::get('/inventarios/estadisticas',[App\Http\Controllers\InventarioController::class, 'estadisticas']);
-  
+// Rutas para el módulo de inventario
+Route::get('/inventarios', [InventarioController::class, 'index'])->name('inventarios');
+Route::get('/inventario/data', [InventarioController::class, 'getData'])->name('inventario.data');
+Route::get('/inventario/resumen', [InventarioController::class, 'getResumen'])->name('inventario.resumen');
+Route::get('/inventario/detalle/{id}', [InventarioController::class, 'getDetalle'])->name('inventario.detalle');
+Route::get('/inventario/exportar', [InventarioController::class, 'exportar'])->name('inventario.exportar');
+Route::post('/inventario/registrar', [InventarioController::class, 'registrarMovimiento'])->name('inventario.registrar');
+Route::get('/inventario/imprimir/{id}', [InventarioController::class, 'imprimir'])->name('inventario.imprimir');
+
+// Rutas auxiliares para selects - ¡ESTAS SON LAS QUE FALTABAN!
+Route::get('/productos/list', [ProductoController::class, 'list'])->name('productos.list');
+Route::get('/categorias/list', [CategoriaController::class, 'list'])->name('categorias.list');
+Route::get('/proveedores/list', [proveedorController::class, 'list'])->name('proveedores.list');
+Route::get('/usuarios/list', [UserController::class, 'list'])->name('usuarios.list');
 
 
 // ======================================================
@@ -253,29 +314,20 @@ Route::get('/inventarios/estadisticas',[App\Http\Controllers\InventarioControlle
     Route::get('/movimientos-caja/export/pdf', [CajaMenorController::class, 'exportarPdf'])->name('movimientos.export.pdf');
 
 
-    // ======================================================
+
+// ======================================================
 
 //  RUTAS PARA PROVEEDORES
 
 // ======================================================
+  
+Route::get('/proveedores/lista', [ProveedorController::class, 'getLista'])->name('proveedores.lista');
+Route::resource('proveedores', ProveedorController::class);
+ Route::get('proveedores-data', [ProveedorController::class, 'getData'])->name('proveedores.data');
 
 
-   Route::resource('proveedores', ProveedorController::class);
-   Route::get('proveedores-data', [ProveedorController::class, 'getData'])->name('proveedores.data');
 
-
-
-// Rutas para búsquedas AJAX
-
-/*
-Route::post('/buscar_cliente', [ClienteController::class, 'buscar']);
-Route::post('/buscar-productos', [ProductoController::class, 'buscar']);
-Route::get('/filtrar-productos', [ProductoController::class, 'filtrarProductos']);
-Route::post('/productos-todos', [ProductoController::class, 'todosLosProductos']);
-Route::post('/obtener-categorias', [ProductoController::class, 'obtenerCategorias']);
-
-*/
-    // Verificar stock
-  //  Route::post('verificar-stock', [puntoVentaController::class, 'verificarStock'])->name('pos-verificar-stock');
-    
-   
+ Route::get('/test-columnas', function() {
+    $columnas = \Illuminate\Support\Facades\Schema::getColumnListing('productos');
+    dd($columnas);
+});

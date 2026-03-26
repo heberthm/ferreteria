@@ -2,9 +2,7 @@
 @section('content')
 
 <style>
-/* ================================================
-   ESTILOS GENERALES
-================================================ */
+
 ./* ================================================
    ESTILOS SELECT2 PERSONALIZADOS (CORREGIDO)
 ================================================ */
@@ -291,6 +289,21 @@
 #tabla-productos input[type=number].cantidad {
     -moz-appearance: textfield;
     appearance: textfield;
+}
+
+/* Estilos para los botones igual que en cotizaciones */
+.btn-group .btn {
+    margin: 0 2px;
+    border-radius: 4px !important;
+}
+
+.btn-group .btn i {
+    font-size: 14px;
+}
+
+/* Para mantener consistencia en el espaciado */
+.table td .btn-group {
+    white-space: nowrap;
 }
 
 /* SweetAlert2 siempre encima de los modales */
@@ -941,24 +954,46 @@ $(document).ready(function () {
         }
     });
 
-    // Botón Filtrar
-    $('#btnFiltrar').on('click', function() {
-        tablaCotizaciones.ajax.reload();
-    });
 
-    // Limpiar filtros
-    $('#btnLimpiarFiltros').on('click', function() {
-        $('#filtro_estado').val('');
-        $('#filtro_fecha_desde').val('');
-        $('#filtro_fecha_hasta').val('');
-        $('#filtro_cliente').val('');
-        tablaCotizaciones.ajax.reload();
-    });
 
-    // Filtrar también al presionar Enter en el campo cliente
-    $('#filtro_cliente').on('keypress', function(e) {
-        if (e.which === 13) tablaCotizaciones.ajax.reload();
-    });
+// ================================================
+// FILTROS AUTOMÁTICOS (SIN BOTÓN)
+// ================================================
+
+        // Filtros que se activan al cambiar el valor (selects y fechas)
+        $('#filtro_estado, #filtro_fecha_desde, #filtro_fecha_hasta').on('change', function() {
+            tablaCotizaciones.ajax.reload();
+        });
+
+        // Filtro de cliente con búsqueda mientras se escribe (delay de 500ms)
+        $('#filtro_cliente').on('keyup', function() {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(function() {
+                tablaCotizaciones.ajax.reload();
+            }, 500);
+        });
+
+        // También soportar Enter para búsqueda inmediata
+        $('#filtro_cliente').on('keypress', function(e) { 
+            if (e.which === 13) {
+                clearTimeout(window.searchTimeout);
+                tablaCotizaciones.ajax.reload();
+            }
+        });
+
+        // Botón Filtrar (opcional - puedes mantenerlo o eliminarlo)
+        $('#btnFiltrar').on('click', function() {
+            tablaCotizaciones.ajax.reload();
+        });
+
+        // Limpiar filtros
+        $('#btnLimpiarFiltros').on('click', function() {
+            $('#filtro_estado').val('');
+            $('#filtro_fecha_desde').val('');
+            $('#filtro_fecha_hasta').val('');
+            $('#filtro_cliente').val('');
+            tablaCotizaciones.ajax.reload();
+        });
 
     // ================================================
     // SELECT2 — helpers

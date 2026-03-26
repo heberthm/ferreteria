@@ -416,16 +416,12 @@ return [
             'url' => 'remisiones',
         ],       
 
-        [
-            'text' => 'Devoluciones',
-            'icon' => 'nav-icon fas fa-undo',
-           
-        ],
+       
        // ['header' => 'labels'],
         [
-            'text' => 'Devoluciones',
-            'url' => 'admin/settings',
+            'text' => 'Devoluciones',            
             'icon' => 'nav-icon fas fa-undo',
+            'url' => 'devoluciones',
         ],
 
          //    ['header' => 'account_settings'],
@@ -434,6 +430,11 @@ return [
             'url' => 'admin/settings',
             'icon' => 'nav-icon fas fa-shopping-cart',
             'submenu' => [
+                 [
+                    'text' => 'Proveedores',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'proveedores',
+                ],                  
                 [
                     'text' => 'Categorías',
                     'icon' => 'far fa-circle nav-icon',
@@ -449,24 +450,13 @@ return [
                     'icon' => 'far fa-circle nav-icon',
                     'url' => 'compras',
                 ],
-                [
-                    'text' => 'Proveedores',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => 'proveedores',
-                ],
-                   [
-                    'text' => 'Historial compras',
-                    'icon' => 'far fa-circle nav-icon',
-                    'url' => '#',
-                ],
             ]
         ],
 
         [
-            'text' => 'Inventarios',
-            'url' => 'admin/settings',
-            'icon' => 'nav-icon fas fa-boxes',        
-                 
+            'text' => 'Inventarios',           
+            'icon' => 'nav-icon fas fa-boxes',    
+            'url' => 'inventarios',                 
           
         ],
                    

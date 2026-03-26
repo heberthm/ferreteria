@@ -55,7 +55,6 @@
         color: white;
     }
 
-
     </style>
     
 <br>
@@ -70,10 +69,7 @@
                         Registrar producto
                  </button>  &nbsp;
             </div> 
-                    
-
-
-    </div>
+     </div>
   
     <div class="card-body">  
     <div class="table-responsive">
@@ -171,7 +167,7 @@
                                     <select id="id_proveedor" name="id_proveedor" class="form-control">
                                         <option value="">Seleccione proveedor</option>
                                         @foreach($proveedores as $proveedor)
-                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre }}</option>
+                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->razon_socal}}</option>
                                         @endforeach
                                     </select>
                                     <div class="invalid-feedback"></div>
@@ -269,6 +265,7 @@
  Modal para editar productos 
 ======================================  -->
 
+<!-- Modal para editar productos -->
 <div class="modal fade" id="modalEditarProducto" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -338,7 +335,7 @@
                                     <select id="id_proveedor_producto" name="id_proveedor" class="form-control">
                                         <option value="">Seleccione proveedor</option>
                                         @foreach($proveedores as $proveedor)
-                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->nombre }}</option>
+                                            <option value="{{ $proveedor->id_proveedor }}">{{ $proveedor->razon_social }}</option>
                                         @endforeach
                                     </select>
                                     <div class="invalid-feedback"></div>
@@ -354,12 +351,17 @@
                                     <small class="form-text text-muted">
                                         Formatos: JPEG, PNG, JPG, GIF, WEBP. Máximo 2MB.
                                     </small>
-                                  </div>
+                                    <div id="mensaje-archivo-editar" class="small"></div>
+                                    
+                                    <!-- Preview de imagen actual y nueva -->
+                                    <div class="mt-2">
+                                        <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; display: none;">
+                                        <img id="preview_editar" style="max-width: 100px; max-height: 100px; display: none;">
+                                    </div>
+                                </div>
                             </div>
                             
                             <input type="hidden" name="activo" value="1">
-
-
                         </div>
                         
                         <!-- Columna 2 -->
@@ -412,17 +414,7 @@
                                         <label class="form-check-label" for="frecuente_producto">Marcar como producto de uso frecuente</label>
                                     </div>
                                 </div>
-                            </div>                           
-                            
-                            <div id="mensaje-archivo-editar" class="small"></div>
-                                    
-                                    <!-- Preview de imagen actual -->
-                                    <div class="mt-2">
-                                        <img id="preview_imagen_actual" style="max-width: 100px; max-height: 100px; display: none;">
-                                        <img id="preview_editar" style="max-width: 100px; max-height: 100px; display: none;">
-                                       
-                                    </div>
-
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -437,11 +429,11 @@
 </div>
 
 
-
 <!-- ================================= 
  Modal para ver productos 
 ======================================  -->
 
+<!-- Modal para ver productos -->
 <div class="modal fade" id="modalVerProducto" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -487,14 +479,16 @@
                         <div class="form-group row mb-3">
                             <label class="col-sm-4 col-form-label font-weight-bold">Categoría:</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control-plaintext" id="ver_categoria" readonly>
+                                <input type="text" class="form-control-plaintext" id="ver_categoria_nombre" readonly>
+                                <small class="text-muted" id="ver_categoria_id"></small>
                             </div>
                         </div>
                         
                         <div class="form-group row mb-3">
                             <label class="col-sm-4 col-form-label font-weight-bold">Proveedor:</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control-plaintext" id="ver_proveedor" readonly>
+                                <input type="text" class="form-control-plaintext" id="ver_proveedor_nombre" readonly>
+                                <small class="text-muted" id="ver_proveedor_id"></small>
                             </div>
                         </div>
                     </div>
@@ -571,6 +565,7 @@
 @push('js')
 
 <script>
+    
 
 function previewImage(input, previewId) {
     console.log('previewImage ejecutada');
@@ -761,12 +756,6 @@ $.ajaxSetup({
 
     });
 
-//======================================
-
-// Guardar registro de producto
-
-//======================================
-
 
   // =============================================
     // 1. LIMPIAR TODOS LOS EVENTOS ANTERIORES
@@ -865,21 +854,26 @@ let btn = $('#BtnGuardar_producto')
             processData: false, 
             contentType: false,  
             dataType: "json",
-            success: function(data) {
-              
-                   
-                table.ajax.reload();   
+          success: function(data) {
+           
+            table.ajax.reload();   
 
-                $('#form_guardar_productos')[0].reset();      
-                $('#modalProductos').removeClass('show');
-                $('#modalProductos').css('display', 'none');
-                $('.modal-backdrop').remove();              
+            $('#form_guardar_productos')[0].reset();      
             
+            // Cerrar modal manualmente y limpiar estado Bootstrap
+            $('#modalProductos').modal('hide');
+            $('#modalProductos').removeClass('show');
+            $('#modalProductos').css('display', 'none');
+            $('body').removeClass('modal-open');
+            $('body').css('padding-right', '0');
+            $('.modal-backdrop').remove();
+            
+            // Resetear preview de imagen
+            $('#preview').hide().attr('src', '');
+            $('#mensaje-archivo').text('').removeClass('text-success text-danger');
 
-                 toastr["success"]("registro creado correctamente.");             
-                    
-         
-            }
+            toastr["success"]("Registro creado correctamente.");             
+        }
          });
         } catch(e) {
           toastr["danger"]("Se ha presentado un error.", "Información");
@@ -887,10 +881,35 @@ let btn = $('#BtnGuardar_producto')
     }); 
 
 
+// ======================================
+// CARGAR PROVEEDOR VIA AJAX
+// =======================================
+
+$(document).ready(function() {
+    // Cargar proveedores vía AJAX
+    $.ajax({
+        url: "{{ route('proveedores.lista') }}", // Necesitarás crear esta ruta
+        type: "GET",
+        success: function(data) {
+            let select = $('#id_proveedor');
+            select.empty().append('<option value="">Seleccione proveedor</option>');
+            
+            $.each(data, function(index, proveedor) {
+                select.append('<option value="' + proveedor.id_proveedor + '">' + 
+                             proveedor.razon_social + '</option>');
+            });
+        },
+        error: function() {
+            $('#id_proveedor').empty().append('<option value="">Error al cargar proveedores</option>');
+        }
+    });
+});
+
+
 
 // =========================================
 
-/// ELIMINAR REGISTROS DE TERAPIA
+/// ELIMINAR REGISTROS DE PRODUCTOS
 
 // =========================================   
 
@@ -1043,44 +1062,78 @@ function eliminarProducto(id_producto) {
 // =========================================
 /// VER REGISTROS DEL PRODUCTO - CORREGIDO
 // =========================================
+// =========================================
+/// VER REGISTROS DEL PRODUCTO - CORREGIDO
+// =========================================
 $(document).on('click', '.verProducto', function(e) {    
     e.preventDefault();
     
     let id_producto = $(this).data('id');
     console.log('Ver producto ID:', id_producto);
     
+    // Mostrar loading
+    Swal.fire({
+        title: 'Cargando...',
+        text: 'Por favor espere',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
     $.ajax({
-        url: "/mostrar_producto/" + id_producto,
+        url: "{{ url('mostrar_producto') }}/" + id_producto,
         method: 'GET',
         dataType: 'json',
         success: function(data) {
             console.log('Datos recibidos:', data);
             
-            // Llenar campos del modal VER con los IDs correctos
+            Swal.close();
+            
+            // Llenar campos del modal VER
             $('#ver_codigo').val(data.codigo || '');
             $('#ver_nombre').val(data.nombre || '');
+            $('#nombre_producto_titulo').text(data.nombre || '');
             $('#ver_descripcion').val(data.descripcion || '');
             $('#ver_marca').val(data.marca || '');
             
-            // Categoría y proveedor (accede correctamente)
-            $('#ver_categoria').val(data.categoria?.nombre || data.categoria || '');
-            $('#ver_proveedor').val(data.proveedor?.nombre || data.proveedor || '');
+            // Categoría: mostrar nombre y ID
+            let categoriaNombre = data.categoria ? data.categoria.nombre : (data.categoria_nombre || 'Sin categoría');
+            let categoriaId = data.id_categoria || (data.categoria ? data.categoria.id_categoria : '');
+            
+            $('#ver_categoria_nombre').val(categoriaNombre);
+            if (categoriaId) {
+                $('#ver_categoria_id').text('ID Categoría: ' + categoriaId);
+            } else {
+                $('#ver_categoria_id').text('');
+            }
+            
+            // Proveedor: mostrar nombre y ID
+            let proveedorNombre = data.proveedor ? data.proveedor.razon_social : (data.proveedor_nombre || 'Sin proveedor');
+            let proveedorId = data.id_proveedor || (data.proveedor ? data.proveedor.id_proveedor : '');
+            
+            $('#ver_proveedor_nombre').val(proveedorNombre);
+            if (proveedorId) {
+                $('#ver_proveedor_id').text('ID Proveedor: ' + proveedorId);
+            } else {
+                $('#ver_proveedor_id').text('');
+            }
             
             $('#ver_precio_venta').val('$' + parseFloat(data.precio_venta || 0).toFixed(2));
-            $('#ver_stock').val(data.stock || '0');
+            $('#ver_stock').val(data.stock_actual || '0');
             $('#ver_stock_minimo').val(data.stock_minimo || '0');
             $('#ver_unidad_medida').val(data.unidad_medida || '');
             $('#ver_ubicacion').val(data.ubicacion || '');
             $('#ver_frecuente').val(data.frecuente ? 'Sí' : 'No');
             
-            // Actualizar título
-            $('#nombre_producto_titulo').text(data.nombre || '');
-            
             // Manejo de imagen
             const preview = $('#previewVerProducto');
             
             if(data.imagen && data.imagen.trim() !== '') {
-                let imageUrl = "{{ asset('') }}" + data.imagen;
+                let imageUrl = data.imagen;
+                if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                    imageUrl = "{{ asset('') }}" + imageUrl;
+                }
                 preview.attr('src', imageUrl);
                 preview.show();
             } else {
@@ -1092,8 +1145,20 @@ $(document).on('click', '.verProducto', function(e) {
             $('#modalVerProducto').modal('show');
         },
         error: function(xhr) {
+            Swal.close();
             console.error('Error:', xhr);
-            toastr.error("Error al cargar los datos del producto.");
+            
+            let errorMessage = 'Error al cargar los datos del producto.';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
         }
     });
 });
@@ -1108,11 +1173,25 @@ $(document).on('click', '.verProducto', function(e) {
 /// EDITAR REGISTROS DEL PRODUCTO
 // =========================================
 
+// =========================================
+/// EDITAR REGISTROS DEL PRODUCTO - CORREGIDO
+// =========================================
+
 $(document).on('click', '.editarProducto', function(e) {    
     e.preventDefault();
     
     let id_producto = $(this).data('id');
     console.log('Editando producto ID:', id_producto);
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Cargando...',
+        text: 'Por favor espere',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
     
     $.ajax({
         url: "{{ url('editar_producto') }}/" + id_producto,
@@ -1121,45 +1200,56 @@ $(document).on('click', '.editarProducto', function(e) {
         success: function(data) {
             console.log('Datos del producto recibidos:', data);
             
+            Swal.close();
+            
             // SETEAR EL ID EN EL FORMULARIO
-          //  $('#producto_id').val(data.id);
+            $('#id_producto_producto').val(data.id_producto);
             
             // Llenar campos del modal
-             $('#id_producto_producto').val(data.id_producto || '');
             $('#codigo_producto').val(data.codigo || '');
             $('#nombre_producto').val(data.nombre || '');
+            $('#nombre_producto_titulo_2').text(data.nombre || '');
             $('#descripcion_producto').val(data.descripcion || '');
             $('#marca_producto').val(data.marca || '');
-            $('#categoria_producto').val(data.categoria || '');
+            $('#precio_venta_producto').val(data.precio_venta || '');
+            $('#stock_producto').val(data.stock_actual || '');
+            $('#stock_minimo_producto').val(data.stock_minimo || '');
             $('#unidad_medida_producto').val(data.unidad_medida || '');
             $('#ubicacion_producto').val(data.ubicacion || '');
-            $('#cantidad_producto').val(data.cantidad || '');
-            $('#precio_compra_producto').val(data.precio_compra || '');
-            $('#precio_venta_producto').val(data.precio_venta || '');
-            $('#stock_producto').val(data.stock || '');
-            $('#stock_minimo_producto').val(data.stock_minimo || '');
-            $('#proveedor_producto').val(data.proveedor || '');
+            
+            // Cargar categoría y proveedor con sus IDs
+            if (data.id_categoria) {
+                $('#id_categoria_producto').val(data.id_categoria);
+            }
+            
+            if (data.id_proveedor) {
+                $('#id_proveedor_producto').val(data.id_proveedor);
+            }
+            
+            // Checkbox frecuente
+            if (data.frecuente == 1) {
+                $('#frecuente_producto').prop('checked', true);
+            } else {
+                $('#frecuente_producto').prop('checked', false);
+            }
 
-               // Actualizar solo el nombre en el título
-            $('#nombre_producto_titulo_2').text(data.nombre || '');
-
-            // MANEJO DE IMAGEN - MOSTRAR IMAGEN ACTUAL
+            // MANEJO DE IMAGEN
             const previewActual = $('#preview_imagen_actual');
             const previewNueva = $('#preview_editar');
             
             if(data.imagen && data.imagen.trim() !== '') {
                 console.log('Imagen actual encontrada:', data.imagen);
                 
-                let cleanImagePath = data.imagen.replace('storage/', '');
-                let imageUrl = "{{ asset('storage') }}/" + cleanImagePath;
+                let imageUrl = data.imagen;
+                if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/')) {
+                    imageUrl = "{{ asset('') }}" + imageUrl;
+                }
                 
                 console.log('URL de imagen actual:', imageUrl);
                 
                 // Mostrar imagen actual
                 previewActual.attr('src', imageUrl);
                 previewActual.css('display', 'block');
-                
-                // Ocultar preview de nueva imagen
                 previewNueva.hide();
                 
                 // Verificar si la imagen se carga correctamente
@@ -1169,22 +1259,38 @@ $(document).on('click', '.editarProducto', function(e) {
                 
                 previewActual.on('error', function() {
                     console.error('Error cargando imagen actual:', imageUrl);
-                    previewActual.attr('src', 'https://via.placeholder.com/120x120/6c757d/ffffff?text=Sin+Imagen');
+                    previewActual.attr('src', "{{ asset('storage/images/default-product.png') }}");
                     previewActual.show();
                 });
                 
             } else {
                 console.log('No hay imagen actual disponible');
                 previewActual.hide();
-                previewActual.attr('src', '');
                 previewNueva.hide();
             }
             
+            // Limpiar mensajes de error
+            $('.invalid-feedback').empty();
+            $('.is-invalid').removeClass('is-invalid');
+            
+            // Abrir modal
             $('#modalEditarProducto').modal('show');
         },
         error: function(xhr, status, error) {
+            Swal.close();
             console.error('Error en AJAX:', xhr);
-            toastr.error("Error al cargar los datos del producto.");
+            
+            let errorMessage = 'Error al cargar los datos del producto.';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMessage = xhr.responseJSON.message;
+            }
+            
+            Swal.fire({
+                title: 'Error',
+                text: errorMessage,
+                icon: 'error',
+                confirmButtonColor: '#d33'
+            });
         }
     });
 });
@@ -1396,6 +1502,19 @@ const defaultProductImage = "{{ asset('storage/images/default-product.png') }}";
         backdrop: true,
         keyboard: true,
         show: false
+    });
+
+    // =============================================
+// FIX: Evitar acumulación de padding-right al cerrar modales
+// =============================================
+    $(document).on('hidden.bs.modal', '.modal', function() {
+        $('body').css('padding-right', '0');
+        $('body').removeClass('modal-open');
+        $('.modal-backdrop').remove();
+    });
+
+    $(document).on('show.bs.modal', '.modal', function() {
+        $('body').css('padding-right', '0');
     });
 
 });

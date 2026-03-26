@@ -8,16 +8,15 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('clientes', function (Blueprint $table) {
-            $table->index('cedula');
+        Schema::table('devoluciones', function (Blueprint $table) {
+            $table->softDeletes(); // Esto agrega la columna deleted_at
         });
     }
 
     public function down()
     {
-        Schema::table('clientes', function (Blueprint $table) {
-            $table->dropIndex(['cedula']);
+        Schema::table('devoluciones', function (Blueprint $table) {
+            $table->dropSoftDeletes();
         });
     }
 };
-

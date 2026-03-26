@@ -847,59 +847,92 @@ $(document).ready(function () {
     // ================================================
     // DATATABLES
     // ================================================
-    var tablaRemisiones = $('#tablaRemisiones').DataTable({
-        processing: true,
-        serverSide: true,
-        ajax: {
-            url: "{{ route('remisiones.data') }}",
-            type: 'GET',
-            data: function(d) {
-                d.estado      = $('#filtro_estado').val();
-                d.fecha_desde = $('#filtro_fecha_desde').val();
-                d.fecha_hasta = $('#filtro_fecha_hasta').val();
-                d.cliente     = $('#filtro_cliente').val();
-            }
-        },
-        columns: [
-            { data: 'numero_remision' },
-            { data: 'fecha_remision' },
-            { data: 'fecha_entrega_estimada' },
-            { data: 'cliente_nombre' },
-            { data: 'conductor' },
-            { data: 'total_fmt' },
-            { data: 'estado' },
-            { data: 'acciones', orderable: false, searchable: false }
-        ],
-        language: {
-            emptyTable:    "No hay remisiones registradas.",
-            info:          "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-            infoEmpty:     "Mostrando 0 a 0 de 0 Entradas",
-            infoFiltered:  "(Filtrado de _MAX_ total entradas)",
-            lengthMenu:    "Mostrar _MENU_ Entradas",
-            loadingRecords:"Cargando...",
-            processing:    "Procesando...",
-            search:        "Buscar:",
-            zeroRecords:   "Sin resultados encontrados",
-            paginate: { first:"Primero", last:"Ultimo", next:"Siguiente", previous:"Anterior" }
-        },
-        footerCallback: function(row, data) {
-            var total = 0;
-            data.forEach(function(f) {
-                total += f.total_raw !== undefined
-                    ? parseFloat(f.total_raw)
-                    : parseFloat(String(f.total_fmt).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.')) || 0;
-            });
-            $('#totalGeneral').text('$' + total.toLocaleString('es-CO'));
+   
+// ================================================
+// DATATABLES CON FILTROS AUTOMÁTICOS
+// ================================================
+var tablaRemisiones = $('#tablaRemisiones').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: {
+        url: "{{ route('remisiones.data') }}",
+        type: 'GET',
+        data: function(d) {
+            d.estado      = $('#filtro_estado').val();
+            d.fecha_desde = $('#filtro_fecha_desde').val();
+            d.fecha_hasta = $('#filtro_fecha_hasta').val();
+            d.cliente     = $('#filtro_cliente').val();
         }
-    });
+    },
+    columns: [
+        { data: 'numero_remision' },
+        { data: 'fecha_remision' },
+        { data: 'fecha_entrega_estimada' },
+        { data: 'cliente_nombre' },
+        { data: 'conductor' },
+        { data: 'total_fmt' },
+        { data: 'estado' },
+        { data: 'acciones', orderable: false, searchable: false }
+    ],
+    language: {
+        emptyTable:    "No hay remisiones registradas.",
+        info:          "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
+        infoEmpty:     "Mostrando 0 a 0 de 0 Entradas",
+        infoFiltered:  "(Filtrado de _MAX_ total entradas)",
+        lengthMenu:    "Mostrar _MENU_ Entradas",
+        loadingRecords:"Cargando...",
+        processing:    "Procesando...",
+        search:        "Buscar:",
+        zeroRecords:   "Sin resultados encontrados",
+        paginate: { first:"Primero", last:"Ultimo", next:"Siguiente", previous:"Anterior" }
+    },
+    footerCallback: function(row, data) {
+        var total = 0;
+        data.forEach(function(f) {
+            total += f.total_raw !== undefined
+                ? parseFloat(f.total_raw)
+                : parseFloat(String(f.total_fmt).replace(/[^0-9,.-]/g,'').replace(/\./g,'').replace(',','.')) || 0;
+        });
+        $('#totalGeneral').text('$' + total.toLocaleString('es-CO'));
+    }
+});
 
-    $('#btnFiltrar').on('click', function() { tablaRemisiones.ajax.reload(); });
-    $('#btnLimpiarFiltros').on('click', function() {
-        $('#filtro_estado, #filtro_fecha_desde, #filtro_fecha_hasta').val('');
-        $('#filtro_cliente').val('');
+// ================================================
+// FILTROS AUTOMÁTICOS (SIN BOTÓN)
+// ================================================
+
+// Filtros que se activan al cambiar el valor (selects y fechas)
+$('#filtro_estado, #filtro_fecha_desde, #filtro_fecha_hasta').on('change', function() {
+    tablaRemisiones.ajax.reload();
+});
+
+// Filtro de cliente con búsqueda mientras se escribe (delay de 500ms)
+$('#filtro_cliente').on('keyup', function() {
+    clearTimeout(window.searchTimeout);
+    window.searchTimeout = setTimeout(function() {
         tablaRemisiones.ajax.reload();
-    });
-    $('#filtro_cliente').on('keypress', function(e) { if (e.which === 13) tablaRemisiones.ajax.reload(); });
+    }, 500);
+});
+
+// También soportar Enter para búsqueda inmediata
+$('#filtro_cliente').on('keypress', function(e) { 
+    if (e.which === 13) {
+        clearTimeout(window.searchTimeout);
+        tablaRemisiones.ajax.reload();
+    }
+});
+
+// Botón filtrar (opcional, puede mantenerlo o eliminarlo)
+$('#btnFiltrar').on('click', function() {
+    tablaRemisiones.ajax.reload();
+});
+
+// Botón limpiar filtros
+$('#btnLimpiarFiltros').on('click', function() {
+    $('#filtro_estado, #filtro_fecha_desde, #filtro_fecha_hasta').val('');
+    $('#filtro_cliente').val('');
+    tablaRemisiones.ajax.reload();
+});
 
     // ================================================
     // BOTÓN NUEVA REMISIÓN

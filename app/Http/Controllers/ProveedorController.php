@@ -67,6 +67,31 @@ class ProveedorController extends Controller
         }
     }
 
+
+    // En app/Http/Controllers/ProveedorController.php
+
+/**
+ * Get list of providers for dropdown
+ */
+    public function getLista()
+    {
+        try {
+            $proveedores = Proveedor::select('id_proveedor', 'razon_social', 'nit')
+                                    ->orderBy('razon_social')
+                                    ->get();
+            
+            return response()->json($proveedores);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en getLista: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar proveedores: ' . $e->getMessage()
+            ], 500);
+        }
+}
+
     /**
      * Store a newly created resource in storage.
      */
@@ -78,7 +103,7 @@ class ProveedorController extends Controller
             'nit' => 'required|string|max:255',
             'razon_social' => 'required|string|max:255',
             'nombre_contacto' => 'required|string|max:255',
-            'telefono' => 'required|string|max:35',
+            'telefono' => 'required|string|max:255',
             'email' => 'nullable|email|unique:proveedores,email',
             'direccion' => 'nullable|string'
         ]);
@@ -150,38 +175,51 @@ class ProveedorController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
-    {
-        try {
-            $proveedor = Proveedor::findOrFail($id);
-            
-            $request->validate([
-                'nit' => 'required|string|max:255',
-                'razon_social' => 'required|string|max:255',
-                'nombre_contacto' => 'required|string|max:255',
-                'telefono' => 'required|string|max:20',
-                'email' => 'nullable|email|unique:proveedores,email,'.$id.',id_proveedor',
-                'direccion' => 'nullable|string'
-            ]);
+   public function update(Request $request, $id)
+{
+    try {
+        $proveedor = Proveedor::findOrFail($id);
+        
+        $request->validate([
+            'nit' => 'required|string|max:12',
+            'razon_social' => 'required|string|max:60',
+            'nombre_contacto' => 'required|string|max:60',
+            'telefono' => 'required|string|max:30',
+            'email' => 'nullable|email|unique:proveedores,email,'.$id.',id_proveedor',
+            'direccion' => 'nullable|string'
+        ]);
 
-            $data = $request->all();
-            $data['userId'] = Auth::id(); // Actualiza el userId
-            
-            $proveedor->update($data);
+        // Agregar logs para depuración (opcional)
+        \Log::info('Actualizando proveedor:', $request->all());
 
-            return response()->json([
-                'success' => true, 
-                'message' => 'Proveedor actualizado correctamente'
-            ]);
-            
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Error al actualizar proveedor: ' . $e->getMessage()
-            ], 500);
-        }
+        $proveedor->update([
+            'nit' => $request->nit,
+            'razon_social' => $request->razon_social,
+            'nombre_contacto' => $request->nombre_contacto,
+            'telefono' => $request->telefono,
+            'email' => $request->email,
+            'direccion' => $request->direccion,
+            'userId' => Auth::id()
+        ]);
+
+        return response()->json([
+            'success' => true, 
+            'message' => 'Proveedor actualizado correctamente'
+        ]);
+        
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        return response()->json([
+            'success' => false,
+            'errors' => $e->errors()
+        ], 422);
+    } catch (\Exception $e) {
+        \Log::error('Error al actualizar proveedor: ' . $e->getMessage());
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al actualizar proveedor: ' . $e->getMessage()
+        ], 500);
     }
-
+}
     /**
      * Remove the specified resource from storage.
      */

@@ -184,8 +184,9 @@
  Modal para editar proveedores 
 ====================================== -->
 
-<div class="modal fade" id="modalEditarProveedor" role="dialog" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<!-- Modal Editar Proveedor -->
+<div class="modal fade" id="modalEditarProveedor" tabindex="-1" role="dialog" aria-labelledby="modalEditarProveedorLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header bg-light">
                 <h5 class="modal-title">Editar proveedor: <span id="razon_social_titulo" style="color:red"></span></h5>
@@ -193,75 +194,102 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            
-            <form method="POST" id="form_editar_proveedor">
+            <form id="form_editar_proveedor" method="POST">
                 @csrf
                 @method('PUT')
+                <input type="hidden" id="id_proveedor" name="id_proveedor">
+                <input type="hidden" id="userId_editar" name="userId">
+                
                 <div class="modal-body">
-                    <input type="hidden" id="id_proveedor" name="id_proveedor">
-                    <!-- Campo userId oculto en edición -->
-                    <input type="hidden" id="userId_editar" name="userId" value="{{ auth()->id() }}">
-                    
                     <div class="row">
-                        <!-- Columna 1 -->
                         <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="nit_editar" class="col-sm-4 col-form-label">NIT *</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="nit_editar" name="nit" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="razon_social_editar" class="col-sm-4 col-form-label">Razón Social *</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="razon_social_editar" name="razon_social" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="nombre_contacto_editar" class="col-sm-4 col-form-label">Nombre Contacto *</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="nombre_contacto_editar" name="nombre_contacto" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                            <div class="form-group">
+                                <label for="nit_editar">NIT <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nit_editar" 
+                                       name="nit" 
+                                       maxlength="20"
+                                       required>
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
-                        
-                        <!-- Columna 2 -->
                         <div class="col-md-6">
-                            <div class="form-group row mb-3">
-                                <label for="telefono_editar" class="col-sm-4 col-form-label">Teléfono *</label>
-                                <div class="col-sm-8">
-                                    <input type="text" class="form-control" id="telefono_editar" name="telefono" required>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                            <div class="form-group">
+                                <label for="razon_social_editar">Razón Social <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="razon_social_editar" 
+                                       name="razon_social" 
+                                       maxlength="255"
+                                       required>
+                                <div class="invalid-feedback"></div>
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="email_editar" class="col-sm-4 col-form-label">Email</label>
-                                <div class="col-sm-8">
-                                    <input type="email" class="form-control" id="email_editar" name="email">
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="nombre_contacto_editar">Nombre Contacto <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="nombre_contacto_editar" 
+                                       name="nombre_contacto" 
+                                       maxlength="255"
+                                       required>
+                                <div class="invalid-feedback"></div>
                             </div>
-                            
-                            <div class="form-group row mb-3">
-                                <label for="direccion_editar" class="col-sm-4 col-form-label">Dirección</label>
-                                <div class="col-sm-8">
-                                    <textarea class="form-control" id="direccion_editar" name="direccion" rows="3"></textarea>
-                                    <div class="invalid-feedback"></div>
-                                </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="telefono_editar">Teléfono <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="telefono_editar" 
+                                       name="telefono" 
+                                       maxlength="50"
+                                       required>
+                                <div class="invalid-feedback"></div>
+                                <small class="form-text text-muted">Máximo 50 caracteres</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="email_editar">Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email_editar" 
+                                       name="email" 
+                                       maxlength="255">
+                                <div class="invalid-feedback"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="direccion_editar">Dirección</label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="direccion_editar" 
+                                       name="direccion" 
+                                       maxlength="255">
+                                <div class="invalid-feedback"></div>
                             </div>
                         </div>
                     </div>
                 </div>
-
+                
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="BtnEditar_proveedor">Actualizar proveedor</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cerrar
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="BtnActualizar_proveedor">
+                        <span class="spinner-border spinner-border-sm d-none" id="spinner_editar" role="status" aria-hidden="true"></span>
+                        <span id="texto_btn_editar"><i class="fas fa-save"></i> Actualizar proveedor</span>
+                    </button>
                 </div>
             </form>
         </div>
@@ -351,8 +379,9 @@
 
 @push('js')
 <script>
+
 $(document).ready(function() {
-    // Inicializar DataTable - NOTA: Quitamos la columna userId de la vista
+    // Inicializar DataTable
     var tablaProveedores = $('#tablaProveedores').DataTable({
         processing: true,
         serverSide: true,
@@ -380,8 +409,7 @@ $(document).ready(function() {
             { data: 'acciones', name: 'acciones', orderable: false, searchable: false }
         ],
         "language": {
-
-            "emptyTable": "No hay productos registrados.",
+            "emptyTable": "No hay proveedores registrados.",
             "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
             "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
             "infoFiltered": "(Filtrado de _MAX_ total entradas)",
@@ -393,10 +421,10 @@ $(document).ready(function() {
             "search": "Buscar:",
             "zeroRecords": "Sin resultados encontrados",
             "paginate": {
-            "first": "Primero",
-            "last": "Ultimo",
-            "next": "Siguiente",
-            "previous": "Anterior"
+                "first": "Primero",
+                "last": "Ultimo",
+                "next": "Siguiente",
+                "previous": "Anterior"
             }
         },
         order: [[0, 'desc']],
@@ -404,185 +432,88 @@ $(document).ready(function() {
         lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]]
     });
 
+    // Variable para controlar el estado de la actualización
+    var actualizando = false;
+
     // Resetear formulario al abrir modal de crear
     $('#registrar_proveedor').click(function() {
+        // Limpiar backdrops
+        limpiarBackdrops();
+        
+        // Resetear formulario
         $('#form_guardar_proveedor')[0].reset();
         $('.invalid-feedback').empty();
         $('.form-control').removeClass('is-invalid');
         
-        // Actualizar el userId oculto con el ID del usuario actual (por si acaso)
+        // Actualizar el userId oculto
         var userId = "{{ auth()->id() }}";
         $('#userId').val(userId);
     });
 
-    // Resetear formulario al abrir modal de crear y dar foco al campo NIT
-    $('#registrar_proveedor').click(function() {
-        $('#form_guardar_proveedor')[0].reset();
-        $('.invalid-feedback').empty();
-        $('.form-control').removeClass('is-invalid');
-        
-        // Actualizar el userId oculto con el ID del usuario actual
-        var userId = "{{ auth()->id() }}";
-        $('#userId').val(userId);
-        
-        // Dar foco al campo NIT cuando se abre el modal
-        setTimeout(function() {
-            $('#nit').focus();
-        }, 500); // Pequeño retraso para asegurar que el modal esté completamente abierto
+    // Evento cuando el modal de crear se abre completamente
+    $('#modalProveedores').on('shown.bs.modal', function () {
+        $('#nit').focus();
     });
 
-    // Resetear formulario al abrir modal de crear y dar foco al campo NIT
-$('#registrar_proveedor').click(function() {
-    $('#form_guardar_proveedor')[0].reset();
-    $('.invalid-feedback').empty();
-    $('.form-control').removeClass('is-invalid');
-    
-    // Actualizar el userId oculto con el ID del usuario actual
-    var userId = "{{ auth()->id() }}";
-    $('#userId').val(userId);
-    
-    // El foco se manejará cuando el modal esté completamente abierto
-});
+    // Evento cuando el modal de crear se cierra
+    $('#modalProveedores').on('hidden.bs.modal', function () {
+        limpiarBackdrops();
+        restaurarBotonGuardar();
+    });
 
-// Evento que se dispara cuando el modal ha terminado de abrirse
-$('#modalProveedores').on('shown.bs.modal', function () {
-    // Dar foco al campo NIT cuando el modal esté completamente visible
-    $('#nit').focus();
-});
-
-// Guardar proveedor con spinner
-$('#form_guardar_proveedor').submit(function(e) {
-    e.preventDefault();
-    
-    // Mostrar spinner y cambiar texto del botón
-    $('#spinner_guardar').removeClass('d-none');
-    $('#texto_btn_guardar').text('Procesando...');
-    $('#BtnGuardar_proveedor').prop('disabled', true);
-    
-    var formData = $(this).serialize();
-    
-    $.ajax({
-        url: "{{ route('proveedores.store') }}",
-        type: "POST",
-        data: formData,
-        success: function(response) {
-            if (response.success) {
-                // FORZAR CIERRE DEL MODAL - Método directo
-                $('#modalProveedores').modal('hide');
-                
-                // Eliminar cualquier backdrop que haya quedado
-                if ($('.modal-backdrop').length > 0) {
-                    $('.modal-backdrop').remove();
-                }
-                
-                // Quitar la clase modal-open del body
-                $('body').removeClass('modal-open');
-                
-                // Restaurar el estilo del body
-                $('body').css('padding-right', '');
-                
-                // Restaurar botón
-                $('#spinner_guardar').addClass('d-none');
-                $('#texto_btn_guardar').text('Guardar proveedor');
-                $('#BtnGuardar_proveedor').prop('disabled', false);
-                
-                // Resetear formulario
-                $('#form_guardar_proveedor')[0].reset();
-                $('#userId').val("{{ auth()->id() }}");
-                
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Éxito',
-                    text: response.message,
-                    timer: 1500,
-                    showConfirmButton: false
-                });
-                
-                // Recargar la tabla
-                tablaProveedores.ajax.reload();
-            }
-        },
-        error: function(xhr) {
-            // Restaurar botón
-            $('#spinner_guardar').addClass('d-none');
-            $('#texto_btn_guardar').text('Guardar proveedor');
-            $('#BtnGuardar_proveedor').prop('disabled', false);
-            
-            if (xhr.status === 422) {
-                var errors = xhr.responseJSON.errors;
-                var errorMessages = [];
-                
-                $('.invalid-feedback').empty();
-                $('.form-control').removeClass('is-invalid');
-                
-                $.each(errors, function(key, value) {
-                    var campo = $('#' + key);
-                    if (campo.length === 0) {
-                        campo = $('#' + key + '_editar');
-                    }
+    // Guardar proveedor
+    $('#form_guardar_proveedor').submit(function(e) {
+        e.preventDefault();
+        
+        // Mostrar spinner
+        mostrarSpinnerGuardar();
+        
+        var formData = $(this).serialize();
+        
+        $.ajax({
+            url: "{{ route('proveedores.store') }}",
+            type: "POST",
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    // Cerrar modal
+                    $('#modalProveedores').modal('hide');
                     
-                    campo.addClass('is-invalid');
-                    campo.siblings('.invalid-feedback').html(value[0]);
-                    errorMessages.push(value[0]);
-                });
+                    // Restaurar botón
+                    restaurarBotonGuardar();
+                    
+                    // Resetear formulario
+                    $('#form_guardar_proveedor')[0].reset();
+                    $('#userId').val("{{ auth()->id() }}");
+                    
+                    // Mostrar mensaje de éxito
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Éxito',
+                        text: response.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    
+                    // Recargar tabla
+                    tablaProveedores.ajax.reload();
+                }
+            },
+            error: function(xhr) {
+                restaurarBotonGuardar();
                 
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error de validación',
-                    html: errorMessages.join('<br>'),
-                    confirmButtonText: 'Entendido'
-                });
-            } else {
-                Swal.fire('Error', 'Error al guardar el proveedor', 'error');
+                if (xhr.status === 422) {
+                    mostrarErroresValidacion(xhr.responseJSON.errors);
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al guardar el proveedor'
+                    });
+                }
             }
-        }
+        });
     });
-});
-
-// Evento para asegurar que cuando se abre el modal, todo esté limpio
-$('#registrar_proveedor').click(function() {
-    // Asegurar que no haya backdrops anteriores
-    $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open');
-    
-    // Limpiar formulario
-    $('#form_guardar_proveedor')[0].reset();
-    $('.invalid-feedback').empty();
-    $('.form-control').removeClass('is-invalid');
-    
-    // Restaurar botón
-    $('#spinner_guardar').addClass('d-none');
-    $('#texto_btn_guardar').text('Guardar proveedor');
-    $('#BtnGuardar_proveedor').prop('disabled', false);
-    
-    // Actualizar userId
-    $('#userId').val("{{ auth()->id() }}");
-});
-
-// Evento cuando el modal se cierra manualmente
-$('#modalProveedores').on('hidden.bs.modal', function () {
-    // Limpiar todo
-    $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open');
-    $('body').css('padding-right', '');
-    
-    // Restaurar botón
-    $('#spinner_guardar').addClass('d-none');
-    $('#texto_btn_guardar').text('Guardar proveedor');
-    $('#BtnGuardar_proveedor').prop('disabled', false);
-    
-    // Limpiar errores
-    $('.invalid-feedback').empty();
-    $('.form-control').removeClass('is-invalid');
-});
-
-// Evento cuando el modal se abre
-$('#modalProveedores').on('shown.bs.modal', function () {
-    // Dar foco al campo NIT
-    $('#nit').focus();
-});
-
 
     // Editar proveedor
     $(document).on('click', '.btn-editar', function() {
@@ -601,48 +532,212 @@ $('#modalProveedores').on('shown.bs.modal', function () {
                 $('#direccion_editar').val(data.direccion);
                 $('#razon_social_titulo').text(data.razon_social);
                 
-                // Actualizar el userId oculto con el ID del usuario actual
+                // Actualizar userId
                 var userId = "{{ auth()->id() }}";
                 $('#userId_editar').val(userId);
+                
+                // Limpiar errores anteriores
+                $('.invalid-feedback').empty();
+                $('.form-control').removeClass('is-invalid');
+                
+                // Restaurar botón de actualizar
+                restaurarBotonActualizar();
                 
                 $('#modalEditarProveedor').modal('show');
             },
             error: function() {
-                Swal.fire('Error', 'No se pudo cargar la información del proveedor', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar la información del proveedor'
+                });
             }
         });
     });
 
-    // Actualizar proveedor
-    $('#form_editar_proveedor').submit(function(e) {
-        e.preventDefault();
+    // Actualizar proveedor - CORREGIDO
+  // Actualizar proveedor - VERSIÓN MEJORADA
+$('#form_editar_proveedor').submit(function(e) {
+    e.preventDefault();
+    
+    // Prevenir múltiples envíos
+    if (actualizando) {
+        return;
+    }
+    
+    actualizando = true;
+    
+    // Mostrar spinner
+    $('#spinner_editar').removeClass('d-none');
+    $('#texto_btn_editar').html(' Actualizando...');
+    $('#BtnActualizar_proveedor').prop('disabled', true);
+    
+    var id = $('#id_proveedor').val();
+    
+    // Validar longitud del teléfono antes de enviar
+    var telefono = $('#telefono_editar').val();
+    if (telefono.length > 50) {
+        $('#telefono_editar').addClass('is-invalid');
+        $('#telefono_editar').siblings('.invalid-feedback').html('El teléfono no puede tener más de 50 caracteres');
         
-        var id = $('#id_proveedor').val();
-        var formData = $(this).serialize();
-        
-        $.ajax({
-            url: "{{ url('proveedores') }}/" + id,
-            type: "POST",
-            data: formData,
-            success: function(response) {
-                if (response.success) {
-                    $('#modalEditarProveedor').modal('hide');
-                    tablaProveedores.ajax.reload();
-                    Swal.fire('Éxito', response.message, 'success');
-                }
-            },
-            error: function(xhr) {
-                if (xhr.status === 422) {
-                    var errors = xhr.responseJSON.errors;
-                    $.each(errors, function(key, value) {
-                        $('#' + key + '_editar').addClass('is-invalid');
-                        $('#' + key + '_editar').siblings('.invalid-feedback').html(value[0]);
-                    });
-                } else {
-                    Swal.fire('Error', 'Error al actualizar el proveedor', 'error');
-                }
+        restaurarBotonActualizar();
+        actualizando = false;
+        return;
+    }
+    
+    // Usar FormData para enviar todos los datos
+    var formData = new FormData(this);
+    
+    // Agregar método PUT explícitamente
+    formData.append('_method', 'PUT');
+    
+    // Debug: Ver qué se está enviando
+    for (var pair of formData.entries()) {
+        console.log(pair[0] + ': ' + pair[1]);
+    }
+    
+    $.ajax({
+        url: "{{ url('proveedores') }}/" + id,
+        type: "POST", // Usamos POST con _method=PUT
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                // Cerrar modal
+                $('#modalEditarProveedor').modal('hide');
+                
+                // Recargar tabla
+                tablaProveedores.ajax.reload();
+                
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: response.message,
+                    timer: 1500,
+                    showConfirmButton: false
+                });
             }
-        });
+            
+            restaurarBotonActualizar();
+            actualizando = false;
+        },
+        error: function(xhr) {
+            restaurarBotonActualizar();
+            actualizando = false;
+            
+            if (xhr.status === 422) {
+                // Errores de validación
+                var errors = xhr.responseJSON.errors;
+                console.log('Errores de validación:', errors);
+                
+                // Limpiar errores anteriores
+                $('.invalid-feedback').empty();
+                $('.form-control').removeClass('is-invalid');
+                
+                // Mostrar errores específicos
+                $.each(errors, function(field, messages) {
+                    var campo = $('#' + field + '_editar');
+                    if (campo.length) {
+                        campo.addClass('is-invalid');
+                        campo.siblings('.invalid-feedback').html(messages[0]);
+                    }
+                });
+                
+                // Mostrar mensaje de error general si es el teléfono
+                if (errors.telefono) {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Error en el teléfono',
+                        text: errors.telefono[0],
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            } else {
+                // Error del servidor
+                console.error('Error completo:', xhr);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: xhr.responseJSON?.message || 'Error al actualizar el proveedor'
+                });
+            }
+        }
+    });
+});
+
+// Función mejorada para restaurar botón
+function restaurarBotonActualizar() {
+    $('#spinner_editar').addClass('d-none');
+    $('#texto_btn_editar').html('<i class="fas fa-save"></i> Actualizar proveedor');
+    $('#BtnActualizar_proveedor').prop('disabled', false);
+}
+
+// Validación en tiempo real para el teléfono
+$('#telefono_editar').on('input', function() {
+    var telefono = $(this).val();
+    var longitud = telefono.length;
+    
+    // Remover clases de error mientras escribe
+    $(this).removeClass('is-invalid');
+    $(this).siblings('.invalid-feedback').empty();
+    
+    // Mostrar contador de caracteres
+    if (!$('#telefono_counter').length) {
+        $(this).after('<small id="telefono_counter" class="form-text text-muted"></small>');
+    }
+    
+    if (longitud > 45) { // Advertencia cuando se acerca al límite
+        $('#telefono_counter')
+            .text(longitud + '/50 caracteres')
+            .removeClass('text-muted text-danger')
+            .addClass('text-warning');
+    } else if (longitud >= 50) {
+        $('#telefono_counter')
+            .text(longitud + '/50 caracteres (límite alcanzado)')
+            .removeClass('text-muted text-warning')
+            .addClass('text-danger');
+    } else {
+        $('#telefono_counter')
+            .text(longitud + '/50 caracteres')
+            .removeClass('text-warning text-danger')
+            .addClass('text-muted');
+    }
+});
+
+// Evento específico para el botón cerrar
+$(document).on('click', '[data-dismiss="modal"]', function() {
+    var modalId = $(this).closest('.modal').attr('id');
+    $('#' + modalId).modal('hide');
+});
+
+// Limpiar cuando se cierra el modal
+$('#modalEditarProveedor').on('hidden.bs.modal', function () {
+    limpiarBackdrops();
+    restaurarBotonActualizar();
+    actualizando = false;
+    
+    // Limpiar errores
+    $('.invalid-feedback').empty();
+    $('.form-control').removeClass('is-invalid');
+    $('#telefono_counter').remove();
+});
+
+    // Evento para cerrar modal con botón X
+    $('#modalEditarProveedor').on('click', '.close, .btn-secondary', function() {
+        $('#modalEditarProveedor').modal('hide');
+    });
+
+    // Evento cuando se cierra el modal de editar
+    $('#modalEditarProveedor').on('hidden.bs.modal', function () {
+        limpiarBackdrops();
+        restaurarBotonActualizar();
+        actualizando = false;
     });
 
     // Ver proveedor
@@ -665,7 +760,11 @@ $('#modalProveedores').on('shown.bs.modal', function () {
                 $('#modalVerProveedor').modal('show');
             },
             error: function() {
-                Swal.fire('Error', 'No se pudo cargar la información del proveedor', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo cargar la información del proveedor'
+                });
             }
         });
     });
@@ -673,7 +772,7 @@ $('#modalProveedores').on('shown.bs.modal', function () {
     // Eliminar proveedor
     $(document).on('click', '.btn-eliminar', function() {
         var id = $(this).data('id');
-        var razon_social = $(this).data('razon_social');
+        var razon_social = $(this).data('nombre');
         
         Swal.fire({
             title: '¿Estás seguro?',
@@ -695,17 +794,90 @@ $('#modalProveedores').on('shown.bs.modal', function () {
                     success: function(response) {
                         if (response.success) {
                             tablaProveedores.ajax.reload();
-                            Swal.fire('Eliminado', response.message, 'success');
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Eliminado',
+                                text: response.message,
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
                         }
                     },
                     error: function() {
-                        Swal.fire('Error', 'Error al eliminar el proveedor', 'error');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Error al eliminar el proveedor'
+                        });
                     }
                 });
             }
         });
     });
+
+    // Funciones auxiliares
+    function limpiarBackdrops() {
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open');
+        $('body').css('padding-right', '');
+    }
+
+    function mostrarSpinnerGuardar() {
+        $('#spinner_guardar').removeClass('d-none');
+        $('#texto_btn_guardar').text('Guardando...');
+        $('#BtnGuardar_proveedor').prop('disabled', true);
+    }
+
+    function restaurarBotonGuardar() {
+        $('#spinner_guardar').addClass('d-none');
+        $('#texto_btn_guardar').text('Guardar proveedor');
+        $('#BtnGuardar_proveedor').prop('disabled', false);
+    }
+
+    function restaurarBotonActualizar() {
+        $('#spinner_editar').addClass('d-none');
+        $('#texto_btn_editar').text('Actualizar proveedor');
+        $('#BtnActualizar_proveedor').prop('disabled', false);
+    }
+
+    function mostrarErroresValidacion(errors) {
+        var errorMessages = [];
+        
+        $('.invalid-feedback').empty();
+        $('.form-control').removeClass('is-invalid');
+        
+        $.each(errors, function(key, value) {
+            var campo = $('#' + key);
+            if (campo.length) {
+                campo.addClass('is-invalid');
+                campo.siblings('.invalid-feedback').html(value[0]);
+            }
+            errorMessages.push(value[0]);
+        });
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Error de validación',
+            html: errorMessages.join('<br>')
+        });
+    }
+
+    function mostrarErroresValidacionEditar(errors) {
+        $('.invalid-feedback').empty();
+        $('.form-control').removeClass('is-invalid');
+        
+        $.each(errors, function(key, value) {
+            var campo = $('#' + key + '_editar');
+            if (campo.length) {
+                campo.addClass('is-invalid');
+                campo.siblings('.invalid-feedback').html(value[0]);
+            }
+        });
+        
+        // No mostramos Swal aquí para no interrumpir la edición
+    }
 });
+
 </script>
 @endpush
 @endsection

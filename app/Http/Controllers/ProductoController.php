@@ -54,7 +54,7 @@ class ProductoController extends Controller
             ->addColumn('action', function($producto) {
                 $btn = '<div class="btn-group" role="group">';
                 $btn .= '<button class="btn btn-xs btn-info verProducto" data-id="'.$producto->id_producto.'" data-target="#modalVerProducto" title="Ver datos del productos"><i class="fa fa-eye"></i></button>';
-                $btn .= '<button class="btn btn-xs btn-warning editarProducto" data-id="'.$producto->id_producto.'" title="Editar datos del productos"><i class="fa fa-check"></i></button>';
+                $btn .= '<button class="btn btn-xs btn-warning editarProducto" data-id="'.$producto->id_producto.'" title="Editar datos del productos"><i class="fas fa-edit"></i></button>';
                 $btn .= '<button class="btn btn-xs btn-danger eliminarProducto" data-id="'.$producto->id_producto.'" data-nombre="'.$producto->nombre.'" title="Eliminar productos"><i class="fa fa-trash"></i></button>';
                 $btn .= '</div>';
                 return $btn;
@@ -368,14 +368,27 @@ public function todosLosProductos()
     }
 }
 
-    public function show($id)
-    {
-        $producto = Producto::find($id);    
+  public function show($id)
+{
+    try {
+        $producto = Producto::with(['categoria', 'proveedor'])->find($id);
+        
         if(!$producto) {
-            return response()->json(['error' => 'Producto no encontrado'], 404);
-        }    
+            return response()->json([
+                'success' => false,
+                'message' => 'Producto no encontrado'
+            ], 404);
+        }
+        
         return response()->json($producto);
+    } catch (\Exception $e) {
+        \Log::error('Error al mostrar producto: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar el producto'
+        ], 500);
     }
+}
 
     public function edit($id)
     {
@@ -521,17 +534,17 @@ public function historialCostos()
 }
 
     //Actualizar producto
+// Actualizar producto
 public function update(Request $request, $id)
 {
     try {
-        // Validar SOLO los campos
-        // 👇 ELIMINADO: 'unique:productos,codigo,' . $id . ',id_producto'
+        // Validar SOLO los campos que existen
         $validatedData = $request->validate([
-            'codigo'        => 'required|string|max:50|unique:productos',            
+            'codigo'        => 'required|string|max:50',
             'nombre'        => 'required|string|max:255',
             'descripcion'   => 'nullable|string',
             'precio_venta'  => 'required|numeric|min:0',
-            'stock_actual'  => 'required|integer|min:0',
+            'stock'         => 'required|integer|min:0',
             'stock_minimo'  => 'required|integer|min:0',
             'unidad_medida' => 'required|string|max:50',
             'ubicacion'     => 'nullable|string|max:100',
@@ -545,12 +558,24 @@ public function update(Request $request, $id)
         // Buscar el producto
         $producto = Producto::findOrFail($id);
         
+        // Verificar si el código ya existe en otro producto
+        $existingProduct = Producto::where('codigo', $request->codigo)
+            ->where('id_producto', '!=', $id)
+            ->first();
+        
+        if ($existingProduct) {
+            return response()->json([
+                'success' => false,
+                'errors' => ['codigo' => ['El código ya está siendo utilizado por otro producto']]
+            ], 422);
+        }
+        
         // Actualizar campos
         $producto->codigo = $request->codigo;
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio_venta = $request->precio_venta;
-        $producto->stock_actual = $request->stock;
+        $producto->stock_actual = $request->stock; // Nota: el campo en el formulario se llama 'stock'
         $producto->stock_minimo = $request->stock_minimo;
         $producto->unidad_medida = $request->unidad_medida;
         $producto->ubicacion = $request->ubicacion;
@@ -561,8 +586,12 @@ public function update(Request $request, $id)
 
         // Manejo de imagen
         if ($request->hasFile('imagen')) {
-            if ($producto->imagen && file_exists(public_path($producto->imagen))) {
-                unlink(public_path($producto->imagen));
+            // Eliminar imagen anterior si existe
+            if ($producto->imagen) {
+                $oldImagePath = public_path(str_replace('storage/', 'storage/app/public/', $producto->imagen));
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
             }
             
             $imagen = $request->file('imagen');

@@ -176,6 +176,123 @@
         font-weight: 600 !important;
         margin-bottom: 0 !important;
     }
+
+/* Estilos para botones de acción */
+.btn-group .btn-xs {
+    padding: 0.20rem 0.4rem;
+    font-size: 0.75rem;
+    border-radius: 0.2rem;
+    margin: 0 2px;
+}
+
+.btn-group .btn-info {
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-group .btn-warning {
+    color: #212529;
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-group .btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+/* Estilo para la tabla responsive */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#tablaCompras {
+    width: 100% !important;
+    font-size: 0.9rem;
+}
+
+#tablaCompras th {
+    white-space: nowrap;
+}
+
+/* Estilos para botones de acción */
+.btn-group .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+    margin: 0 2px;
+}
+
+.btn-group .btn-info {
+    color: #fff;
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-group .btn-warning {
+    color: #212529;
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-group .btn-danger {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-group .btn-info:hover {
+    background-color: #138496;
+    border-color: #117a8b;
+}
+
+.btn-group .btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+}
+
+.btn-group .btn-danger:hover {
+    background-color: #c82333;
+    border-color: #bd2130;
+}
+
+/* Asegurar que los botones sean visibles */
+#tablaCompras td .btn-group {
+    display: flex;
+    justify-content: center;
+    white-space: nowrap;
+}
+
+#tablaCompras td {
+    vertical-align: middle;
+}
+
+/* Estilos para el modal de edición */
+#modalEditarCompra .modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+#modalEditarCompra .modal-footer {
+    border-top: 1px solid #dee2e6;
+}
+
+#modalEditarCompra .form-control-plaintext {
+    background-color: #f8f9fa;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.25rem;
+    border: 1px solid #dee2e6;
+}
+
+[data-bs-theme="dark"] #modalEditarCompra .form-control-plaintext {
+    background-color: #2d3236;
+    border-color: #495057;
+    color: #e9ecef;
+}
+
 </style>
 
 <!-- Page Header -->
@@ -309,6 +426,7 @@
                                     <th>Total</th>
                                     <th>Proveedor</th>
                                     <th>Stock Nuevo</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -381,8 +499,10 @@
                                 <label for="inputProveedor" class="form-label">
                                     <i class="fas fa-truck"></i> Proveedor
                                 </label>
-                                <input type="text" class="form-control" id="inputProveedor"
-                                       placeholder="Nombre del proveedor">
+                                    <select id="id_proveedor" name="id_proveedor" class="form-control">
+                                        <option value="">Cargando proveedores...</option>
+                                    </select>
+                                    <div class="invalid-feedback"></div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label for="inputFactura" class="form-label">
@@ -442,14 +562,122 @@
     </div>
 </div>
 
+<!-- ========================================= -->
+<!-- MODAL EDITAR COMPRA -->
+<!-- ========================================= -->
+
+<div class="modal fade" id="modalEditarCompra" tabindex="-1" aria-labelledby="modalEditarCompraLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="modalEditarCompraLabel">
+                    <i class="fas fa-edit"></i> Editar Compra #<span id="editar_id_compra"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <form id="formEditarCompra">
+                    <input type="hidden" id="editar_id_inventario" name="id_inventario">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Producto:</label>
+                                <p class="form-control-plaintext" id="editar_producto_nombre"></p>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_cantidad" class="form-label">
+                                    <i class="fas fa-sort-numeric-up"></i> Cantidad *
+                                </label>
+                                <input type="number" class="form-control" id="editar_cantidad" min="1" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_precio" class="form-label">
+                                    <i class="fas fa-dollar-sign"></i> Precio de Compra *
+                                </label>
+                                <input type="number" step="0.01" class="form-control" id="editar_precio" min="0" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_proveedor" class="form-label">
+                                    <i class="fas fa-truck"></i> Proveedor
+                                </label>
+                                <input type="text" class="form-control" id="editar_proveedor" placeholder="Nombre del proveedor">
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="editar_factura" class="form-label">
+                                    <i class="fas fa-file-invoice"></i> N° Factura
+                                </label>
+                                <input type="text" class="form-control" id="editar_factura" placeholder="Número de factura">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_fecha" class="form-label">
+                                    <i class="fas fa-calendar"></i> Fecha de Compra *
+                                </label>
+                                <input type="date" class="form-control" id="editar_fecha" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_metodo_pago" class="form-label">
+                                    <i class="fas fa-credit-card"></i> Método de Pago
+                                </label>
+                                <select class="form-control" id="editar_metodo_pago">
+                                    <option value="efectivo">Efectivo</option>
+                                    <option value="transferencia">Transferencia</option>
+                                    <option value="tarjeta">Tarjeta</option>
+                                    <option value="cheque">Cheque</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="editar_notas" class="form-label">
+                                    <i class="fas fa-comment"></i> Notas Adicionales
+                                </label>
+                                <textarea class="form-control" id="editar_notas" rows="3" placeholder="Observaciones opcionales..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-0">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Stock actual del producto:</strong> <span id="editar_stock_actual" class="badge bg-secondary">0</span>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <strong>Total:</strong> $<span id="editar_total">0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-warning" id="btnActualizarCompra">
+                    <i class="fas fa-save"></i> Actualizar Compra
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
                    
 
 @endsection
 
 @push('js')
+
 <script>
 $(document).ready(function() {
-    console.log('✅ Document ready - Módulo Compras');
+    console.log('Document ready - Inicializando...');
     
     // =========================================
     // VARIABLES GLOBALES
@@ -458,17 +686,25 @@ $(document).ready(function() {
     let buscarTimer = null;
     let CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
     
-function inicializarDataTableCompras() {
-    console.log('📊 Inicializando DataTable de compras (modo depuración)');
+    // =========================================
+    // CONFIGURACIÓN AJAX
+    // =========================================
+    $.ajaxSetup({
+        headers: {
+            'X-CSRF-TOKEN': CSRF_TOKEN
+        }
+    });
     
+    // =========================================
+    // INICIALIZAR DATATABLE
+    // =========================================
     if ($.fn.DataTable.isDataTable('#tablaCompras')) {
         $('#tablaCompras').DataTable().destroy();
     }
     
-    let tablaCompras = $('#tablaCompras').DataTable({
+    var tablaCompras = $('#tablaCompras').DataTable({
         processing: true,
         serverSide: true,
-        responsive: true,
         ajax: {
             url: '/compras/listar',
             type: 'GET',
@@ -476,266 +712,496 @@ function inicializarDataTableCompras() {
                 d.fecha_inicio = $('#filtroFechaInicio').val();
                 d.fecha_fin = $('#filtroFechaFin').val();
                 d.proveedor = $('#filtroProveedor').val();
-                console.log('📤 Parámetros enviados:', d);
             },
-            dataSrc: function(json) {
-                console.log('📥 Respuesta completa del servidor:', json);
-                
-                if (json.error) {
-                    console.error('❌ Error en respuesta:', json.error);
-                    toastr.error('Error: ' + json.error);
-                    return [];
-                }
-                
-                if (!json.data) {
-                    console.error('❌ La respuesta no contiene campo "data"');
-                    return [];
-                }
-                
-                console.log('✅ Registros cargados:', json.data.length);
-                if (json.data.length > 0) {
-                    console.log('Primer registro:', json.data[0]);
-                }
-                
-                return json.data;
-            },
-            error: function(xhr, status, error) {
-                console.error('❌ Error AJAX completo:', {
-                    status: xhr.status,
-                    statusText: xhr.statusText,
-                    responseText: xhr.responseText,
-                    error: error
-                });
-                
-                let errorMsg = 'Error ' + xhr.status + ': ';
-                try {
-                    let response = JSON.parse(xhr.responseText);
-                    errorMsg += response.error || xhr.statusText;
-                } catch(e) {
-                    errorMsg += xhr.statusText;
-                }
-                
-                toastr.error(errorMsg);
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error ' + xhr.status,
-                    text: errorMsg,
-                    footer: 'Revisa la consola para más detalles'
-                });
+            error: function(xhr, error, code) {
+                console.log('Error en AJAX:', error);
+                console.log('Respuesta:', xhr.responseText);
             }
         },
         columns: [
-            { data: 'id_compra', defaultContent: '' },
+            { data: 'id_compra', name: 'id_compra' },
             { 
                 data: 'fecha_compra', 
-                defaultContent: '',
+                name: 'fecha_compra',
                 render: function(data) {
-                    return data ? moment(data).format('DD/MM/YYYY HH:mm') : '';
-                }
-            },
-            { 
-                data: 'producto', 
-                defaultContent: '',
-                render: function(data) {
-                    if (data && data.nombre) {
-                        return `<strong>${data.nombre}</strong><br><small>${data.codigo || ''}</small>`;
+                    if (data) {
+                        var fecha = new Date(data);
+                        return fecha.toLocaleDateString('es-ES') + ' ' + 
+                               fecha.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
                     }
-                    return 'N/A';
-                }
-            },
-            { 
-                data: 'cantidad', 
-                defaultContent: '0',
-                className: 'text-center',
-                render: function(data) {
-                    return `<span class="badge bg-info">${data || 0}</span>`;
-                }
-            },
-            { 
-                data: 'precio_compra', 
-                defaultContent: '0',
-                className: 'text-right',
-                render: function(data) {
-                    return '$' + (parseFloat(data) || 0).toFixed(2);
+                    return '';
                 }
             },
             { 
                 data: null,
+                name: 'producto',
+                render: function(data) {
+                    return '<strong>' + (data.producto_nombre || 'N/A') + '</strong>' + 
+                           (data.producto_codigo ? '<br><small>' + data.producto_codigo + '</small>' : '');
+                }
+            },
+            { 
+                data: 'cantidad', 
+                name: 'cantidad',
+                className: 'text-center',
+                render: function(data) {
+                    return '<span class="badge bg-info">' + data + '</span>';
+                }
+            },
+            { 
+                data: 'precio_compra', 
+                name: 'precio_compra',
                 className: 'text-right',
-                render: function(data, type, row) {
-                    let total = (row.cantidad || 0) * (row.precio_compra || 0);
-                    return '<strong>$' + total.toFixed(2) + '</strong>';
+                render: function(data) {
+                    return '$' + parseFloat(data).toFixed(2);
+                }
+            },
+            { 
+                data: 'total', 
+                name: 'total',
+                className: 'text-right',
+                render: function(data) {
+                    return '<strong>$' + parseFloat(data).toFixed(2) + '</strong>';
                 }
             },
             { 
                 data: 'proveedor', 
-                defaultContent: 'Sin proveedor'
+                name: 'proveedor',
+                render: function(data) {
+                    return data || 'Sin proveedor';
+                }
             },
             { 
                 data: 'stock_nuevo', 
-                defaultContent: '0',
+                name: 'stock_nuevo',
                 className: 'text-center',
                 render: function(data) {
-                    data = data || 0;
-                    let color = data > 10 ? 'success' : data > 5 ? 'warning' : 'danger';
-                    return `<span class="badge bg-${color}">${data}</span>`;
+                    var clase = data > 10 ? 'success' : (data > 5 ? 'warning' : 'danger');
+                    return '<span class="badge bg-' + clase + '">' + data + '</span>';
                 }
+            },
+            { 
+                data: 'acciones', 
+                name: 'acciones',
+                orderable: false,
+                searchable: false,
+                className: 'text-center'
             }
         ],
+        language: {
+            "emptyTable": "No hay compras registradas",
+            "info": "Mostrando _START_ a _END_ de _TOTAL_ registros",
+            "infoEmpty": "Mostrando 0 a 0 de 0 registros",
+            "infoFiltered": "(filtrado de _MAX_ registros totales)",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "loadingRecords": "Cargando...",
+            "processing": "Procesando...",
+            "search": "Buscar:",
+            "zeroRecords": "No se encontraron resultados",
+            "paginate": {
+                "first": "Primero",
+                "last": "Último",
+                "next": "Siguiente",
+                "previous": "Anterior"
+            }
+        },
         order: [[0, 'desc']],
-          "language": {
-
-
-        "emptyTable": "No hay profesionales registrados.",
-        "info": "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
-        "infoEmpty": "Mostrando 0 a 0 de 0 Entradas",
-        "infoFiltered": "(Filtrado de _MAX_ total entradas)",
-        "infoPostFix": "",
-        "thousands": ",",
-        "lengthMenu": "Mostrar _MENU_ Entradas",
-        "loadingRecords": "Cargando...",
-        "processing": "Procesando...",
-        "search": "Buscar:",
-        "zeroRecords": "Sin resultados encontrados",
-        "paginate": {
-          "first": "Primero",
-          "last": "Ultimo",
-          "next": "Siguiente",
-          "previous": "Anterior"
+        drawCallback: function(settings) {
+            console.log('DataTable redibujado - eventos de botones reasignados automáticamente');
         }
-
-      },
     });
     
-    return tablaCompras;
-}
-
-// =========================================
-// FILTROS DE LA TABLA
-// =========================================
-function inicializarFiltros(tabla) {
-    console.log('🔍 Inicializando filtros');
-    
-    // Aplicar filtros
-    $('#btnAplicarFiltros').on('click', function() {
-        console.log('🎯 Aplicando filtros');
-        
-        // Validar fechas
-        let fechaInicio = $('#filtroFechaInicio').val();
-        let fechaFin = $('#filtroFechaFin').val();
+    // =========================================
+    // FILTROS
+    // =========================================
+    $('#btnAplicarFiltros').click(function() {
+        var fechaInicio = $('#filtroFechaInicio').val();
+        var fechaFin = $('#filtroFechaFin').val();
         
         if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
             toastr.warning('La fecha de inicio no puede ser mayor a la fecha fin');
             return;
         }
         
-        // Recargar tabla con filtros
-        tabla.ajax.reload(null, false);
+        tablaCompras.ajax.reload();
     });
     
-    // Limpiar filtros
-    $('#btnLimpiarFiltros').on('click', function() {
-        console.log('🧹 Limpiando filtros');
-        
+    $('#btnLimpiarFiltros').click(function() {
         $('#filtroFechaInicio').val('');
         $('#filtroFechaFin').val('');
         $('#filtroProveedor').val('');
-        
-        tabla.ajax.reload(null, false);
+        tablaCompras.ajax.reload();
     });
     
-    // Filtro por proveedor con delay
-    let proveedorTimer = null;
-    $('#filtroProveedor').on('input', function() {
-        clearTimeout(proveedorTimer);
-        proveedorTimer = setTimeout(function() {
-            tabla.ajax.reload(null, false);
-        }, 500);
+    // =========================================
+    // ACCIONES DE LA TABLA - VERSIÓN CORREGIDA
+    // =========================================
+    
+    // VER COMPRA
+    $(document).on('click', '.ver-compra', function() {
+        var id = $(this).data('id');
+        console.log('Ver compra ID:', id);
+        
+        $.ajax({
+            url: '/compras/mostrar/' + id,
+            type: 'GET',
+            success: function(response) {
+                console.log('Respuesta ver compra:', response);
+                
+                if (response.success) {
+                    var data = response.data;
+                    var fecha = data.fecha_compra ? new Date(data.fecha_compra).toLocaleString('es-ES') : 'N/A';
+                    var total = (data.cantidad * data.precio_compra).toFixed(2);
+                    
+                    Swal.fire({
+                        title: 'Detalles de la Compra',
+                        html: `
+                            <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                                <p><strong>ID:</strong> ${data.id_compra}</p>
+                                <p><strong>Fecha:</strong> ${fecha}</p>
+                                <p><strong>Producto:</strong> ${data.producto?.nombre || 'N/A'}</p>
+                                <p><strong>Cantidad:</strong> ${data.cantidad}</p>
+                                <p><strong>Precio Unit.:</strong> $${parseFloat(data.precio_compra).toFixed(2)}</p>
+                                <p><strong>Total:</strong> $${total}</p>
+                                <p><strong>Proveedor:</strong> ${data.proveedor || 'Sin proveedor'}</p>
+                                <p><strong>Factura:</strong> ${data.numero_factura || 'N/A'}</p>
+                                <p><strong>Método Pago:</strong> ${data.metodo_pago || 'N/A'}</p>
+                                <p><strong>Stock Nuevo:</strong> ${data.stock_nuevo}</p>
+                                <p><strong>Notas:</strong> ${data.notas || 'Sin notas'}</p>
+                            </div>
+                        `,
+                        icon: 'info',
+                        confirmButtonText: 'Cerrar',
+                        width: '600px'
+                    });
+                } else {
+                    toastr.error(response.message || 'Error al cargar los detalles');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr);
+                toastr.error('Error al cargar los detalles de la compra');
+            }
+        });
     });
+    
+   // =========================================
+// EDITAR COMPRA - FUNCIONALIDAD COMPLETA
+// =========================================
+$(document).on('click', '.editar-compra', function() {
+    var id = $(this).data('id');
+    console.log('Editando compra ID:', id);
+    
+    // Mostrar loading
+    Swal.fire({
+        title: 'Cargando datos...',
+        text: 'Por favor espere',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Obtener datos de la compra
+    $.ajax({
+        url: '/compras/mostrar/' + id,
+        type: 'GET',
+        success: function(response) {
+            Swal.close();
+            
+            if (response.success) {
+                var data = response.data;
+                
+                // Llenar el formulario de edición
+                $('#editar_id_inventario').val(data.id_compra);
+                $('#editar_id_compra').text(data.id_compra);
+                $('#editar_producto_nombre').text(data.producto?.nombre || 'N/A');
+                $('#editar_cantidad').val(data.cantidad);
+                $('#editar_precio').val(data.precio_compra);
+                $('#editar_proveedor').val(data.proveedor || '');
+                $('#editar_factura').val(data.numero_factura || '');
+                
+                // Formatear fecha para input type="date"
+                if (data.fecha_compra) {
+                    var fecha = new Date(data.fecha_compra);
+                    var año = fecha.getFullYear();
+                    var mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                    var dia = String(fecha.getDate()).padStart(2, '0');
+                    $('#editar_fecha').val(año + '-' + mes + '-' + dia);
+                } else {
+                    $('#editar_fecha').val('');
+                }
+                
+                $('#editar_metodo_pago').val(data.metodo_pago || 'efectivo');
+                $('#editar_notas').val(data.notas || '');
+                $('#editar_stock_actual').text(data.stock_nuevo || 0);
+                
+                // Calcular total
+                calcularTotalEditar();
+                
+                // Abrir modal
+                $('#modalEditarCompra').modal('show');
+            } else {
+                toastr.error(response.message || 'Error al cargar los datos');
+            }
+        },
+        error: function(xhr) {
+            Swal.close();
+            console.error('Error:', xhr);
+            toastr.error('Error al cargar los datos de la compra');
+        }
+    });
+});
+
+// Calcular total en edición
+function calcularTotalEditar() {
+    let cantidad = parseFloat($('#editar_cantidad').val()) || 0;
+    let precio = parseFloat($('#editar_precio').val()) || 0;
+    let total = cantidad * precio;
+    $('#editar_total').text(total.toFixed(2));
 }
 
+// Eventos para calcular total en tiempo real
+$('#editar_cantidad, #editar_precio').on('input', calcularTotalEditar);
+
 // =========================================
-// REFRESCAR DATOS DE LA TABLA
+// ACTUALIZAR COMPRA
 // =========================================
-function refrescarDatos(tabla) {
-    // Recargar tabla
-    if (tabla) {
-        tabla.ajax.reload(null, false);
+$('#btnActualizarCompra').on('click', function(e) {
+    e.preventDefault();
+    
+    let id = $('#editar_id_inventario').val();
+    
+    if (!id) {
+        toastr.error('Error: ID de compra no válido');
+        return;
     }
     
-    // Recargar estadísticas
-    cargarEstadisticas();
-}
-
-// =========================================
-// INICIALIZAR TODO
-// =========================================
-// Inicializar DataTable después de que el DOM esté listo
-let tablaCompras = inicializarDataTableCompras();
-
-// Inicializar filtros
-inicializarFiltros(tablaCompras);
-
-// Escuchar cuando se guarde una compra para refrescar la tabla
-$(document).on('compraGuardada', function() {
-    console.log('🔄 Compra guardada, refrescando tabla');
-    refrescarDatos(tablaCompras);
+    // Validar campos requeridos
+    let cantidad = $('#editar_cantidad').val();
+    let precio = $('#editar_precio').val();
+    let fecha = $('#editar_fecha').val();
+    
+    if (!cantidad || cantidad <= 0) {
+        toastr.error('La cantidad debe ser mayor a 0');
+        return;
+    }
+    
+    if (!precio || precio < 0) {
+        toastr.error('El precio no puede ser negativo');
+        return;
+    }
+    
+    if (!fecha) {
+        toastr.error('La fecha es requerida');
+        return;
+    }
+    
+    // Preparar datos
+    let datos = {
+        cantidad: cantidad,
+        precio_compra: precio,
+        proveedor: $('#editar_proveedor').val(),
+        numero_factura: $('#editar_factura').val(),
+        metodo_pago: $('#editar_metodo_pago').val(),
+        notas: $('#editar_notas').val()
+    };
+    
+    console.log('Actualizando compra:', datos);
+    
+    // Mostrar loading en botón
+    let btn = $(this);
+    btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Actualizando...').prop('disabled', true);
+    
+    $.ajax({
+        url: '/compras/actualizar/' + id,
+        method: 'POST',
+        data: datos,
+        dataType: 'json',
+        success: function(response) {
+            console.log('Respuesta:', response);
+            
+            if (response.success) {
+                toastr.success('Compra actualizada correctamente');
+                
+                // Cerrar modal
+                $('#modalEditarCompra').modal('hide');
+                
+                // Recargar tabla y estadísticas
+                tablaCompras.ajax.reload(null, false);
+                cargarEstadisticas();
+            } else {
+                toastr.error(response.message || 'Error al actualizar');
+            }
+        },
+        error: function(xhr) {
+            console.error('Error:', xhr);
+            
+            let mensaje = 'Error al actualizar la compra';
+            if (xhr.status === 422 && xhr.responseJSON) {
+                if (xhr.responseJSON.errors) {
+                    // Mostrar errores de validación
+                    let errores = xhr.responseJSON.errors;
+                    let mensajes = [];
+                    for (let campo in errores) {
+                        mensajes.push(errores[campo][0]);
+                    }
+                    mensaje = mensajes.join('<br>');
+                    toastr.error(mensaje, 'Errores de validación');
+                } else if (xhr.responseJSON.message) {
+                    mensaje = xhr.responseJSON.message;
+                    toastr.error(mensaje);
+                }
+            } else {
+                toastr.error(mensaje);
+            }
+        },
+        complete: function() {
+            btn.html('<i class="fas fa-save"></i> Actualizar Compra').prop('disabled', false);
+        }
+    });
 });
 
-// Cuando el modal se abre - PONER FOCO EN INPUT BUSCAR
-$('#modalCompra').on('shown.bs.modal', function() {
-    console.log('🔽 Modal abierto, enfocando búsqueda');
-    
-    // Enfocar el input de búsqueda
-    $('#inputBuscar').focus();
-    
-    // Asegurar que el scroll del body funcione
-    $('body').css('overflow', 'auto');
+// Limpiar modal al cerrar
+$('#modalEditarCompra').on('hidden.bs.modal', function() {
+    $('#formEditarCompra')[0].reset();
+    $('#editar_id_inventario').val('');
+    $('#editar_id_compra').text('');
+    $('#editar_producto_nombre').text('');
+    $('#editar_stock_actual').text('0');
+    $('#editar_total').text('0.00');
 });
-
-// Cuando el modal se cierra - RESTAURAR SCROLL
-$('#modalCompra').on('hidden.bs.modal', function() {
-    console.log('🧹 Modal cerrado, restaurando scroll');
     
-    // Limpiar formulario
-    $('#formCompra')[0].reset();
-    $('#hiddenIdProducto').val('');
-    $('#txtProducto').text('');
-    $('#txtStock').text('');
-    $('#txtTotal').text('0.00');
-    $('#seccionProducto').hide();
-    $('#listaBusqueda').hide();
-    $('#btnGuardar').prop('disabled', true);
-    
-    // Restablecer productoActual
-    productoActual = null;
-    
-    // Eliminar backdrops y restaurar scroll
-    $('.modal-backdrop').remove();
-    $('body').removeClass('modal-open');
-    $('body').css({
-        'overflow': 'auto',
-        'padding-right': ''
+    // ELIMINAR/ANULAR COMPRA
+    $(document).on('click', '.eliminar-compra', function() {
+        var id = $(this).data('id');
+        console.log('Anular compra ID:', id);
+        
+        Swal.fire({
+            title: '¿Anular compra?',
+            text: 'Esta acción revertirá el movimiento de inventario y no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, anular',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                anularCompra(id);
+            }
+        });
     });
     
-    // Limpiar cualquier compra exitosa
-    $(this).data('compraExitosa', false);
-});
-
-
-
+    function anularCompra(id) {
+        Swal.fire({
+            title: 'Anulando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+        
+        $.ajax({
+            url: '/compras/anular/' + id,
+            type: 'DELETE',
+            data: {
+                _token: CSRF_TOKEN
+            },
+            dataType: 'json',
+            success: function(response) {
+                Swal.close();
+                
+                if (response.success) {
+                    Swal.fire({
+                        title: '¡Anulada!',
+                        text: response.message || 'Compra anulada correctamente',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    tablaCompras.ajax.reload(null, false);
+                    cargarEstadisticas();
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message || 'Error al anular la compra',
+                        icon: 'error',
+                        confirmButtonText: 'Cerrar'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.close();
+                console.error('Error:', xhr);
+                
+                let errorMessage = 'Error al anular la compra';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
+                }
+                
+                Swal.fire({
+                    title: 'Error',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'Cerrar'
+                });
+            }
+        });
+    }
+    
+    // =========================================
+    // CARGAR PROVEEDORES
+    // =========================================
+    function cargarProveedores() {
+        console.log('Cargando proveedores...');
+        
+        const $selectProveedor = $('#id_proveedor');
+        $selectProveedor.html('<option value="">Cargando proveedores...</option>').prop('disabled', true);
+        
+        $.ajax({
+            url: '/proveedores/lista',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Proveedores recibidos:', response);
+                
+                $selectProveedor.empty().prop('disabled', false);
+                $selectProveedor.append('<option value="">Seleccione un proveedor</option>');
+                
+                if (Array.isArray(response) && response.length > 0) {
+                    $.each(response, function(index, proveedor) {
+                        let optionValue = proveedor.id_proveedor;
+                        let optionText = proveedor.razon_social + ' (' + (proveedor.nit || 'Sin NIT') + ')';
+                        $selectProveedor.append('<option value="' + optionValue + '">' + optionText + '</option>');
+                    });
+                } else {
+                    $selectProveedor.append('<option value="" disabled>No hay proveedores disponibles</option>');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error cargando proveedores:', xhr);
+                $selectProveedor.empty().prop('disabled', false);
+                $selectProveedor.append('<option value="">Error al cargar proveedores</option>');
+                toastr.error('Error al cargar proveedores');
+            }
+        });
+    }
+    
     // =========================================
     // BÚSQUEDA DE PRODUCTOS
     // =========================================
     $('#inputBuscar').on('input', function() {
         let termino = $(this).val().trim();
-        console.log('🔍 Input detectado:', termino);
+        console.log('Término de búsqueda:', termino);
         
         clearTimeout(buscarTimer);
         
         if (termino.length < 2) {
-            $('#listaBusqueda').hide();
+            $('#listaBusqueda').empty().hide();
             return;
         }
         
@@ -745,77 +1211,69 @@ $('#modalCompra').on('hidden.bs.modal', function() {
     });
     
     function buscarProductos(termino) {
-        console.log('🔎 Buscando productos con término:', termino);
+        console.log('Buscando productos con término:', termino);
         
-        // Mostrar spinner
         $('#listaBusqueda').html(
             '<div class="list-group-item text-center py-2">' +
             '<span class="spinner-border spinner-border-sm text-primary me-1"></span>' +
             ' Buscando...</div>'
         ).show();
         
-        // Hacer la petición AJAX
         $.ajax({
-            url: '/compras/buscar-productos', // Ajusta la URL según tu ruta
+            url: '/compras/buscar-productos',
             method: 'GET',
             data: { termino: termino },
             dataType: 'json',
-            headers: {
-                'X-CSRF-TOKEN': CSRF_TOKEN
-            },
             success: function(response) {
-                console.log('📦 Respuesta recibida:', response);
+                console.log('Respuesta de búsqueda:', response);
                 
                 if (response.success && response.productos && response.productos.length > 0) {
                     mostrarResultados(response.productos);
                 } else {
                     $('#listaBusqueda').html(
                         '<div class="list-group-item text-center text-muted py-2">' +
-                        '<i class="fas fa-search me-1"></i>No se encontraron productos</div>'
+                        '<i class="fas fa-search me-1"></i> No se encontraron productos</div>'
                     ).show();
                 }
             },
-            error: function(xhr, status, error) {
-                console.error('❌ Error en búsqueda:', error);
-                console.error('Status:', xhr.status);
-                console.error('Response:', xhr.responseText);
-                
+            error: function(xhr) {
+                console.error('Error en búsqueda:', xhr);
                 $('#listaBusqueda').html(
                     '<div class="list-group-item text-danger py-2">' +
                     '<i class="fas fa-exclamation-triangle me-1"></i>' +
-                    'Error al buscar productos</div>'
+                    ' Error al buscar productos</div>'
                 ).show();
             }
         });
     }
     
-   function mostrarResultados(productos) {
-    let html = '';
-    
-    productos.forEach(function(producto) {
-        let stockClass = producto.stock > 10 ? 'bg-success' :
-                        producto.stock > 0 ? 'bg-warning text-dark' : 'bg-danger';
+    function mostrarResultados(productos) {
+        let html = '';
         
-        html += `
-            <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 producto-item"
-                    data-id="${producto.id_producto}"
-                    data-nombre="${producto.nombre}"
-                    data-codigo="${producto.codigo || ''}"
-                    data-stock="${producto.stock}"
-                    data-precio="${producto.precio_venta || 0}">
-                <div>
-                    <strong>${escapeHtml(producto.nombre)}</strong>
-                    ${producto.codigo ? `<br><small class="text-muted">${escapeHtml(producto.codigo)}</small>` : ''}
-                </div>
-                <span class="badge ${stockClass}">Stock: ${producto.stock}</span>
-            </button>
-        `;
-    });
+        productos.forEach(function(producto) {
+            let stockClass = producto.stock > 10 ? 'bg-success' :
+                            producto.stock > 0 ? 'bg-warning text-dark' : 'bg-danger';
+            
+            html += `
+                <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-2 producto-item"
+                        data-id="${producto.id_producto}"
+                        data-nombre="${producto.nombre}"
+                        data-codigo="${producto.codigo || ''}"
+                        data-stock="${producto.stock}"
+                        data-precio="${producto.precio_venta || 0}">
+                    <div>
+                        <strong>${escapeHtml(producto.nombre)}</strong>
+                        ${producto.codigo ? `<br><small class="text-muted">${escapeHtml(producto.codigo)}</small>` : ''}
+                    </div>
+                    <span class="badge ${stockClass}">Stock: ${producto.stock}</span>
+                </button>
+            `;
+        });
+        
+        $('#listaBusqueda').html(html).show();
+    }
     
-    $('#listaBusqueda').html(html).show();
-    
-    // Agregar evento click a cada resultado
-    $('.producto-item').on('click', function(e) {
+    $(document).on('click', '.producto-item', function(e) {
         e.preventDefault();
         e.stopPropagation();
         
@@ -825,105 +1283,45 @@ $('#modalCompra').on('hidden.bs.modal', function() {
         let stock = parseInt($(this).data('stock'));
         let precio = parseFloat($(this).data('precio'));
         
-        console.log('🎯 Producto seleccionado:', { id, nombre, codigo, stock, precio });
+        console.log('Producto seleccionado:', { id, nombre, codigo, stock, precio });
         
         seleccionarProducto(id, nombre, codigo, stock, precio);
     });
-}
-
-// =========================================
-// SELECCIONAR PRODUCTO Y MOSTRAR SECCIÓN
-// =========================================
-function seleccionarProducto(id, nombre, codigo, stock, precio) {
-    console.log('✅ Producto seleccionado:', { id, nombre, codigo, stock, precio });
     
-    // Guardar producto actual
-    productoActual = { id, nombre, codigo, stock, precio };
-    
-    // Llenar campos ocultos y de texto
-    $('#hiddenIdProducto').val(id);
-    $('#inputBuscar').val(nombre);
-    $('#txtProducto').text(nombre + (codigo ? ' (' + codigo + ')' : ''));
-    $('#txtStock').text(stock);
-    $('#inputPrecio').val(precio > 0 ? precio : '');
-    
-    // 👉 MOSTRAR LA SECCIÓN DEL PRODUCTO
-    $('#seccionProducto').show();
-    
-    // Ocultar lista de resultados
-    $('#listaBusqueda').hide();
-    
-    // Habilitar botón guardar
-    $('#btnGuardar').prop('disabled', false);
-    
-    // Calcular total inicial
-    calcularTotal();
-    
-    // Scroll suave hacia la sección
-    setTimeout(function() {
-        $('html, body').animate({
-            scrollTop: $('#seccionProducto').offset().top - 100
-        }, 500);
-    }, 100);
-    
-    // Opcional: Enfocar el campo cantidad
-    setTimeout(function() {
-        $('#inputCantidad').focus();
-    }, 300);
-}
-
-
-$(document).on('click', function(e) {
-    if (!$(e.target).closest('#inputBuscar, #listaBusqueda, .producto-item').length) {
+    function seleccionarProducto(id, nombre, codigo, stock, precio) {
+        productoActual = { id, nombre, codigo, stock, precio };
+        
+        $('#hiddenIdProducto').val(id);
+        $('#inputBuscar').val(nombre);
+        $('#txtProducto').text(nombre + (codigo ? ' (' + codigo + ')' : ''));
+        $('#txtStock').text(stock);
+        $('#inputPrecio').val(precio > 0 ? precio : '');
+        $('#seccionProducto').show();
         $('#listaBusqueda').hide();
+        $('#btnGuardar').prop('disabled', false);
+        
+        calcularTotal();
+        
+        setTimeout(function() {
+            $('#inputCantidad').focus();
+        }, 300);
     }
-});
-
-    // =========================================
-    // CÁLCULO DE TOTAL
-    // =========================================
-   
-    function calcularTotal() {
-    let cantidad = parseFloat($('#inputCantidad').val()) || 0;
-    let precio = parseFloat($('#inputPrecio').val()) || 0;
-    let total = cantidad * precio;
     
-    $('#txtTotal').text(total.toFixed(2));
+    function calcularTotal() {
+        let cantidad = parseFloat($('#inputCantidad').val()) || 0;
+        let precio = parseFloat($('#inputPrecio').val()) || 0;
+        let total = cantidad * precio;
+        $('#txtTotal').text(total.toFixed(2));
     }
-
-    // Actualizar total cuando cambien cantidad o precio
+    
     $('#inputCantidad, #inputPrecio').on('input', calcularTotal);
     
-    // =========================================
-    // OCULTAR LISTA AL HACER CLICK FUERA
-    // =========================================
     $(document).on('click', function(e) {
-        if (!$(e.target).closest('#inputBuscar, #listaBusqueda').length) {
+        if (!$(e.target).closest('#inputBuscar, #listaBusqueda, .producto-item').length) {
             $('#listaBusqueda').hide();
         }
     });
     
-    // =========================================
-    // LIMPIAR FORMULARIO AL CERRAR MODAL
-    // =========================================
-    $('#modalCompra').on('hidden.bs.modal', function() {
-        console.log('🧹 Limpiando formulario');
-        
-        $('#formCompra')[0].reset();
-        $('#hiddenIdProducto').val('');
-        $('#txtProducto').text('');
-        $('#txtStock').text('');
-        $('#txtTotal').text('0.00');
-        $('#seccionProducto').hide();
-        $('#listaBusqueda').hide();
-        $('#btnGuardar').prop('disabled', true);
-        
-        productoActual = null;
-    });
-    
-    // =========================================
-    // FUNCIÓN PARA ESCAPAR HTML
-    // =========================================
     function escapeHtml(text) {
         if (!text) return '';
         return String(text)
@@ -938,203 +1336,143 @@ $(document).on('click', function(e) {
     // GUARDAR COMPRA
     // =========================================
     $('#btnGuardar').on('click', function(e) {
-    e.preventDefault();
-    
-    if (!productoActual) {
-        toastr.warning('Debe seleccionar un producto');
-        return;
-    }
-    
-    // Obtener valores
-    let id_producto = $('#hiddenIdProducto').val();
-    let cantidad = $('#inputCantidad').val();
-    let precio = $('#inputPrecio').val();
-    let id_proveedor = $('#inputProveedor').val();
-    let fecha = $('#inputFecha').val();
-    let metodo_pago = $('#inputMetodo').val();
-    let factura = $('#inputFactura').val();
-    let notas = $('#inputNotas').val();
-    
-    // Validar campos requeridos
-    if (!id_producto) {
-        toastr.error('ID de producto no válido');
-        return;
-    }
-    
-    if (!cantidad || cantidad <= 0) {
-        toastr.error('Cantidad inválida');
-        return;
-    }
-    
-    if (!precio || precio < 0) {
-        toastr.error('Precio inválido');
-        return;
-    }
-    
-    if (!fecha) {
-        toastr.error('Fecha requerida');
-        return;
-    }
-    
-    // Crear objeto con los datos
-    let datos = {
-        id_producto: id_producto,
-        cantidad_comprada: cantidad,        
-        precio_compra: precio,              
-        id_proveedor: id_proveedor || null,
-        numero_factura: factura || '',
-        fecha_compra: fecha,
-        metodo_pago: metodo_pago || 'efectivo',
-        notas: notas || ''
-    };
-    
-    console.log('📦 Datos a enviar:', datos);
-    
-    // Mostrar botón de carga
-    let btn = $(this);
-    btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Guardando...').prop('disabled', true);
-    
-    $.ajax({
-        url: '/compras/guardar',
-        method: 'POST',
-        data: JSON.stringify(datos),
-        contentType: 'application/json',
-        dataType: 'json',
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-        console.log('✅ Respuesta:', response);
+        e.preventDefault();
         
-        // Mostrar mensaje de éxito
-        toastr.success('Compra registrada correctamente');
-        
-        // Marcar que la compra fue exitosa
-        $('#modalCompra').data('compraExitosa', true);
-        
-        // Cerrar el modal correctamente
-        let modal = bootstrap.Modal.getInstance($('#modalCompra')[0]);
-        if (modal) {
-            modal.hide();
-        } else {
-            $('#modalCompra').modal('hide');
+        if (!productoActual) {
+            toastr.warning('Debe seleccionar un producto');
+            return;
         }
         
-        // Forzar eliminación de cualquier backdrop residual
-        setTimeout(function() {
-            // Eliminar todos los backdrops
-            $('.modal-backdrop').remove();
-            // Quitar clase modal-open del body
-            $('body').removeClass('modal-open');
-            // Restaurar estilos del body
-            $('body').css({
-                'overflow': '',
-                'padding-right': ''
-            });
-        }, 150);
+        let datos = {
+            id_producto: $('#hiddenIdProducto').val(),
+            cantidad_comprada: $('#inputCantidad').val(),
+            precio_compra: $('#inputPrecio').val(),
+            id_proveedor: $('#id_proveedor').val() || null,
+            numero_factura: $('#inputFactura').val() || '',
+            fecha_compra: $('#inputFecha').val(),
+            metodo_pago: $('#inputMetodo').val() || 'efectivo',
+            notas: $('#inputNotas').val() || ''
+        };
         
-        // Recargar tabla
-        if ($.fn.DataTable && $('#tablaCompras').length) {
-            $('#tablaCompras').DataTable().ajax.reload();
+        console.log('Datos a enviar:', datos);
+        
+        if (!datos.id_producto || !datos.cantidad_comprada || datos.cantidad_comprada <= 0 || 
+            !datos.precio_compra || datos.precio_compra < 0 || !datos.fecha_compra) {
+            toastr.error('Complete todos los campos requeridos');
+            return;
         }
         
-        // Recargar estadísticas
-        cargarEstadisticas();
-    },
-        error: function(xhr) {
-            console.error('❌ Error completo:', xhr);
-            console.error('❌ Respuesta:', xhr.responseJSON);
-            
-            let mensaje = 'Error al guardar la compra';
-            
-            if (xhr.status === 422 && xhr.responseJSON) {
-                if (xhr.responseJSON.errors) {
-                    mensaje = 'Errores de validación:\n';
-                    const errors = xhr.responseJSON.errors;
-                    for (let field in errors) {
-                        mensaje += `- ${field}: ${errors[field].join(', ')}\n`;
-                    }
-                } else if (xhr.responseJSON.message) {
-                    mensaje = xhr.responseJSON.message;
+        let btn = $(this);
+        btn.html('<span class="spinner-border spinner-border-sm me-1"></span>Guardando...').prop('disabled', true);
+        
+        $.ajax({
+            url: '/compras/guardar',
+            method: 'POST',
+            data: JSON.stringify(datos),
+            contentType: 'application/json',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Respuesta:', response);
+                
+                toastr.success('Compra registrada correctamente');
+                
+                let modal = bootstrap.Modal.getInstance($('#modalCompra')[0]);
+                if (modal) {
+                    modal.hide();
                 }
+                
+                setTimeout(function() {
+                    $('.modal-backdrop').remove();
+                    $('body').removeClass('modal-open');
+                    $('body').css('overflow', '');
+                }, 150);
+                
+                tablaCompras.ajax.reload();
+                cargarEstadisticas();
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr);
+                
+                let mensaje = 'Error al guardar la compra';
+                if (xhr.status === 422 && xhr.responseJSON) {
+                    if (xhr.responseJSON.errors) {
+                        mensaje = 'Errores de validación';
+                        console.error(xhr.responseJSON.errors);
+                    } else if (xhr.responseJSON.message) {
+                        mensaje = xhr.responseJSON.message;
+                    }
+                }
+                
+                toastr.error(mensaje);
+            },
+            complete: function() {
+                btn.html('<i class="fas fa-save"></i> Guardar Compra').prop('disabled', false);
             }
-            
-            toastr.error(mensaje);
-        },
-        complete: function() {
-            btn.html('<i class="fas fa-save"></i> Guardar Compra').prop('disabled', false);
-        }
+        });
     });
-});
     
     // =========================================
-// CARGAR ESTADÍSTICAS - SIN DECIMALES
-// =========================================
-function cargarEstadisticas() {
-    console.log('📊 Cargando estadísticas de compras...');    
-       
-    $.ajax({
-        url: '/compras/estadisticas',
-        method: 'GET',
-        dataType: 'json',
-        timeout: 10000,
-        success: function(response) {
-            console.log('✅ Estadísticas recibidas:', response);
-            
-            if (response.success) {
-                // Actualizar cards con los valores
-                $('#comprasHoy').text(response.compras_hoy || 0);
-                
-                // 👇 MODIFICADO: Redondear a número entero (sin decimales)
-                let total = response.total_invertido || 0;
-                // Redondear al entero más cercano
-                let totalEntero = Math.round(total);
-                // Formatear con separadores de miles pero sin decimales
-                $('#totalInvertido').text('$' + totalEntero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ","));
-                
-                $('#productosComprados').text(response.productos_comprados || 0);
-                $('#comprasMes').text(response.compras_mes || 0);
-            } else {
-                console.warn('⚠️ Respuesta con success false:', response);
-                mostrarValoresPorDefecto();
-                
-                if (response.message) {
-                    toastr.warning('Estadísticas: ' + response.message);
-                }
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('❌ Error cargando estadísticas:', {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                responseText: xhr.responseText,
-                error: error
-            });
-            
-            mostrarValoresPorDefecto();
-            
-            // Mostrar mensaje de error más descriptivo
-            let errorMsg = 'Error al cargar estadísticas';
-            if (xhr.status === 404) {
-                errorMsg = 'La ruta de estadísticas no existe';
-            } else if (xhr.status === 500) {
-                errorMsg = 'Error interno del servidor';
-            }
-            
-            toastr.error(errorMsg);
-        }
+    // EVENTOS DEL MODAL
+    // =========================================
+    $('#modalCompra').on('show.bs.modal', function() {
+        console.log('Abriendo modal - cargando proveedores');
+        cargarProveedores();
     });
-}
-
-// Función para mostrar valores por defecto en caso de error
-function mostrarValoresPorDefecto() {
-    $('#comprasHoy').text('0');
-    $('#totalInvertido').text('$0');
-    $('#productosComprados').text('0');
-    $('#comprasMes').text('0');
-} 
-    // Cargar estadísticas al inicio
+    
+    $('#modalCompra').on('shown.bs.modal', function() {
+        console.log('Modal mostrado - enfocando búsqueda');
+        $('#inputBuscar').focus();
+    });
+    
+    $('#modalCompra').on('hidden.bs.modal', function() {
+        console.log('Cerrando modal - limpiando formulario');
+        
+        $('#formCompra')[0].reset();
+        $('#hiddenIdProducto').val('');
+        $('#txtProducto').text('');
+        $('#txtStock').text('');
+        $('#txtTotal').text('0.00');
+        $('#seccionProducto').hide();
+        $('#listaBusqueda').empty().hide();
+        $('#btnGuardar').prop('disabled', true);
+        productoActual = null;
+        
+        setTimeout(function() {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+            $('body').css('overflow', '');
+        }, 100);
+    });
+    
+    // =========================================
+    // CARGAR ESTADÍSTICAS
+    // =========================================
+    function cargarEstadisticas() {
+        $.ajax({
+            url: '/compras/estadisticas',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    $('#comprasHoy').text(response.compras_hoy || 0);
+                    $('#totalInvertido').text('$' + Math.round(response.total_invertido || 0).toLocaleString());
+                    $('#productosComprados').text(response.productos_comprados || 0);
+                    $('#comprasMes').text(response.compras_mes || 0);
+                }
+            },
+            error: function() {
+                $('#comprasHoy, #productosComprados, #comprasMes').text('0');
+                $('#totalInvertido').text('$0');
+            }
+        });
+    }
+    
+    // =========================================
+    // INICIALIZACIÓN
+    // =========================================
     cargarEstadisticas();
+    setInterval(cargarEstadisticas, 30000);
+    
 });
 </script>
+
 @endpush

@@ -278,8 +278,7 @@
                     <label>Tipo de Comprobante</label>
                     <select class="form-control" id="tipoComprobante">
                         <option value="ticket">Ticket (80mm)</option>
-                        <option value="factura">Factura Carta</option>
-                        <option value="factura_fiscal">Factura Fiscal (CFDI)</option>
+                        <option value="factura">Factura Carta</option>                        
                     </select>
                 </div>
 

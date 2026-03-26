@@ -57,121 +57,122 @@ class CompraController extends Controller
  * Guardar nueva compra
  */ 
 
-
 public function guardar(Request $request)
 {
     try {
         DB::beginTransaction();
-        
-        // Validar datos
+
         $validator = Validator::make($request->all(), [
-            'id_producto' => 'required|exists:productos,id_producto',
-             'cantidad_comprada' => 'required|numeric|min:1',
-            'precio_compra' => 'required|numeric|min:0',
-            'fecha_compra' => 'required|date',
-            'id_proveedor' => 'nullable|exists:proveedores,id_proveedor',
-            'numero_factura' => 'nullable|string|max:50',
-            'notas' => 'nullable|string',
+            'id_producto'       => 'required|exists:productos,id_producto',
+            'cantidad_comprada' => 'required|numeric|min:1',
+            'precio_compra'     => 'required|numeric|min:0',
+            'fecha_compra'      => 'required|date',
+            'id_proveedor'      => 'nullable|exists:proveedores,id_proveedor',
+            'numero_factura'    => 'nullable|string|max:50',
+            'notas'             => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'errors' => $validator->errors()
+                'errors'  => $validator->errors()
             ], 422);
         }
 
-        $producto = Producto::findOrFail($request->id_producto);
-        
-        // Usar stock_actual en lugar de stock
-        $stockAnterior = $producto->stock_actual;  // ✅ CORRECTO
-        $cantidad = $request->cantidad;
-        $precioCompra = $request->precio_compra;
-        $precioTotal = $cantidad * $precioCompra;
-        $stockNuevo = $stockAnterior + $cantidad;
-        
-        // 1. GUARDAR EN TABLA COMPRAS
+        $producto      = Producto::findOrFail($request->id_producto);
+        $stockAnterior = $producto->stock_actual;
+        $cantidad      = (float) $request->cantidad_comprada;
+        $precioCompra  = (float) $request->precio_compra;
+        $precioTotal   = $cantidad * $precioCompra;
+        $stockNuevo    = $stockAnterior + $cantidad;
+
+        // Obtener nombre del proveedor
+        $nombreProveedor = null;
+        if ($request->id_proveedor) {
+            $prov = Proveedor::find($request->id_proveedor);
+            $nombreProveedor = $prov ? $prov->razon_social : null;
+        }
+
+        // ✅ Guardar en tabla compras con columnas reales
         $compra = new Compra();
-        $compra->id_producto = $request->id_producto;
-        $compra->id_proveedor = $request->id_proveedor;
-        $compra->cantidad = $cantidad;
-        $compra->precio_compra = $precioCompra;
-        $compra->precio_total = $precioTotal;
-        $compra->fecha_compra = $request->fecha_compra;
-        $compra->numero_factura = $request->numero_factura;
-        $compra->notas = $request->notas;
-        $compra->user_id = auth()->id();
-        $compra->estado = 'completada';
+        $compra->id_producto      = $request->id_producto;
+        $compra->id_proveedor     = $request->id_proveedor ?: null;
+        $compra->cantidad         = $cantidad;
+        $compra->precio_unitario  = $precioCompra;  // columna varchar
+        $compra->precio_compra    = $precioCompra;  // columna decimal
+        $compra->precio_total     = $precioTotal;
+        $compra->proveedor        = $nombreProveedor;
+        $compra->numero_factura   = $request->numero_factura;
+        $compra->fecha_compra     = $request->fecha_compra;
+        $compra->metodo_pago      = $request->metodo_pago ?? 'efectivo';
+        $compra->notas            = $request->notas;
+        $compra->estado           = 'completada';
+        $compra->usuario_registro = auth()->id();
+        $compra->user_id          = auth()->id();
         $compra->save();
-        
-        // 2. ACTUALIZAR EL PRODUCTO - ¡CORREGIDO!
-        $producto->stock_actual = $stockNuevo;           // ✅ CAMBIADO de 'stock' a 'stock_actual'
-        $producto->costo_promedio = $this->calcularPromedioPonderado(
-            $stockAnterior, 
-            $producto->costo_promedio, 
-            $cantidad, 
+
+        // Actualizar producto
+        $costoPromedio = $this->calcularPromedioPonderado(
+            $stockAnterior,
+            (float) $producto->costo_promedio,
+            $cantidad,
             $precioCompra
         );
-        $producto->ultimo_costo = $precioCompra;
+
+        $producto->stock_actual   = $stockNuevo;
+        $producto->costo_promedio = $costoPromedio;
+        $producto->ultimo_costo   = $precioCompra;
         $producto->save();
-        
-        // 3. VERIFICAR STOCK MÍNIMO
-        if ($producto->stock_actual <= $producto->stock_minimo) {
-            Log::warning("Producto {$producto->nombre} está por debajo del stock mínimo");
-        }
-        
-        // 4. REGISTRAR EN INVENTARIO
+
+        // Registrar en inventario
         Inventario::create([
-            'id_producto' => $request->id_producto,
-            'tipo_movimiento' => 'entrada',
-            'cantidad' => $cantidad,
-            'stock_anterior' => $stockAnterior,
-            'stock_nuevo' => $stockNuevo,
-            'costo_promedio' => $producto->costo_promedio,
-            'ultimo_costo' => $producto->ultimo_costo,
-            'precio_compra' => $precioCompra,
-            'precio_venta' => $producto->precio_venta,
-            'proveedor' => $request->id_proveedor ? Proveedor::find($request->id_proveedor)->nombre : null,
-            'numero_factura' => $request->numero_factura,
-            'metodo_pago' => $request->metodo_pago ?? 'efectivo',
+            'id_producto'      => $request->id_producto,
+            'tipo_movimiento'  => 'entrada',
+            'cantidad'         => $cantidad,
+            'stock_anterior'   => $stockAnterior,
+            'stock_nuevo'      => $stockNuevo,
+            'costo_promedio'   => $costoPromedio,
+            'ultimo_costo'     => $precioCompra,
+            'precio_compra'    => $precioCompra,
+            'precio_venta'     => $producto->precio_venta,
+            'proveedor'        => $nombreProveedor,
+            'numero_factura'   => $request->numero_factura,
+            'metodo_pago'      => $request->metodo_pago ?? 'efectivo',
             'fecha_movimiento' => now(),
-            'notas' => $request->notas,
-            'userId' => auth()->id(),
+            'notas'            => $request->notas,
+            'userId'           => auth()->id(),
         ]);
-        
+
         DB::commit();
-        
+
         return response()->json([
             'success' => true,
             'message' => 'Compra registrada exitosamente',
-            'data' => [
+            'data'    => [
                 'compra_id' => $compra->id_compra,
-                'producto' => $producto->nombre,
-                'cantidad' => $cantidad,
-                'total' => $precioTotal
+                'producto'  => $producto->nombre,
+                'cantidad'  => $cantidad,
+                'total'     => $precioTotal,
             ]
         ]);
-        
+
     } catch (\Exception $e) {
         DB::rollBack();
         Log::error('❌ Error en compra: ' . $e->getMessage());
         Log::error($e->getTraceAsString());
-        
+
         return response()->json([
             'success' => false,
-            'message' => 'Error al registrar la compra: ' . $e->getMessage()
+            'message' => 'Error: ' . $e->getMessage()
         ], 500);
     }
 }
 
-
- /**
- * Listar inventarios para DataTables
+/**
+ * Listar compras para DataTables
  */
-
 public function listarCompras(Request $request)
 {
-
     try {
         // Total sin filtros
         $totalRegistros = \App\Models\Inventario::where('tipo_movimiento', 'entrada')->count();
@@ -180,9 +181,15 @@ public function listarCompras(Request $request)
         $query = \App\Models\Inventario::with('producto')
             ->where('tipo_movimiento', 'entrada')
             ->select(
-                'id_inventario', 'fecha_movimiento', 'id_producto',
-                'cantidad', 'precio_compra', 'proveedor',
-                'numero_factura', 'metodo_pago', 'notas',
+                'id_inventario', 
+                'fecha_movimiento', 
+                'id_producto',
+                'cantidad', 
+                'precio_compra', 
+                'proveedor',
+                'numero_factura', 
+                'metodo_pago', 
+                'notas',
                 'stock_nuevo'
             );
 
@@ -200,47 +207,71 @@ public function listarCompras(Request $request)
 
         $totalFiltrado = $query->count();
 
-        $start  = (int) $request->get('start', 0);
-        $length = (int) $request->get('length', 10);
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
 
         $compras = $query->orderBy('id_inventario', 'desc')
             ->skip($start)
             ->take($length)
             ->get();
 
-        $data = $compras->map(fn($c) => [
-            'id_compra'     => $c->id_inventario,
-            'fecha_compra'  => $c->fecha_movimiento?->format('Y-m-d H:i:s'),
-            'producto'      => $c->producto ? [
-                'nombre' => $c->producto->nombre,
-                'codigo' => $c->producto->codigo,
-            ] : null,
-            'cantidad'      => (int)   $c->cantidad,
-            'precio_compra' => (float) $c->precio_compra,
-            'proveedor'     => $c->proveedor ?? 'Sin proveedor',
-            'stock_nuevo'   => (int)   $c->stock_nuevo,
-        ])->values()->all();
+        $data = [];
+        foreach ($compras as $compra) {
+            $productoNombre = $compra->producto ? $compra->producto->nombre : 'N/A';
+            $productoCodigo = $compra->producto ? $compra->producto->codigo : '';
+            
+            $data[] = [
+                'id_compra' => $compra->id_inventario,
+                'fecha_compra' => $compra->fecha_movimiento ? $compra->fecha_movimiento->format('Y-m-d H:i:s') : '',
+                'producto_nombre' => $productoNombre,
+                'producto_codigo' => $productoCodigo,
+                'cantidad' => (int) $compra->cantidad,
+                'precio_compra' => (float) $compra->precio_compra,
+                'total' => (float) ($compra->cantidad * $compra->precio_compra),
+                'proveedor' => $compra->proveedor ?? 'Sin proveedor',
+                'stock_nuevo' => (int) $compra->stock_nuevo,
+                'acciones' => $this->generarBotonesAccion($compra->id_inventario)
+            ];
+        }
 
         return response()->json([
-            'draw'            => (int) $request->get('draw', 1),
-            'recordsTotal'    => $totalRegistros,
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => $totalRegistros,
             'recordsFiltered' => $totalFiltrado,
-            'data'            => $data,
+            'data' => $data
         ]);
 
     } catch (\Exception $e) {
-        \Log::error('Error listar compras: ' . $e->getMessage());
-        \Log::error($e->getTraceAsString());
-
+        \Log::error('Error en listarCompras: ' . $e->getMessage());
+        
         return response()->json([
-            'draw'            => (int) $request->get('draw', 1),
-            'recordsTotal'    => 0,
+            'draw' => intval($request->input('draw', 1)),
+            'recordsTotal' => 0,
             'recordsFiltered' => 0,
-            'data'            => [],
-            'error'           => $e->getMessage(),
+            'data' => [],
+            'error' => $e->getMessage()
         ], 500);
     }
 }
+
+/**
+ * Generar botones de acción
+ */
+private function generarBotonesAccion($id)
+{
+    return '<div class="btn-group" role="group" style="gap: 5px;">' .
+           '<button type="button" class="btn btn-info btn-sm ver-compra" data-id="' . $id . '" title="Ver detalles">' .
+           '<i class="fas fa-eye"></i>' .
+           '</button>' .
+           '<button type="button" class="btn btn-warning btn-sm editar-compra" data-id="' . $id . '" title="Editar compra">' .
+           '<i class="fas fa-edit"></i>' .
+           '</button>' .
+           '<button type="button" class="btn btn-danger btn-sm eliminar-compra" data-id="' . $id . '" title="Anular compra">' .
+           '<i class="fas fa-trash"></i>' .
+           '</button>' .
+           '</div>';
+}
+
 
 private function calcularPromedioPonderado($stockAnterior, $costoAnterior, $cantidadNueva, $precioCompra)
 {
@@ -251,20 +282,38 @@ private function calcularPromedioPonderado($stockAnterior, $costoAnterior, $cant
     return $precioCompra;
 }
 
+
 /**
- * Obtener una compra específica
+ * Obtener una compra específica para ver detalles
  */
-public function mostrar($id)
+public function mostrarCompra($id)
 {
     try {
-        $compra = Compra::with(['producto', 'proveedor', 'usuario'])
-            ->findOrFail($id);
+        $compra = \App\Models\Inventario::with('producto')
+            ->where('id_inventario', $id)
+            ->where('tipo_movimiento', 'entrada')
+            ->firstOrFail();
         
         return response()->json([
             'success' => true,
-            'data' => $compra
+            'data' => [
+                'id_compra' => $compra->id_inventario,
+                'fecha_compra' => $compra->fecha_movimiento ? $compra->fecha_movimiento->format('Y-m-d H:i:s') : null,
+                'producto' => $compra->producto ? [
+                    'id' => $compra->producto->id_producto,
+                    'nombre' => $compra->producto->nombre,
+                    'codigo' => $compra->producto->codigo,
+                ] : null,
+                'cantidad' => $compra->cantidad,
+                'precio_compra' => $compra->precio_compra,
+                'proveedor' => $compra->proveedor,
+                'numero_factura' => $compra->numero_factura,
+                'metodo_pago' => $compra->metodo_pago,
+                'notas' => $compra->notas,
+                'stock_nuevo' => $compra->stock_nuevo
+            ]
         ]);
-
+        
     } catch (\Exception $e) {
         return response()->json([
             'success' => false,
@@ -272,67 +321,141 @@ public function mostrar($id)
         ], 404);
     }
 }
-    /**
-     * Anular una compra (eliminación lógica o física)
-     */
-    public function anular($id)
-    {
-        try {
-            DB::beginTransaction();
 
-            $compra = Compra::findOrFail($id);
-            
-            // Verificar que la compra se pueda anular (ej: no sea muy antigua)
-            $diasDesdeCompra = now()->diffInDays($compra->fecha_compra);
-            if ($diasDesdeCompra > 30) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No se puede anular una compra con más de 30 días'
-                ], 422);
-            }
 
-            // Restar stock del producto
-            $producto = Producto::findOrFail($compra->id_producto);
-            $stockAnterior = $producto->stock;
-            
-            if ($producto->stock < $compra->cantidad) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No hay suficiente stock para anular la compra'
-                ], 422);
-            }
-            
-            $producto->stock -= $compra->cantidad;
-            $producto->save();
 
-            // Registrar anulación en inventario
-            $this->registrarAnulacionInventario($compra, $producto, $stockAnterior);
+/**
+ * Actualizar una compra
+ */
+public function actualizarCompra(Request $request, $id)
+{
+    try {
+        DB::beginTransaction();
+        
+        $compra = \App\Models\Inventario::where('id_inventario', $id)
+            ->where('tipo_movimiento', 'entrada')
+            ->firstOrFail();
+        
+        $validator = Validator::make($request->all(), [
+            'cantidad' => 'required|numeric|min:1',
+            'precio_compra' => 'required|numeric|min:0',
+            'proveedor' => 'nullable|string|max:255',
+            'numero_factura' => 'nullable|string|max:50',
+            'metodo_pago' => 'nullable|string|max:50',
+            'notas' => 'nullable|string',
+        ]);
 
-            // Eliminar compra (o marcar como anulada si usas soft deletes)
-            $compra->delete(); // Si usas soft deletes, esto solo marca como eliminado
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Compra anulada correctamente',
-                'data' => [
-                    'producto' => $producto->nombre,
-                    'stock_anterior' => $stockAnterior,
-                    'stock_nuevo' => $producto->stock
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error al anular compra: ' . $e->getMessage());
-            
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al anular la compra: ' . $e->getMessage()
-            ], 500);
+                'errors' => $validator->errors()
+            ], 422);
         }
+        
+        // Calcular diferencia de cantidad para ajustar stock
+        $diferenciaCantidad = $request->cantidad - $compra->cantidad;
+        
+        // Actualizar producto si hay cambio en cantidad
+        if ($diferenciaCantidad != 0 && $compra->id_producto) {
+            $producto = Producto::find($compra->id_producto);
+            if ($producto) {
+                $nuevoStock = $producto->stock_actual + $diferenciaCantidad;
+                
+                // Validar que el stock no sea negativo
+                if ($nuevoStock < 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No hay suficiente stock para realizar esta actualización'
+                    ], 422);
+                }
+                
+                $producto->stock_actual = $nuevoStock;
+                $producto->save();
+                
+                // Actualizar stock_nuevo en la compra
+                $compra->stock_nuevo = $nuevoStock;
+            }
+        }
+        
+        // Actualizar compra
+        $compra->cantidad = $request->cantidad;
+        $compra->precio_compra = $request->precio_compra;
+        $compra->proveedor = $request->proveedor;
+        $compra->numero_factura = $request->numero_factura;
+        $compra->metodo_pago = $request->metodo_pago;
+        $compra->notas = $request->notas;
+        $compra->save();
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Compra actualizada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('Error al actualizar compra: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al actualizar la compra: ' . $e->getMessage()
+        ], 500);
     }
+}
+
+/**
+ * Anular/eliminar una compra
+ */
+public function anularCompra($id)
+{
+    try {
+        DB::beginTransaction();
+        
+        $compra = \App\Models\Inventario::where('id_inventario', $id)
+            ->where('tipo_movimiento', 'entrada')
+            ->firstOrFail();
+        
+        // Restar del stock del producto
+        if ($compra->id_producto) {
+            $producto = Producto::find($compra->id_producto);
+            if ($producto) {
+                $nuevoStock = $producto->stock_actual - $compra->cantidad;
+                
+                // Validar que el stock no sea negativo
+                if ($nuevoStock < 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'No se puede anular: el stock disponible es menor a la cantidad de esta compra'
+                    ], 422);
+                }
+                
+                $producto->stock_actual = $nuevoStock;
+                $producto->save();
+            }
+        }
+        
+        // Eliminar compra
+        $compra->delete();
+        
+        DB::commit();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Compra anulada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Error al anular compra: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al anular la compra: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
 
     /**
      * Obtener estadísticas para dashboard
@@ -502,13 +625,7 @@ public function buscarProductos(Request $request)
                 $query->where('nombre', 'LIKE', "%{$termino}%")
                       ->orWhere('codigo', 'LIKE', "%{$termino}%");
             })
-            ->select(
-                'id_producto', 
-                'nombre', 
-                'codigo', 
-                'stock', 
-                'precio_venta'  // 👈 CAMBIADO: usar precio_venta
-            )
+            ->select('id_producto', 'nombre', 'codigo', 'stock_actual as stock', 'precio_venta')
             ->orderBy('nombre')
             ->limit(10)
             ->get();
