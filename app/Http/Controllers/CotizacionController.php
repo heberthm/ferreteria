@@ -81,6 +81,7 @@ class CotizacionController extends Controller
                         </div>
                     ';
                 })
+                
                 ->editColumn('numero_cotizacion', function($cotizacion) {
                     return '<strong>' . $cotizacion->numero_cotizacion . '</strong>';
                 })

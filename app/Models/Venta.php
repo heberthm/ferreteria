@@ -18,7 +18,7 @@ class Venta extends Model
         'id_cliente',
         'subtotal',
         'iva',
-        'total',
+        'total_venta',
         'metodo_pago',
         'tipo_comprobante',
         'referencia_pago',

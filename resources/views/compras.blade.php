@@ -1293,7 +1293,7 @@ $('#modalEditarCompra').on('hidden.bs.modal', function() {
         
         $('#hiddenIdProducto').val(id);
         $('#inputBuscar').val(nombre);
-        $('#txtProducto').text(nombre + (codigo ? ' (' + codigo + ')' : ''));
+        $('#txtProducto').text(nombre +  (codigo ? ' (' + codigo + ')' : ''));
         $('#txtStock').text(stock);
         $('#inputPrecio').val(precio > 0 ? precio : '');
         $('#seccionProducto').show();

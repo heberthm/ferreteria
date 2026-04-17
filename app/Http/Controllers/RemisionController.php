@@ -7,6 +7,7 @@ use App\Models\RemisionDetalle;
 use App\Models\Cliente;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -315,6 +316,7 @@ class RemisionController extends Controller
 
         return $prefijo . str_pad($siguiente, 5, '0', STR_PAD_LEFT);
     }
+    
 
     // ── BUSCAR PRODUCTOS ──────────────────────────────────────────────────────
     public function buscarProductos(Request $request)
@@ -338,4 +340,35 @@ class RemisionController extends Controller
             ])
         ]);
     }
+
+// ── GENERAR PDF ──────────────────────────────────────────────────────────
+public function generarPDF($id)
+{
+    try {
+        $remision = Remision::with(['cliente', 'vendedor', 'detalles'])
+            ->where('id_remision', $id)
+            ->firstOrFail();
+
+        $empresa = [
+            'nombre'    => 'Ferretería XYZ',
+            'nit'       => '123456789-0',
+            'direccion' => 'Calle 123 #45-67',
+            'telefono'  => '(601) 123-4567',
+            'email'     => 'info@ferreteriaxyz.com',
+        ];
+
+        // Si se solicita descarga
+        if (request('download') == 1) {
+           $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf-remision', compact('remision', 'empresa'));
+            return $pdf->download('remision_' . $remision->numero_remision . '.pdf');
+        }
+
+        // Por defecto retorna HTML para el iframe
+        return view('pdf-remision', compact('remision', 'empresa'));
+
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
+    
 }

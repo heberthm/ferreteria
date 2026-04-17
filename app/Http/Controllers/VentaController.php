@@ -160,4 +160,48 @@ class VentaController extends Controller
             ], 500);
         }
     }
+
+    // En tu VentaController.php
+public function getDetalle($id)
+{
+    try {
+        $venta = Venta::with(['cliente', 'vendedor', 'detalles.producto'])
+            ->where('id_venta', $id)
+            ->firstOrFail();
+            
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'venta' => [
+                    'id' => $venta->id_venta,
+                    'numero_factura' => $venta->numero_factura,
+                    'fecha' => $venta->fecha_venta->format('d/m/Y'),
+                    'hora' => $venta->fecha_venta->format('H:i:s'),
+                    'total' => $venta->total,
+                    'estado' => $venta->estado,
+                    'metodo_pago' => $venta->metodo_pago,
+                    'observaciones' => $venta->observaciones,
+                ],
+                'cliente' => $venta->cliente ? [
+                    'nombre' => $venta->cliente->nombre,
+                    'cedula' => $venta->cliente->cedula,
+                ] : null,
+                'vendedor' => $venta->vendedor ? [
+                    'nombre' => $venta->vendedor->name,
+                ] : null,
+                'detalles' => $venta->detalles->map(function($detalle) {
+                    return [
+                        'nombre' => $detalle->producto->nombre,
+                        'codigo' => $detalle->producto->codigo,
+                        'cantidad' => $detalle->cantidad,
+                        'precio_unitario' => $detalle->precio_unitario,
+                        'subtotal' => $detalle->subtotal,
+                    ];
+                }),
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+    }
+}
 }

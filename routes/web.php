@@ -16,6 +16,8 @@ use App\Http\Controllers\DevolucionController;
 use App\http\Controllers\ventaController;
 use App\Http\Controllers\OrdenCompraController;
 use App\Http\Controllers\proveedorController;
+use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\ConfiguracionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialVentasController;
 
@@ -90,6 +92,9 @@ Route::get('/productos-frecuentes', [PuntoVentaController::class, 'productosFrec
 Route::get('/ticket/{venta}', [PuntoVentaController::class, 'generarTicket'])->name('ticket');
 Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])->name('factura');
 
+Route::get('/ventas/detalle/{id}', [VentaController::class, 'getDetalle'])->name('ventas.detalle');
+Route::post('/ventas/cancelar/{id}', [VentaController::class, 'cancelar'])->name('ventas.cancelar');
+
 
 // ======================================================
 
@@ -118,7 +123,7 @@ Route::get('/factura/{venta}', [PuntoVentaController::class, 'generarFactura'])-
     Route::get('/ventas/reporte', [HistorialVentasController::class, 'exportarReporte'])->name('ventas.reporte');    
     // Ruta para vista de todas las ventas (opcional - como alternativa)
     Route::get('/ventas/todas', [HistorialVentasController::class, 'ventasTodas'])->name('ventas.todas');
-Route::get('/historial-ventas/exportar-excel', [App\Http\Controllers\HistorialVentasController::class, 'exportarExcel'])->name('historial.ventas.exportar.excel');
+  Route::get('/historial-ventas/exportar-excel', [App\Http\Controllers\HistorialVentasController::class, 'exportarExcel'])->name('historial.ventas.exportar.excel');
   
 
 /*
@@ -233,6 +238,8 @@ Route::delete('/remisiones/{id}',       [RemisionController::class, 'destroy'])-
 // Cambiar estado
 Route::post('/remisiones/{id}/cambiar-estado', [RemisionController::class, 'cambiarEstado'])->name('remisiones.cambiar-estado');
 
+Route::get('/remisiones/{id}/pdf', [RemisionController::class, 'generarPDF'])->name('remisiones.pdf');
+
 
 
 // ======================================================
@@ -292,7 +299,7 @@ Route::get('/inventario/imprimir/{id}', [InventarioController::class, 'imprimir'
 // Rutas auxiliares para selects - ¡ESTAS SON LAS QUE FALTABAN!
 Route::get('/productos/list', [ProductoController::class, 'list'])->name('productos.list');
 Route::get('/categorias/list', [CategoriaController::class, 'list'])->name('categorias.list');
-Route::get('/proveedores/list', [proveedorController::class, 'list'])->name('proveedores.list');
+Route::get('/proveedores/list', [proveedorController::class, 'getLista'])->name('proveedores.list');
 
 
 // ======================================================
@@ -345,3 +352,92 @@ Route::get('ordenes-compra/{id}/pdf',                 [OrdenCompraController::cl
  
 // Búsqueda de proveedores para Select2
 Route::get('buscar-proveedores',                      [OrdenCompraController::class, 'buscarProveedores'])->name('buscar-proveedores');
+Route::get('buscar-productos-orden-compra',             [OrdenCompraController::class, 'buscarProductos'])->name('buscar-productos-orden-compra');
+
+Route::get('ordenes-compra/{id}/vista-previa', [OrdenCompraController::class, 'vistaPrevia'])->name('ordenes-compra.vista-previa');
+
+
+// ====================================================
+
+// RUTAS PARA REPORTES
+
+// ====================================================
+
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/reportes', [ReporteController::class, 'index'])->name('reportes');
+    Route::get('/reportes/ventas-data', [ReporteController::class, 'getVentasData'])->name('reportes.ventas-data');
+    Route::get('/reportes/compras-data', [ReporteController::class, 'getComprasData'])->name('reportes.compras-data');
+    Route::get('/reportes/inventario-data', [ReporteController::class, 'getInventarioData'])->name('reportes.inventario-data');
+});
+
+
+
+// ====================================================
+
+// RUTAS PARA CONFIOGURACION
+
+// ====================================================
+
+
+// Rutas de configuración
+Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->group(function () {
+    // Vista principal
+    Route::get('/', [ConfiguracionController::class, 'index'])->name('index');
+
+    // ✅ Ruta para cargar todas las configuraciones 
+    Route::get('/cargar-configuraciones', [ConfiguracionController::class, 'cargarConfiguraciones'])->name('cargar-configuraciones');
+    
+    // Configuración general
+    Route::post('/guardar-general', [ConfiguracionController::class, 'guardarGeneral'])->name('guardar-general');   
+    Route::get('/proximo-numero', [ConfiguracionController::class, 'getProximoNumeroFactura'])->name('proximo-numero');
+    Route::post('/reiniciar-consecutivo', [ConfiguracionController::class, 'reiniciarConsecutivo'])->name('reiniciar-consecutivo');
+
+    // Facturación
+
+    Route::get('/facturacion', [ConfiguracionController::class, 'cargarFacturacion'])->name('facturacion.cargar');
+    Route::post('/guardar-facturacion', [ConfiguracionController::class, 'guardarFacturacion'])->name('guardar-facturacion');´
+    Route::get('/facturacion/consecutivo', [ConfiguracionController::class, 'obtenerConsecutivo'])->name('facturacion.consecutivo');
+    Route::post('/facturacion/incrementar', [ConfiguracionController::class, 'incrementarConsecutivo'])->name('facturacion.incrementar');
+    Route::post('/facturacion/reiniciar', [ConfiguracionController::class, 'reiniciarConsecutivo'])->name('facturacion.reiniciar');
+
+    // Perfil y negocio
+    Route::post('/actualizar-perfil', [ConfiguracionController::class, 'actualizarPerfil'])->name('actualizar-perfil');
+    Route::post('/guardar-negocio', [ConfiguracionController::class, 'guardarNegocio'])->name('guardar-negocio');
+    
+    // Impuestos y alertas
+    Route::post('/guardar-impuestos', [ConfiguracionController::class, 'guardarImpuestos'])->name('guardar-impuestos');
+    Route::post('/guardar-alertas', [ConfiguracionController::class, 'guardarAlertas'])->name('guardar-alertas');
+    
+    // Backups
+    Route::post('/crear-backup', [ConfiguracionController::class, 'crearBackup'])->name('crear-backup');
+    Route::get('/listar-backups', [ConfiguracionController::class, 'listarBackups'])->name('listar-backups');
+    Route::get('/descargar-backup/{nombre}', [ConfiguracionController::class, 'descargarBackup'])->name('descargar-backup');
+    Route::delete('/eliminar-backup', [ConfiguracionController::class, 'eliminarBackup'])->name('eliminar-backup');
+    
+    // Usuarios
+    Route::get('/listar-usuarios', [ConfiguracionController::class, 'listarUsuarios'])->name('listar-usuarios');
+    Route::post('/guardar-usuario', [ConfiguracionController::class, 'guardarUsuario'])->name('guardar-usuario');
+    Route::put('/actualizar-usuario/{id}', [ConfiguracionController::class, 'actualizarUsuario'])->name('actualizar-usuario');
+    Route::delete('/eliminar-usuario/{id}', [ConfiguracionController::class, 'eliminarUsuario'])->name('eliminar-usuario');
+    
+    // Roles
+    Route::get('/listar-roles', [ConfiguracionController::class, 'listarRoles'])->name('listar-roles');
+    Route::post('/guardar-rol', [ConfiguracionController::class, 'guardarRol'])->name('guardar-rol');
+    Route::put('/actualizar-rol/{id}', [ConfiguracionController::class, 'actualizarRol'])->name('actualizar-rol');
+    Route::delete('/eliminar-rol/{id}', [ConfiguracionController::class, 'eliminarRol'])->name('eliminar-rol');
+    
+    // Obtener configuración
+    Route::get('/get-configuracion', [ConfiguracionController::class, 'getConfiguracion'])->name('get-configuracion');
+    Route::get('/configuracion/cargar-configuraciones', [ConfiguracionController::class, 'cargarConfiguraciones'])->name('configuracion.cargar');
+
+    
+});
+
+// Rutas de reportes
+Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(function () {
+    Route::get('/', [ReporteController::class, 'index'])->name('index');
+    Route::get('/ventas-data', [ReporteController::class, 'getVentasData'])->name('ventas-data');
+    Route::get('/compras-data', [ReporteController::class, 'getComprasData'])->name('compras-data');
+    Route::get('/inventario-data', [ReporteController::class, 'getInventarioData'])->name('inventario-data');
+});

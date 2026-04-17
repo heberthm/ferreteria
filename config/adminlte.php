@@ -467,31 +467,14 @@ return [
                    
         [
                 'text' => 'Reportes',
-                'url' => 'admin/settings',
+                'url' => 'reportes',
                 'icon' => 'nav-icon fas fa-chart-bar',
 
-                'submenu' => [
-                    [
-                        'text' => 'ventas',
-                        'icon' => 'far fa-circle nav-icon',
-                        'url' => '#',
-                    ],
-                    [
-                        'text' => 'Compras',
-                        'icon' => 'far fa-circle nav-icon',
-                        'url' => '#',
-                    ],
-                    [
-                        'text' => 'Inventarios',
-                        'icon' => 'far fa-circle nav-icon',
-                        'url' => '#',
-                    ],                 
-            ],
         ],
         [
             'text' => 'Configuración',
             'icon' => 'nav-icon fas fa-cog',
-            'url' => '#',
+            'url' => 'configuracion',
         ],
 
         [

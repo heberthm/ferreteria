@@ -20,6 +20,7 @@ class Compra extends Model
         'precio_unitario',
         'precio_compra',      
         'precio_total',
+         'total_compra',
         'proveedor',
         'numero_factura',
         'fecha_compra',

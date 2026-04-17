@@ -557,6 +557,41 @@
     </div>
 </div>
 
+<!-- ================================================
+     MODAL VER PDF (IGUAL QUE EN COTIZACIONES)
+================================================ -->
+<div class="modal-custom-overlay" id="overlayVerPDF">
+    <div class="modal-dialog" style="max-width:90%;">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-pdf text-danger"></i> Vista Previa PDF Remisión
+                </h5>
+                <button type="button" class="close btn-cerrar-modal" data-overlay="overlayVerPDF">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div style="max-width: 900px; margin: 30px auto; padding: 30px 40px; background: white;">
+                    <iframe id="pdfIframe" src="" 
+                        style="width:100%; height:75vh; border:none;">
+                    </iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-cerrar-modal"
+                        data-overlay="overlayVerPDF">Cerrar</button>
+                <a href="#" id="btnDescargarPDF" class="btn btn-success" target="_blank">
+                    <i class="fas fa-download"></i> Descargar PDF
+                </a>
+                <button type="button" onclick="$('#pdfIframe')[0].contentWindow.print()" 
+                        class="btn btn-primary">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @push('js')
 <script>
@@ -844,9 +879,7 @@ $(document).ready(function () {
         }
     });
 
-    // ================================================
-    // DATATABLES
-    // ================================================
+   
    
 // ================================================
 // DATATABLES CON FILTROS AUTOMÁTICOS
@@ -1246,6 +1279,27 @@ $('#btnLimpiarFiltros').on('click', function() {
                 $('#btnGuardarClienteRem').prop('disabled', false);
             }
         });
+    });
+
+        // ================================================
+    // FUNCIÓN PARA ABRIR PDF (IGUAL QUE EN COTIZACIONES)
+    // ================================================
+    function abrirPDF(id) {
+        var url = APP_URL + '/remisiones/' + id + '/pdf';
+        $('#pdfIframe').attr('src', url);
+        // Botón descargar apunta a la misma ruta pero con ?download=1
+        $('#btnDescargarPDF').attr('href', url + '?download=1');
+        abrirOverlay('overlayVerPDF');
+    }
+
+    // Evento para el botón PDF en la tabla
+    $(document).on('click', '.btn-pdf', function() {
+        abrirPDF($(this).data('id'));
+    });
+
+    // Limpiar iframe al cerrar el overlay del PDF
+    $(document).on('click', '[data-overlay="overlayVerPDF"]', function() {
+        setTimeout(function() { $('#pdfIframe').attr('src', ''); }, 300);
     });
 
 });

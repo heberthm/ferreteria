@@ -59,6 +59,10 @@ class CompraController extends Controller
 
 public function guardar(Request $request)
 {
+
+Log::info('Request completo:', $request->all());
+Log::info('id_proveedor recibido:', ['valor' => $request->id_proveedor]);
+
     try {
         DB::beginTransaction();
 
@@ -78,6 +82,7 @@ public function guardar(Request $request)
                 'errors'  => $validator->errors()
             ], 422);
         }
+        
 
         $producto      = Producto::findOrFail($request->id_producto);
         $stockAnterior = $producto->stock_actual;
