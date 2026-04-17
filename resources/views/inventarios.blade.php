@@ -117,7 +117,7 @@
         </h5>
         <div>
             <button type="button" class="btn btn-success btn-sm" id="BtnExportarKardex">
-                <i class="fa fa-download"></i> Exportar
+                <i class="fa fa-download"></i> Exportar a excel
             </button>
         </div>
     </div>

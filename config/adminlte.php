@@ -445,6 +445,11 @@ return [
                     'icon' => 'far fa-circle nav-icon',
                     'url' => 'productos',
                 ],
+                  [
+                    'text' => 'Orden de compra',
+                    'icon' => 'far fa-circle nav-icon',
+                    'url' => 'ordenes-compra',
+                ],
                 [
                     'text' => 'Nueva compra',
                     'icon' => 'far fa-circle nav-icon',
@@ -480,17 +485,7 @@ return [
                         'text' => 'Inventarios',
                         'icon' => 'far fa-circle nav-icon',
                         'url' => '#',
-                    ], [
-                        'text' => 'ordenes de compra',
-                        'icon' => 'far fa-circle nav-icon',
-                        'url' => '#',
-                    ],
-                    [
-                        'text' => 'Proveedores',
-                        'icon' => 'far fa-circle nav-icon',
-                        'url' => '#',
-                    ],
-                
+                    ],                 
             ],
         ],
         [

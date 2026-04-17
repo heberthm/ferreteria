@@ -13,8 +13,8 @@ use App\Http\Controllers\InventarioController;
 use App\Http\Controllers\ClienteController;
 use App\Http\Controllers\RemisionController;
 use App\Http\Controllers\DevolucionController;
-use App\Http\Controllers\UserController;
 use App\http\Controllers\ventaController;
+use App\Http\Controllers\OrdenCompraController;
 use App\Http\Controllers\proveedorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HistorialVentasController;
@@ -293,7 +293,6 @@ Route::get('/inventario/imprimir/{id}', [InventarioController::class, 'imprimir'
 Route::get('/productos/list', [ProductoController::class, 'list'])->name('productos.list');
 Route::get('/categorias/list', [CategoriaController::class, 'list'])->name('categorias.list');
 Route::get('/proveedores/list', [proveedorController::class, 'list'])->name('proveedores.list');
-Route::get('/usuarios/list', [UserController::class, 'list'])->name('usuarios.list');
 
 
 // ======================================================
@@ -323,11 +322,26 @@ Route::get('/usuarios/list', [UserController::class, 'list'])->name('usuarios.li
   
 Route::get('/proveedores/lista', [ProveedorController::class, 'getLista'])->name('proveedores.lista');
 Route::resource('proveedores', ProveedorController::class);
- Route::get('proveedores-data', [ProveedorController::class, 'getData'])->name('proveedores.data');
+Route::get('proveedores-data', [ProveedorController::class, 'getData'])->name('proveedores.data');
 
 
+// ====================================================
 
- Route::get('/test-columnas', function() {
-    $columnas = \Illuminate\Support\Facades\Schema::getColumnListing('productos');
-    dd($columnas);
-});
+// RUTAS PARA ORDENES DE COMPRA
+
+// ====================================================
+
+
+Route::get('ordenes-compra',                          [OrdenCompraController::class, 'index'])->name('ordenes-compra');
+Route::get('ordenes-compra/data',                     [OrdenCompraController::class, 'getData'])->name('ordenes-compra.data');
+Route::get('ordenes-compra/numero-siguiente',         [OrdenCompraController::class, 'numeroSiguiente'])->name('ordenes-compra.numero-siguiente');
+Route::post('ordenes-compra',                         [OrdenCompraController::class, 'store'])->name('ordenes-compra.store');
+Route::get('ordenes-compra/{id}',                     [OrdenCompraController::class, 'show'])->name('ordenes-compra.show');
+Route::put('ordenes-compra/{id}',                     [OrdenCompraController::class, 'update'])->name('ordenes-compra.update');
+Route::delete('ordenes-compra/{id}',                  [OrdenCompraController::class, 'destroy'])->name('ordenes-compra.destroy');
+ 
+Route::post('ordenes-compra/{id}/cambiar-estado',     [OrdenCompraController::class, 'cambiarEstado'])->name('ordenes-compra.cambiar-estado');
+Route::get('ordenes-compra/{id}/pdf',                 [OrdenCompraController::class, 'pdf'])->name('ordenes-compra.pdf');
+ 
+// Búsqueda de proveedores para Select2
+Route::get('buscar-proveedores',                      [OrdenCompraController::class, 'buscarProveedores'])->name('buscar-proveedores');
