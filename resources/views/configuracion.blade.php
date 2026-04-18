@@ -29,7 +29,6 @@
             content: " *";
             color: red;
         }
-        /* Eliminar espacio extra */
         .content-wrapper {
             min-height: auto !important;
         }
@@ -117,13 +116,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Nombre del Sistema</label>
-                                                    <input type="text" name="nombre_sistema" id="nombre_sistema" class="form-control" value="" required>
+                                                    <input type="text" name="nombre_sistema" id="nombre_sistema" class="form-control" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Versión</label>
-                                                    <input type="text" name="version" id="version" class="form-control" value="1.0.0" readonly>
+                                                    <input type="text" name="version" id="version" class="form-control" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -160,7 +159,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Símbolo de Moneda</label>
-                                                    <input type="text" name="simbolo_moneda" id="simbolo_moneda" class="form-control" value="$">
+                                                    <input type="text" name="simbolo_moneda" id="simbolo_moneda" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
@@ -187,25 +186,25 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Prefijo Factura</label>
-                                                    <input type="text" name="prefijo_factura" id="prefijo_factura" class="form-control" value="FAC">
+                                                    <input type="text" name="prefijo_factura" id="prefijo_factura" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Consecutivo Inicial</label>
-                                                    <input type="number" name="consecutivo_inicial" id="consecutivo_inicial" class="form-control" value="1" min="1">
+                                                    <input type="number" name="consecutivo_inicial" id="consecutivo_inicial" class="form-control" min="1">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Consecutivo Actual</label>
-                                                    <input type="number" name="consecutivo_actual" id="consecutivo_actual" class="form-control" value="1" min="1" readonly>
+                                                    <input type="number" name="consecutivo_actual" id="consecutivo_actual" class="form-control" min="1" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Próximo Número</label>
-                                                    <input type="number" name="proximo_numero" id="proximo_numero" class="form-control" value="1" readonly>
+                                                    <input type="number" name="proximo_numero" id="proximo_numero" class="form-control" readonly>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
@@ -231,13 +230,13 @@
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="autogenerar" name="autogenerar" checked>
+                                                        <input type="checkbox" class="custom-control-input" id="autogenerar" name="autogenerar">
                                                         <label class="custom-control-label" for="autogenerar">Auto-generar consecutivo automáticamente</label>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="validar_duplicados" name="validar_duplicados" checked>
+                                                        <input type="checkbox" class="custom-control-input" id="validar_duplicados" name="validar_duplicados">
                                                         <label class="custom-control-label" for="validar_duplicados">Validar números duplicados</label>
                                                     </div>
                                                 </div>
@@ -386,7 +385,6 @@
                                                                     <i class="fas fa-key"></i>
                                                                 </button>
                                                             </td>
-                                                              
                                                         </tr>
                                                         <tr>
                                                             <td>Almacenista</td>
@@ -411,88 +409,94 @@
                         </div>
 
                         <!-- Tab Mi Perfil -->
-                        <div class="tab-pane fade" id="perfil" role="tabpanel">
-                            <div class="card config-card">
-                                <div class="card-header bg-info text-white">
-                                    <h3 class="card-title">Mi Perfil de Usuario</h3>
-                                </div>
-                                <div class="card-body">
-                                    <form id="formPerfil">
-                                        @csrf
-                                        <div class="row">
-                                            <div class="col-md-3 text-center">
-                                                <div class="profile-picture mb-3">
-                                                    <img src="{{ asset('img/default-avatar.png') }}" alt="Avatar" class="img-circle img-fluid" width="120" id="avatarPreview">
-                                                    <div class="mt-2">
-                                                        <input type="file" name="avatar" id="avatar" accept="image/*" style="display:none;">
-                                                        <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('avatar').click()">
-                                                            <i class="fas fa-camera"></i> Cambiar Foto
-                                                        </button>
+                      <div class="tab-pane fade" id="perfil" role="tabpanel">
+                        <div class="card config-card">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="card-title">Mi Perfil de Usuario</h3>
+                            </div>
+                            <div class="card-body">
+                                <form id="formPerfil">
+                                    @csrf
+                                    <div class="row">
+                                        <div class="col-md-3 text-center">
+                                            <div class="profile-picture mb-3">
+                                                @php $usuario = auth()->user(); @endphp
+                                                @if($usuario->avatar)
+                                                    <img src="{{ Storage::url($usuario->avatar) }}" alt="Avatar" class="img-circle img-fluid" width="120" id="avatarPreview">
+                                                @else
+                                                    <div style="width: 120px; height: 120px; border-radius: 50%; background-color: #007bff; display: flex; align-items: center; justify-content: center; color: white; font-size: 48px; margin: 0 auto;">
+                                                        {{ strtoupper(substr($usuario->name, 0, 1)) }}
                                                     </div>
+                                                @endif
+                                                <div class="mt-2">
+                                                    <input type="file" name="avatar" id="avatar" accept="image/*" style="display:none;">
+                                                    <button type="button" class="btn btn-sm btn-secondary" onclick="document.getElementById('avatar').click()">
+                                                        <i class="fas fa-camera"></i> Cambiar Foto
+                                                    </button>
                                                 </div>
                                             </div>
-                                            <div class="col-md-9">
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Nombre de Usuario</label>
-                                                            <input type="text" name="username" class="form-control" value="{{ auth()->user()->name }}" readonly>
-                                                        </div>
+                                        </div>
+                                        <div class="col-md-9">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Nombre de Usuario</label>
+                                                        <input type="text" name="username" class="form-control" value="{{ $usuario->name }}" readonly>
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Email</label>
-                                                            <input type="email" name="email" class="form-control" value="{{ auth()->user()->email }}">
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Email</label>
+                                                        <input type="email" name="email" class="form-control" value="{{ $usuario->email }}">
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Nombre Completo</label>
-                                                            <input type="text" name="nombre_completo" class="form-control" value="{{ auth()->user()->name }}">
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Nombre Completo</label>
+                                                        <input type="text" name="nombre_completo" class="form-control" value="{{ $usuario->name }}">
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Teléfono</label>
-                                                            <input type="text" name="telefono" class="form-control" value="{{ auth()->user()->telefono ?? '' }}">
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Teléfono</label>
+                                                        <input type="text" name="telefono" class="form-control" value="{{ $usuario->telefono ?? '' }}">
                                                     </div>
-                                                    <div class="col-md-12">
-                                                        <hr>
-                                                        <h5>Cambiar Contraseña</h5>
+                                                </div>
+                                                <div class="col-md-12">
+                                                    <hr>
+                                                    <h5>Cambiar Contraseña</h5>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Contraseña Actual</label>
+                                                        <input type="password" name="password_actual" class="form-control">
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Contraseña Actual</label>
-                                                            <input type="password" name="password_actual" class="form-control">
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Nueva Contraseña</label>
+                                                        <input type="password" name="password_nueva" class="form-control">
                                                     </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Nueva Contraseña</label>
-                                                            <input type="password" name="password_nueva" class="form-control">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <div class="form-group">
-                                                            <label>Confirmar Contraseña</label>
-                                                            <input type="password" name="password_confirmacion" class="form-control">
-                                                        </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="form-group">
+                                                        <label>Confirmar Contraseña</label>
+                                                        <input type="password" name="password_confirmacion" class="form-control">
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row mt-3">
-                                            <div class="col-12">
-                                                <button type="submit" class="btn btn-primary">Actualizar Perfil</button>
-                                            </div>
+                                    </div>
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-primary">Actualizar Perfil</button>
                                         </div>
-                                    </form>
-                                </div>
+                                    </div>
+                                </form>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Resto de tabs (Negocio, Impuestos, Alertas, Backup) se mantienen igual -->
                         <!-- Tab Datos del Negocio -->
                         <div class="tab-pane fade" id="negocio" role="tabpanel">
                             <div class="card config-card">
@@ -506,43 +510,43 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label class="required">Nombre del Negocio</label>
-                                                    <input type="text" name="nombre_negocio" class="form-control" value="Ferretería El Martillo" required>
+                                                    <input type="text" name="nombre_negocio" class="form-control" required>
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>NIT / RUC</label>
-                                                    <input type="text" name="nit" class="form-control" value="900.000.000-1">
+                                                    <input type="text" name="nit" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Dirección</label>
-                                                    <input type="text" name="direccion" class="form-control" value="Calle Principal #123">
+                                                    <input type="text" name="direccion" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Teléfono</label>
-                                                    <input type="text" name="telefono_negocio" class="form-control" value="(601) 123-4567">
+                                                    <input type="text" name="telefono_negocio" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Email</label>
-                                                    <input type="email" name="email_negocio" class="form-control" value="info@ferreteria.com">
+                                                    <input type="email" name="email_negocio" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Sitio Web</label>
-                                                    <input type="url" name="website" class="form-control" value="www.ferreteria.com">
+                                                    <input type="url" name="website" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-12">
                                                 <div class="form-group">
                                                     <label>Mensaje en Factura</label>
-                                                    <textarea name="mensaje_factura" class="form-control" rows="3">Gracias por su compra. ¡Vuelva pronto!</textarea>
+                                                    <textarea name="mensaje_factura" class="form-control" rows="3"></textarea>
                                                 </div>
                                             </div>
                                             <div class="col-md-12">
@@ -575,13 +579,13 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>IVA (%)</label>
-                                                    <input type="number" name="iva" class="form-control" value="19" step="0.01" min="0" max="100">
+                                                    <input type="number" name="iva" class="form-control" step="0.01" min="0" max="100">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="incluir_iva" name="incluir_iva" checked>
+                                                        <input type="checkbox" class="custom-control-input" id="incluir_iva" name="incluir_iva">
                                                         <label class="custom-control-label" for="incluir_iva">Incluir IVA en precios</label>
                                                     </div>
                                                 </div>
@@ -589,7 +593,7 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="mostrar_iva" name="mostrar_iva" checked>
+                                                        <input type="checkbox" class="custom-control-input" id="mostrar_iva" name="mostrar_iva">
                                                         <label class="custom-control-label" for="mostrar_iva">Mostrar IVA en factura</label>
                                                     </div>
                                                 </div>
@@ -618,13 +622,13 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Stock Mínimo de Alerta</label>
-                                                    <input type="number" name="stock_minimo_alerta" class="form-control" value="5">
+                                                    <input type="number" name="stock_minimo_alerta" class="form-control">
                                                 </div>
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="alertar_stock" name="alertar_stock" checked>
+                                                        <input type="checkbox" class="custom-control-input" id="alertar_stock" name="alertar_stock">
                                                         <label class="custom-control-label" for="alertar_stock">Alertar sobre stock bajo</label>
                                                     </div>
                                                 </div>
@@ -640,7 +644,7 @@
                                             <div class="col-md-6">
                                                 <div class="form-group">
                                                     <label>Días de anticipación para vencimiento</label>
-                                                    <input type="number" name="dias_vencimiento" class="form-control" value="30">
+                                                    <input type="number" name="dias_vencimiento" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
@@ -702,7 +706,7 @@
                                             </div>
                                             <div class="form-group">
                                                 <label>Hora del respaldo automático</label>
-                                                <input type="time" name="hora_backup" class="form-control" value="02:00">
+                                                <input type="time" name="hora_backup" class="form-control">
                                             </div>
                                         </div>
                                     </div>
@@ -833,8 +837,8 @@ toastr.options = {
     "newestOnTop": false,
     "progressBar": true,
     "positionClass": "toast-top-right",
-    "preventDuplicates": true,        // ✅ Evita duplicados
-    "preventOpenDuplicates": true,    // ✅ Evita abrir duplicados
+    "preventDuplicates": true,
+    "preventOpenDuplicates": true,
     "showDuration": "300",
     "hideDuration": "1000",
     "timeOut": "5000",
@@ -845,85 +849,329 @@ toastr.options = {
     "hideMethod": "fadeOut"
 };
 
+ // Cargar todas las configuraciones
+    cargarConfiguraciones();
+    
+    // Cargar datos del usuario actual
+    cargarDatosUsuario();
+    
+    // Cargar lista de backups
+    cargarListaBackups();
+    
+    // Actualizar próximo número cuando cambie el consecutivo actual
+    $('#consecutivo_actual').on('change', function() {
+        let longitud = $('#longitud_numero').val();
+        let numero = parseInt($(this).val());
+        if (!isNaN(numero)) {
+            let proximo = numero + 1;
+            let padded = proximo.toString().padStart(parseInt(longitud), '0');
+            $('#proximo_numero').val(padded);
+        }
+    });
+    
+    // Actualizar cuando cambie la longitud del número
+    $('#longitud_numero').on('change', function() {
+        let longitud = parseInt($(this).val());
+        let actual = $('#consecutivo_actual').val();
+        if (actual && !isNaN(parseInt(actual))) {
+            let padded = parseInt(actual).toString().padStart(longitud, '0');
+            $('#consecutivo_actual').val(padded);
+        }
+    });
+    
+    // Vista previa de avatar
+    $('#avatar').on('change', function(e) {
+        const file = e.target.files[0];
+        if(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#avatarPreview').attr('src', e.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
-
-// Cargar configuraciones guardadas ´
+// Cargar configuraciones guardadas desde la base de datos
 function cargarConfiguraciones() {
+    console.log('Cargando configuraciones desde la base de datos...');
+    
     $.ajax({
         url: '/configuracion/cargar-configuraciones',
         type: 'GET',
-        success: function(configs) {
-            // Recorrer cada grupo (general, facturacion, negocio, etc.)
-            $.each(configs, function(grupo, items) {
-                // Recorrer cada clave-valor dentro del grupo
-                $.each(items, function(clave, valor) {
-                    const $el = $('#' + clave);
-                    if ($el.length) {
-                        if ($el.is(':checkbox')) {
-                            $el.prop('checked', valor === '1');
-                        } else {
-                            $el.val(valor);
-                        }
-                    }
-                });
-            });
+        dataType: 'json',
+        success: function(response) {
+            console.log('Configuraciones recibidas:', response);
             
-            // Cargar configuraciones de facturación
-            if (configs.facturacion) {
-                $.each(configs.facturacion, function(clave, valor) {
-                    if (clave === 'autogenerar' && valor === '1') 
-                        $('#autogenerar').prop('checked', true);
-                    else if (clave === 'validar_duplicados' && valor === '1')
-                        $('#validar_duplicados').prop('checked', true);
-                    else if (clave === 'factura_electronica' && valor === '1')
-                        $('#factura_electronica').prop('checked', true);
-                    else if (clave === 'tamaño_papel')
-                        $(`#${clave}`).val(valor);
-                    else if (clave === 'copias')
-                        $(`#${clave}`).val(valor);
-                    else if ($('#' + clave).length)
-                        $(`#${clave}`).val(valor);
-                });
+            // Cargar configuración general
+            if (response.general) {
+                $('#nombre_sistema').val(response.general.nombre_sistema || '');
+                $('#version').val(response.general.version || '1.0.0');
+                $('#zona_horaria').val(response.general.zona_horaria || 'America/Bogota');
+                $('#formato_fecha').val(response.general.formato_fecha || 'd/m/Y');
+                $('#moneda').val(response.general.moneda || 'COP');
+                $('#simbolo_moneda').val(response.general.simbolo_moneda || '$');
             }
             
-            // Cargar configuraciones del negocio
-            if (configs.negocio) {
-                $.each(configs.negocio, function(clave, valor) {
-                    if (clave !== 'logo_negocio') {
-                        $(`[name="${clave}"]`).val(valor);
-                    }
-                });
+            // Cargar configuración de facturación
+            if (response.facturacion) {
+                $('#prefijo_factura').val(response.facturacion.prefijo_factura || '');
+                $('#consecutivo_inicial').val(response.facturacion.consecutivo_inicial || '');
+                $('#consecutivo_actual').val(response.facturacion.consecutivo_actual || '');
+                $('#proximo_numero').val(response.facturacion.proximo_numero || '');
+                $('#longitud_numero').val(response.facturacion.longitud_numero || '6');
+                $('#formato_factura').val(response.facturacion.formato_factura || 'simple');
+                $('#tamaño_papel').val(response.facturacion.tamaño_papel || 'thermal');
+                $('#copias').val(response.facturacion.copias || '1');
+                
+                // Checkboxes
+                $('#autogenerar').prop('checked', response.facturacion.autogenerar === '1');
+                $('#validar_duplicados').prop('checked', response.facturacion.validar_duplicados === '1');
+                $('#factura_electronica').prop('checked', response.facturacion.factura_electronica === '1');
             }
             
-            // Cargar configuraciones de impuestos
-            if (configs.impuestos) {
-                $.each(configs.impuestos, function(clave, valor) {
-                    if (clave === 'incluir_iva' && valor === '1')
-                        $('#incluir_iva').prop('checked', true);
-                    else if (clave === 'mostrar_iva' && valor === '1')
-                        $('#mostrar_iva').prop('checked', true);
-                    else if ($(`[name="${clave}"]`).length)
-                        $(`[name="${clave}"]`).val(valor);
-                });
+            // Cargar datos del negocio
+            if (response.negocio) {
+                $('[name="nombre_negocio"]').val(response.negocio.nombre_negocio || '');
+                $('[name="nit"]').val(response.negocio.nit || '');
+                $('[name="direccion"]').val(response.negocio.direccion || '');
+                $('[name="telefono_negocio"]').val(response.negocio.telefono_negocio || '');
+                $('[name="email_negocio"]').val(response.negocio.email_negocio || '');
+                $('[name="website"]').val(response.negocio.website || '');
+                $('[name="mensaje_factura"]').val(response.negocio.mensaje_factura || '');
             }
             
-            // Cargar configuraciones de alertas
-            if (configs.alertas) {
-                $.each(configs.alertas, function(clave, valor) {
-                    if (clave === 'alertar_stock' && valor === '1')
-                        $('#alertar_stock').prop('checked', true);
-                    else if (clave === 'alertar_vencimiento' && valor === '1')
-                        $('#alertar_vencimiento').prop('checked', true);
-                    else if ($(`[name="${clave}"]`).length)
-                        $(`[name="${clave}"]`).val(valor);
-                });
+            // Cargar configuración de impuestos
+            if (response.impuestos) {
+                $('[name="iva"]').val(response.impuestos.iva || '');
+                $('#incluir_iva').prop('checked', response.impuestos.incluir_iva === '1');
+                $('#mostrar_iva').prop('checked', response.impuestos.mostrar_iva === '1');
             }
+            
+            // Cargar configuración de alertas
+            if (response.alertas) {
+                $('[name="stock_minimo_alerta"]').val(response.alertas.stock_minimo_alerta || '');
+                $('[name="dias_vencimiento"]').val(response.alertas.dias_vencimiento || '');
+                $('#alertar_stock').prop('checked', response.alertas.alertar_stock === '1');
+                $('#alertar_vencimiento').prop('checked', response.alertas.alertar_vencimiento === '1');
+            }
+            
+            toastr.success('Configuraciones cargadas correctamente');
         },
-        error: function(xhr) {
-            console.error('Error al cargar configuraciones:', xhr.responseText);
+        error: function(xhr, status, error) {
+            console.error('Error al cargar configuraciones:', error);
+            console.error('Respuesta del servidor:', xhr.responseText);
+            toastr.error('Error al cargar las configuraciones desde la base de datos');
         }
     });
 }
+
+function cargarDatosUsuario() {
+    console.log('Cargando datos del usuario...');
+    
+     // ✅ Obtener el token CSRF del meta tag
+    const token = $('meta[name="csrf-token"]').attr('content');
+     // Mostrar indicador de carga
+    $('#formPerfil').find('input, button[type="submit"]').prop('disabled', true);
+    
+    $.ajax({
+        url: '/configuracion/usuario-actual',
+        type: 'GET',
+        dataType: 'json',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json'
+        },
+        success: function(response) {
+            console.log('✅ Respuesta exitosa:', response);
+            
+            if (response && response.success === true && response.user) {
+                const user = response.user;
+                
+                // Asignar valores
+                $('[name="username"]').val(user.name || '');
+                $('[name="email"]').val(user.email || '');
+                $('[name="nombre_completo"]').val(user.name || '');
+                $('[name="telefono"]').val(user.telefono || '');
+                
+                if (user.avatar) {
+                    $('#avatarPreview').attr('src', '/storage/' + user.avatar);
+                }
+                
+                toastr.success('Perfil cargado correctamente');
+            } else {
+                console.error('Respuesta inválida:', response);
+                // Fallback: cargar datos desde elementos HTML
+                cargarDatosUsuarioFallback();
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error AJAX:');
+            console.error('Status:', status);
+            console.error('Error:', error);
+            console.error('Status Code:', xhr.status);
+            console.error('Response Text:', xhr.responseText);
+            
+            // Mostrar mensaje de error específico
+            if (xhr.status === 404) {
+                toastr.error('Ruta no encontrada. Verifica las rutas.');
+            } else if (xhr.status === 401) {
+                toastr.error('No autorizado. Inicia sesión nuevamente.');
+            } else if (xhr.status === 500) {
+                toastr.error('Error del servidor. Revisa los logs.');
+            } else {
+                toastr.error('Error al cargar el perfil: ' + error);
+            }
+            
+            // Cargar datos usando fallback
+            cargarDatosUsuarioFallback();
+            // Cargar configuraciones
+            cargarConfiguraciones();
+            
+            // Cargar datos del usuario vía AJAX
+            cargarDatosUsuario();
+            
+            // Cargar lista de backups
+            cargarListaBackups();
+                }
+    });
+}
+
+// Función de fallback que no depende de AJAX
+function cargarDatosUsuarioFallback() {
+    console.log('Usando método fallback para cargar datos del usuario');
+    
+    // Si hay datos del usuario en elementos data
+    const userId = $('meta[name="user-id"]').attr('content');
+    const userName = $('meta[name="user-name"]').attr('content');
+    const userEmail = $('meta[name="user-email"]').attr('content');
+    
+    if (userName) {
+        $('[name="username"]').val(userName);
+        $('[name="nombre_completo"]').val(userName);
+    }
+    
+    if (userEmail) {
+        $('[name="email"]').val(userEmail);
+    }
+    
+    // Si no hay datos en meta, intentar obtener del usuario autenticado de Laravel
+    // Estos valores se inyectan directamente desde Blade
+    @auth
+        $('[name="username"]').val('{{ auth()->user()->name }}');
+        $('[name="nombre_completo"]').val('{{ auth()->user()->name }}');
+        $('[name="email"]').val('{{ auth()->user()->email }}');
+        $('[name="telefono"]').val('{{ auth()->user()->telefono ?? "" }}');
+    @endauth
+}
+
+
+// Función de respaldo para cargar datos desde Blade (PHP)
+function cargarDatosUsuarioDesdeBlade() {
+    console.log('Usando método alternativo para cargar datos del usuario');
+    
+    // Datos del usuario autenticado desde Blade (inyectados por Laravel)
+    const userData = {
+        name: '{{ auth()->user()->name ?? "" }}',
+        email: '{{ auth()->user()->email ?? "" }}',
+        telefono: '{{ auth()->user()->telefono ?? "" }}',
+        avatar: '{{ auth()->user()->avatar ?? "" }}'
+    };
+    
+    if ($('[name="username"]').length) {
+        $('[name="username"]').val(userData.name);
+    }
+    
+    if ($('[name="email"]').length) {
+        $('[name="email"]').val(userData.email);
+    }
+    
+    if ($('[name="nombre_completo"]').length) {
+        $('[name="nombre_completo"]').val(userData.name);
+    }
+    
+    if ($('[name="telefono"]').length) {
+        $('[name="telefono"]').val(userData.telefono);
+    }
+    
+    if (userData.avatar && $('#avatarPreview').length) {
+        $('#avatarPreview').attr('src', '/storage/' + userData.avatar);
+    }
+}
+
+function cargarConfiguraciones() {
+    console.log('Cargando configuraciones desde la base de datos...');
+    
+    $.ajax({
+        url: '/configuracion/cargar-configuraciones',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Configuraciones recibidas:', response);
+            
+            // Cargar configuración general
+            if (response.general) {
+                $('#nombre_sistema').val(response.general.nombre_sistema || '');
+                $('#version').val(response.general.version || '1.0.0');
+                $('#zona_horaria').val(response.general.zona_horaria || 'America/Bogota');
+                $('#formato_fecha').val(response.general.formato_fecha || 'd/m/Y');
+                $('#moneda').val(response.general.moneda || 'COP');
+                $('#simbolo_moneda').val(response.general.simbolo_moneda || '$');
+            }
+            
+            // Cargar configuración de facturación
+            if (response.facturacion) {
+                $('#prefijo_factura').val(response.facturacion.prefijo_factura || '');
+                $('#consecutivo_inicial').val(response.facturacion.consecutivo_inicial || '');
+                $('#consecutivo_actual').val(response.facturacion.consecutivo_actual || '');
+                $('#proximo_numero').val(response.facturacion.proximo_numero || '');
+                $('#longitud_numero').val(response.facturacion.longitud_numero || '6');
+                $('#formato_factura').val(response.facturacion.formato_factura || 'simple');
+                $('#tamaño_papel').val(response.facturacion.tamaño_papel || 'thermal');
+                $('#copias').val(response.facturacion.copias || '1');
+                
+                // Checkboxes
+                $('#autogenerar').prop('checked', response.facturacion.autogenerar === '1');
+                $('#validar_duplicados').prop('checked', response.facturacion.validar_duplicados === '1');
+                $('#factura_electronica').prop('checked', response.facturacion.factura_electronica === '1');
+            }
+            
+            // Cargar datos del negocio
+            if (response.negocio) {
+                $('[name="nombre_negocio"]').val(response.negocio.nombre_negocio || '');
+                $('[name="nit"]').val(response.negocio.nit || '');
+                $('[name="direccion"]').val(response.negocio.direccion || '');
+                $('[name="telefono_negocio"]').val(response.negocio.telefono_negocio || '');
+                $('[name="email_negocio"]').val(response.negocio.email_negocio || '');
+                $('[name="website"]').val(response.negocio.website || '');
+                $('[name="mensaje_factura"]').val(response.negocio.mensaje_factura || '');
+            }
+            
+            // Cargar configuración de impuestos
+            if (response.impuestos) {
+                $('[name="iva"]').val(response.impuestos.iva || '');
+                $('#incluir_iva').prop('checked', response.impuestos.incluir_iva === '1');
+                $('#mostrar_iva').prop('checked', response.impuestos.mostrar_iva === '1');
+            }
+            
+            // Cargar configuración de alertas
+            if (response.alertas) {
+                $('[name="stock_minimo_alerta"]').val(response.alertas.stock_minimo_alerta || '');
+                $('[name="dias_vencimiento"]').val(response.alertas.dias_vencimiento || '');
+                $('#alertar_stock').prop('checked', response.alertas.alertar_stock === '1');
+                $('#alertar_vencimiento').prop('checked', response.alertas.alertar_vencimiento === '1');
+            }
+            
+            toastr.success('Configuraciones cargadas correctamente');
+        },
+        error: function(xhr, status, error) {
+            console.error('Error al cargar configuraciones:', error);
+            console.error('Respuesta del servidor:', xhr.responseText);
+            toastr.error('Error al cargar las configuraciones desde la base de datos');
+        }
+    });
+}
+
+
 
 // Guardar configuraciones
 $('#formConfigGeneral').on('submit', function(e) {
@@ -931,7 +1179,7 @@ $('#formConfigGeneral').on('submit', function(e) {
     let formData = $(this).serialize();
     
     $.ajax({
-        url: 'configuracion/guardar-general',
+        url: '/configuracion/guardar-general',
         type: 'POST',
         data: formData,
         headers: {
@@ -946,27 +1194,11 @@ $('#formConfigGeneral').on('submit', function(e) {
     });
 });
 
-// En tu archivo Blade/JS, actualiza las URLs:
-
-function cargarConfiguracionFacturacion() {
-    $.ajax({
-        url: 'configuracion/facturacion',  // ✅ GET - para cargar
-        type: 'GET',
-        success: function(response) {
-            // ... código existente
-        },
-        error: function(xhr) {
-            console.error('Error al cargar configuración de facturación:', xhr.responseText);
-        }
-    });
-}
-
 let isSubmitting = false;
 
 $('#formFacturacion').off('submit').on('submit', function(e) {
     e.preventDefault();
     
-    // Evitar envíos múltiples
     if (isSubmitting) {
         toastr.warning('Ya se está procesando la solicitud', 'Espere');
         return false;
@@ -990,9 +1222,9 @@ $('#formFacturacion').off('submit').on('submit', function(e) {
         },
         success: function(response) {
             if (response.success) {
-                // Limpiar toasts anteriores antes de mostrar uno nuevo
                 toastr.clear();
                 toastr.success(response.message, 'Éxito');
+                cargarConfiguraciones(); // Recargar configuraciones
             }
         },
         error: function(xhr) {
@@ -1002,41 +1234,6 @@ $('#formFacturacion').off('submit').on('submit', function(e) {
         complete: function() {
             isSubmitting = false;
             submitBtn.prop('disabled', false).html(originalText);
-        }
-    });
-});
-
-
-// Para incrementar consecutivo
-function incrementarConsecutivo() {
-    $.ajax({
-        url: '/configuracion/facturacion/incrementar',  // ✅ Nueva URL
-        type: 'POST',
-        data: { _token: $('meta[name="csrf-token"]').attr('content') },
-        success: function(response) {
-            toastr.success('Consecutivo incrementado');
-        }
-    });
-}
-
-$('#formFacturacion').on('submit', function(e) {
-    e.preventDefault();
-    let formData = new FormData(this);
-    
-    $.ajax({
-        url: '/configuracion/facturacion',
-        type: 'GET',
-        data: formData,
-        processData: false,
-        contentType: false,
-        headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-        },
-        success: function(response) {
-            toastr.success(response.message);
-        },
-        error: function(xhr) {
-            toastr.error(xhr.responseJSON?.message || 'Error al guardar');
         }
     });
 });
@@ -1056,6 +1253,7 @@ $('#formPerfil').on('submit', function(e) {
         },
         success: function(response) {
             toastr.success(response.message);
+            cargarDatosUsuario(); // Recargar datos del usuario
         },
         error: function(xhr) {
             toastr.error(xhr.responseJSON?.message || 'Error al actualizar');
@@ -1078,6 +1276,7 @@ $('#formNegocio').on('submit', function(e) {
         },
         success: function(response) {
             toastr.success(response.message);
+            cargarConfiguraciones(); // Recargar configuraciones
         },
         error: function(xhr) {
             toastr.error(xhr.responseJSON?.message || 'Error al guardar');
@@ -1098,6 +1297,7 @@ $('#formImpuestos').on('submit', function(e) {
         },
         success: function(response) {
             toastr.success(response.message);
+            cargarConfiguraciones(); // Recargar configuraciones
         },
         error: function(xhr) {
             toastr.error(xhr.responseJSON?.message || 'Error al guardar');
@@ -1118,6 +1318,7 @@ $('#formAlertas').on('submit', function(e) {
         },
         success: function(response) {
             toastr.success(response.message);
+            cargarConfiguraciones(); // Recargar configuraciones
         },
         error: function(xhr) {
             toastr.error(xhr.responseJSON?.message || 'Error al guardar');
@@ -1125,7 +1326,6 @@ $('#formAlertas').on('submit', function(e) {
     });
 });
 
-// Funciones actualizadas
 function reiniciarConsecutivo() {
     if(confirm('¿Está seguro de reiniciar el consecutivo? Esto puede causar duplicados.')) {
         $.ajax({
@@ -1134,8 +1334,9 @@ function reiniciarConsecutivo() {
             data: { _token: $('meta[name="csrf-token"]').attr('content') },
             success: function(response) {
                 $('#consecutivo_actual').val(1);
-                $('#proximo_numero').val(1);
+                $('#proximo_numero').val(2);
                 toastr.success(response.message);
+                cargarConfiguraciones(); // Recargar configuraciones
             },
             error: function() {
                 toastr.error('Error al reiniciar el consecutivo');
@@ -1197,7 +1398,7 @@ function cargarListaBackups() {
 }
 
 function descargarBackup(filename) {
-    window.location.href = `/storage/backups/${filename}`;
+    window.location.href = `/configuracion/descargar-backup/${filename}`;
 }
 
 function guardarUsuario() {
@@ -1238,44 +1439,11 @@ function guardarRol() {
     });
 }
 
-// Función debounce para búsqueda
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
-
-// Cargar usuarios y roles
-function cargarUsuariosRoles(filtros = {}) {
-    $.ajax({
-        url: '/listar-usuarios',
-        type: 'GET',
-        data: filtros,
-        success: function(response) {
-            if (!response.success) return;
-            renderTablaUsuarios(response.usuarios);
-        },
-        error: function(xhr) {
-            toastr.error('Error al cargar usuarios');
-        }
-    });
-}
-
-function renderTablaUsuarios(usuarios) {
-    // Implementar según necesidad
-    console.log('Usuarios:', usuarios);
-}
-
 // Inicializar
 $(document).ready(function() {
-    cargarConfiguraciones();
-    cargarListaBackups();
+    cargarConfiguraciones();  // Cargar configuraciones de la BD
+    cargarDatosUsuario();     // Cargar datos del usuario actual
+    cargarListaBackups();     // Cargar lista de backups
     
     // Actualizar próximo número
     $('#consecutivo_actual').on('change', function() {
@@ -1289,8 +1457,10 @@ $(document).ready(function() {
     $('#longitud_numero').on('change', function() {
         let longitud = $(this).val();
         let actual = $('#consecutivo_actual').val();
-        let padded = actual.toString().padStart(longitud, '0');
-        $('#consecutivo_actual').val(padded);
+        if (actual) {
+            let padded = actual.toString().padStart(longitud, '0');
+            $('#consecutivo_actual').val(padded);
+        }
     });
     
     // Vista previa de avatar

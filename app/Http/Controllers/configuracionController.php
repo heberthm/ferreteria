@@ -17,58 +17,197 @@ class ConfiguracionController extends Controller
         // Obtener la configuración (solo hay un registro)
         $configuracion = DB::table('configuraciones')->first();
         
+        // Si no existe configuración, crear una por defecto
+        if (!$configuracion) {
+            $configuracion = $this->crearConfiguracionPorDefecto();
+        }
+        
         // Obtener usuarios
         $usuarios = User::all();
         
-        // Roles disponibles
-        $rolesDisponibles = ['Administrador', 'Vendedor', 'Almacenista'];
-        
         // Pasar configuraciones a la vista
-        return view('configuracion', compact('configuracion', 'usuarios', 'rolesDisponibles'));
+        return view('configuracion', compact('configuracion', 'usuarios'));
     }
-    
-    // Configuración General
-    public function guardarGeneral(Request $request)
-    {
-        $request->validate([
-            'nombre_sistema' => 'required|string|max:255',
-            'zona_horaria' => 'required|string',
-            'formato_fecha' => 'required|string',
-            'moneda' => 'required|string',
-            'simbolo_moneda' => 'required|string|max:10',
+
+    // app/Http/Controllers/ConfiguracionController.php
+
+  public function usuarioActual()
+{
+    try {
+        $user = auth()->user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Usuario no autenticado'
+            ], 401);
+        }
+        
+        // Datos básicos del usuario
+        $userData = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ];
+        
+        // Agregar teléfono si existe la columna
+        if (Schema::hasColumn('users', 'telefono')) {
+            $userData['telefono'] = $user->telefono ?? '';
+        } else {
+            $userData['telefono'] = '';
+        }
+        
+        // Agregar avatar si existe la columna
+        if (Schema::hasColumn('users', 'avatar')) {
+            $userData['avatar'] = $user->avatar ?? null;
+        } else {
+            $userData['avatar'] = null;
+        }
+        
+        // Agregar rol si existe la columna
+        if (Schema::hasColumn('users', 'rol')) {
+            $userData['rol'] = $user->rol ?? 'Usuario';
+        } else {
+            $userData['rol'] = 'Usuario';
+        }
+        
+        return response()->json([
+            'success' => true,
+            'user' => $userData
         ]);
         
-        DB::table('configuraciones')->updateOrInsert(
-            ['id_configuracion' => 1], // Asumiendo que solo hay un registro
-            [
-                'nombre_sistema' => $request->nombre_sistema,
-                'zona_horaria' => $request->zona_horaria,
-                'formato_fecha' => $request->formato_fecha,
-                'moneda' => $request->moneda,
-                'simbolo_moneda' => $request->simbolo_moneda,
-                'updated_at' => now(),
-                'created_at' => DB::raw('COALESCE(created_at, NOW())')
-            ]
-        );
+    } catch (\Exception $e) {
+        \Log::error('Error en usuarioActual: ' . $e->getMessage());
         
-        return response()->json(['success' => true, 'message' => 'Configuración general guardada correctamente']);
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener datos del usuario: ' . $e->getMessage()
+        ], 500);
     }
+}
     
-    // Configuración Facturación
-    public function guardarFacturacion(Request $request)
+    /**
+     * Crear configuración por defecto si no existe
+     */
+    private function crearConfiguracionPorDefecto()
     {
+        $configData = [
+            'id_configuracion' => 1,
+            'nombre_sistema' => 'Sistema Ferretero',
+            'zona_horaria' => 'America/Bogota',
+            'formato_fecha' => 'd/m/Y',
+            'moneda' => 'COP',
+            'simbolo_moneda' => '$',
+            'prefijo_factura' => 'FAC',
+            'consecutivo_inicial' => 1,
+            'consecutivo_actual' => 1,
+            'longitud_numero' => 6,
+            'formato_factura' => 'simple',
+            'autogenerar' => 1,
+            'validar_duplicados' => 1,
+            'factura_electronica' => 0,
+            'tamaño_papel' => 'thermal',
+            'copias' => 1,
+            'nombre_negocio' => 'Mi Negocio',
+            'iva' => 19,
+            'incluir_iva' => 1,
+            'mostrar_iva' => 1,
+            'stock_minimo_alerta' => 5,
+            'alertar_stock' => 1,
+            'alertar_vencimiento' => 0,
+            'dias_vencimiento' => 30,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+        
+        DB::table('configuraciones')->insert($configData);
+        
+        return (object) $configData;
+    }
+
+    // app/Http/Controllers/ConfiguracionController.php
+
+/**
+ * Guardar configuración general
+ */
+    public function guardarGeneral(Request $request)
+    {
+        try {
+            $request->validate([
+                'nombre_sistema' => 'required|string|max:255',
+                'zona_horaria' => 'required|string',
+                'formato_fecha' => 'required|string',
+                'moneda' => 'required|string',
+                'simbolo_moneda' => 'required|string|max:10',
+            ]);
+            
+            // Verificar si existe la tabla configuraciones
+            if (!Schema::hasTable('configuraciones')) {
+                return response()->json([
+                    'success' => false, 
+                    'message' => 'La tabla configuraciones no existe. Ejecute las migraciones primero.'
+                ], 500);
+            }
+            
+            // Verificar si existe un registro
+            $existe = DB::table('configuraciones')->exists();
+            
+            if ($existe) {
+                // Actualizar registro existente
+                DB::table('configuraciones')->update([
+                    'nombre_sistema' => $request->nombre_sistema,
+                    'zona_horaria' => $request->zona_horaria,
+                    'formato_fecha' => $request->formato_fecha,
+                    'moneda' => $request->moneda,
+                    'simbolo_moneda' => $request->simbolo_moneda,
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // Crear nuevo registro
+                DB::table('configuraciones')->insert([
+                    'id_configuracion' => 1,
+                    'nombre_sistema' => $request->nombre_sistema,
+                    'zona_horaria' => $request->zona_horaria,
+                    'formato_fecha' => $request->formato_fecha,
+                    'moneda' => $request->moneda,
+                    'simbolo_moneda' => $request->simbolo_moneda,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Configuración general guardada correctamente'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al guardar configuración general: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al guardar: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+ * Guardar configuración de facturación
+ */
+public function guardarFacturacion(Request $request)
+{
+    try {
         $request->validate([
             'prefijo_factura' => 'required|string|max:10',
             'consecutivo_inicial' => 'required|integer|min:1',
-            'consecutivo_actual' => 'required|integer|min:1',
-            'longitud_numero' => 'required|integer',
+            'longitud_numero' => 'required|integer|min:1|max:10',
             'formato_factura' => 'required|string',
         ]);
         
         $data = [
             'prefijo_factura' => $request->prefijo_factura,
             'consecutivo_inicial' => $request->consecutivo_inicial,
-            'consecutivo_actual' => $request->consecutivo_actual,
+            'consecutivo_actual' => $request->consecutivo_actual ?? $request->consecutivo_inicial,
             'longitud_numero' => $request->longitud_numero,
             'formato_factura' => $request->formato_factura,
             'autogenerar' => $request->has('autogenerar') ? 1 : 0,
@@ -79,66 +218,43 @@ class ConfiguracionController extends Controller
             'updated_at' => now(),
         ];
         
-        DB::table('configuraciones')->updateOrInsert(['id_configuracion' => 1], $data);
+        $existe = DB::table('configuraciones')->exists();
+        
+        if ($existe) {
+            DB::table('configuraciones')->update($data);
+        } else {
+            $data['id_configuracion'] = 1;
+            $data['created_at'] = now();
+            DB::table('configuraciones')->insert($data);
+        }
         
         // Guardar logo si se subió
         if ($request->hasFile('logo_factura')) {
             $path = $request->file('logo_factura')->store('logos', 'public');
-            DB::table('configuraciones')->where('id_configuracion', 1)->update(['logo_negocio' => $path]);
+            DB::table('configuraciones')->update(['logo_negocio' => $path]);
         }
         
-        return response()->json(['success' => true, 'message' => 'Configuración de facturación guardada correctamente']);
-    }
-    
-    // Mi Perfil
-    public function actualizarPerfil(Request $request)
-    {
-        $user = auth()->user();
-        
-        $request->validate([
-            'email' => 'required|email|unique:users,email,'.$user->id,
-            'nombre_completo' => 'required|string|max:255',
-            'telefono' => 'nullable|string|max:20',
+        return response()->json([
+            'success' => true, 
+            'message' => 'Configuración de facturación guardada correctamente'
         ]);
         
-        $user->email = $request->email;
-        $user->name = $request->nombre_completo;
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar facturación: ' . $e->getMessage());
         
-        // Agregar teléfono si existe la columna
-        if (Schema::hasColumn('users', 'telefono')) {
-            $user->telefono = $request->telefono;
-        }
-        
-        // Cambiar contraseña
-        if ($request->filled('password_actual') && $request->filled('password_nueva')) {
-            if (!Hash::check($request->password_actual, $user->password)) {
-                return response()->json(['success' => false, 'message' => 'Contraseña actual incorrecta'], 422);
-            }
-            
-            $request->validate([
-                'password_nueva' => 'required|min:6|same:password_confirmacion',
-            ]);
-            
-            $user->password = Hash::make($request->password_nueva);
-        }
-        
-        // Guardar avatar
-        if ($request->hasFile('avatar')) {
-            if ($user->avatar) {
-                Storage::disk('public')->delete($user->avatar);
-            }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar = $path;
-        }
-        
-        $user->save();
-        
-        return response()->json(['success' => true, 'message' => 'Perfil actualizado correctamente']);
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al guardar: ' . $e->getMessage()
+        ], 500);
     }
-    
-    // Datos del Negocio
-    public function guardarNegocio(Request $request)
-    {
+}
+
+/**
+ * Guardar datos del negocio
+ */
+public function guardarNegocio(Request $request)
+{
+    try {
         $request->validate([
             'nombre_negocio' => 'required|string|max:255',
             'nit' => 'nullable|string|max:50',
@@ -159,67 +275,203 @@ class ConfiguracionController extends Controller
             'updated_at' => now(),
         ];
         
-        DB::table('configuraciones')->updateOrInsert(['id_configuracion' => 1], $data);
+        $existe = DB::table('configuraciones')->exists();
+        
+        if ($existe) {
+            DB::table('configuraciones')->update($data);
+        } else {
+            $data['id_configuracion'] = 1;
+            $data['created_at'] = now();
+            DB::table('configuraciones')->insert($data);
+        }
         
         if ($request->hasFile('logo_negocio')) {
             $path = $request->file('logo_negocio')->store('negocios', 'public');
-            DB::table('configuraciones')->where('id_configuracion', 1)->update(['logo_negocio' => $path]);
+            DB::table('configuraciones')->update(['logo_negocio' => $path]);
         }
         
-        return response()->json(['success' => true, 'message' => 'Información del negocio guardada correctamente']);
+        return response()->json([
+            'success' => true, 
+            'message' => 'Información del negocio guardada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar negocio: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al guardar: ' . $e->getMessage()
+        ], 500);
     }
-    
-    // Impuestos
-    public function guardarImpuestos(Request $request)
-    {
+}
+
+/**
+ * Guardar configuración de impuestos
+ */
+public function guardarImpuestos(Request $request)
+{
+    try {
         $request->validate([
             'iva' => 'required|numeric|min:0|max:100',
         ]);
         
-        DB::table('configuraciones')->updateOrInsert(
-            ['id_configuracion' => 1],
-            [
-                'iva' => $request->iva,
-                'incluir_iva' => $request->has('incluir_iva') ? 1 : 0,
-                'mostrar_iva' => $request->has('mostrar_iva') ? 1 : 0,
-                'updated_at' => now(),
-            ]
-        );
+        $data = [
+            'iva' => $request->iva,
+            'incluir_iva' => $request->has('incluir_iva') ? 1 : 0,
+            'mostrar_iva' => $request->has('mostrar_iva') ? 1 : 0,
+            'updated_at' => now(),
+        ];
         
-        return response()->json(['success' => true, 'message' => 'Configuración de impuestos guardada correctamente']);
+        $existe = DB::table('configuraciones')->exists();
+        
+        if ($existe) {
+            DB::table('configuraciones')->update($data);
+        } else {
+            $data['id_configuracion'] = 1;
+            $data['created_at'] = now();
+            DB::table('configuraciones')->insert($data);
+        }
+        
+        return response()->json([
+            'success' => true, 
+            'message' => 'Configuración de impuestos guardada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar impuestos: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al guardar: ' . $e->getMessage()
+        ], 500);
     }
-    
-    // Alertas
-    public function guardarAlertas(Request $request)
-    {
+}
+
+/**
+ * Guardar configuración de alertas
+ */
+public function guardarAlertas(Request $request)
+{
+    try {
         $request->validate([
             'stock_minimo_alerta' => 'required|integer|min:0',
             'dias_vencimiento' => 'required|integer|min:0',
         ]);
         
-        DB::table('configuraciones')->updateOrInsert(
-            ['id_configuracion' => 1],
-            [
-                'stock_minimo_alerta' => $request->stock_minimo_alerta,
-                'alertar_stock' => $request->has('alertar_stock') ? 1 : 0,
-                'alertar_vencimiento' => $request->has('alertar_vencimiento') ? 1 : 0,
-                'dias_vencimiento' => $request->dias_vencimiento,
-                'updated_at' => now(),
-            ]
-        );
+        $data = [
+            'stock_minimo_alerta' => $request->stock_minimo_alerta,
+            'alertar_stock' => $request->has('alertar_stock') ? 1 : 0,
+            'alertar_vencimiento' => $request->has('alertar_vencimiento') ? 1 : 0,
+            'dias_vencimiento' => $request->dias_vencimiento,
+            'updated_at' => now(),
+        ];
         
-        return response()->json(['success' => true, 'message' => 'Configuración de alertas guardada correctamente']);
+        $existe = DB::table('configuraciones')->exists();
+        
+        if ($existe) {
+            DB::table('configuraciones')->update($data);
+        } else {
+            $data['id_configuracion'] = 1;
+            $data['created_at'] = now();
+            DB::table('configuraciones')->insert($data);
+        }
+        
+        return response()->json([
+            'success' => true, 
+            'message' => 'Configuración de alertas guardada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar alertas: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false, 
+            'message' => 'Error al guardar: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Actualizar perfil de usuario
+ */
+    public function actualizarPerfil(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            
+            $request->validate([
+                'email' => 'required|email|unique:users,email,'.$user->id,
+                'nombre_completo' => 'required|string|max:255',
+                'telefono' => 'nullable|string|max:20',
+            ]);
+            
+            $user->email = $request->email;
+            $user->name = $request->nombre_completo;
+            
+            // Agregar teléfono si existe la columna
+            if (Schema::hasColumn('users', 'telefono')) {
+                $user->telefono = $request->telefono;
+            }
+            
+            // Cambiar contraseña
+            if ($request->filled('password_actual') && $request->filled('password_nueva')) {
+                if (!Hash::check($request->password_actual, $user->password)) {
+                    return response()->json([
+                        'success' => false, 
+                        'message' => 'Contraseña actual incorrecta'
+                    ], 422);
+                }
+                
+                $request->validate([
+                    'password_nueva' => 'required|min:6|same:password_confirmacion',
+                ]);
+                
+                $user->password = Hash::make($request->password_nueva);
+            }
+            
+            // Guardar avatar
+            if ($request->hasFile('avatar')) {
+                if ($user->avatar) {
+                    Storage::disk('public')->delete($user->avatar);
+                }
+                $path = $request->file('avatar')->store('avatars', 'public');
+                $user->avatar = $path;
+            }
+            
+            $user->save();
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Perfil actualizado correctamente'
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar perfil: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al actualizar: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
-    // Cargar todas las configuraciones
+
+    
+    // Cargar todas las configuraciones (CORREGIDO)
     public function cargarConfiguraciones()
     {
         $config = DB::table('configuraciones')->first();
+        
+        // Si no hay configuración, crear una
+        if (!$config) {
+            $config = $this->crearConfiguracionPorDefecto();
+        }
         
         // Organizar por grupos para el frontend
         $result = [
             'general' => [
                 'nombre_sistema' => $config->nombre_sistema ?? 'Sistema Ferretero',
+                'version' => $config->version ?? '1.0.0',
                 'zona_horaria' => $config->zona_horaria ?? 'America/Bogota',
                 'formato_fecha' => $config->formato_fecha ?? 'd/m/Y',
                 'moneda' => $config->moneda ?? 'COP',
@@ -227,292 +479,146 @@ class ConfiguracionController extends Controller
             ],
             'facturacion' => [
                 'prefijo_factura' => $config->prefijo_factura ?? 'FAC',
-                'consecutivo_inicial' => $config->consecutivo_inicial ?? 1,
-                'consecutivo_actual' => $config->consecutivo_actual ?? 1,
-                'longitud_numero' => $config->longitud_numero ?? 6,
-                'formato_factura' => $config->formato_factura ?? 'simple',
-                'autogenerar' => $config->autogenerar ?? 1,
-                'validar_duplicados' => $config->validar_duplicados ?? 1,
-                'factura_electronica' => $config->factura_electronica ?? 0,
-                'tamaño_papel' => $config->tamaño_papel ?? 'thermal',
-                'copias' => $config->copias ?? 1,
-            ],
-            'negocio' => [
-                'nombre_negocio' => $config->nombre_negocio,
-                'nit' => $config->nit,
-                'direccion' => $config->direccion,
-                'telefono_negocio' => $config->telefono_negocio,
-                'email_negocio' => $config->email_negocio,
-                'website' => $config->website,
-                'mensaje_factura' => $config->mensaje_factura,
-                'logo_negocio' => $config->logo_negocio,
-            ],
-            'impuestos' => [
-                'iva' => $config->iva ?? 19,
-                'incluir_iva' => $config->incluir_iva ?? 1,
-                'mostrar_iva' => $config->mostrar_iva ?? 1,
-            ],
-            'alertas' => [
-                'stock_minimo_alerta' => $config->stock_minimo_alerta ?? 5,
-                'alertar_stock' => $config->alertar_stock ?? 1,
-                'alertar_vencimiento' => $config->alertar_vencimiento ?? 0,
-                'dias_vencimiento' => $config->dias_vencimiento ?? 30,
-            ],
-        ];
-        
-        return response()->json($result);
-    }
-    
-    // Cargar configuración de facturación específicamente
-    public function cargarFacturacion()
-    {
-        $config = DB::table('configuraciones')->first();
-        
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'prefijo_factura' => $config->prefijo_factura ?? 'FAC',
-                'consecutivo_inicial' => $config->consecutivo_inicial ?? 1,
-                'consecutivo_actual' => $config->consecutivo_actual ?? 1,
-                'longitud_numero' => $config->longitud_numero ?? 6,
+                'consecutivo_inicial' => (int)($config->consecutivo_inicial ?? 1),
+                'consecutivo_actual' => (int)($config->consecutivo_actual ?? 1),
+                'proximo_numero' => (int)($config->consecutivo_actual ?? 1) + 1,
+                'longitud_numero' => (int)($config->longitud_numero ?? 6),
                 'formato_factura' => $config->formato_factura ?? 'simple',
                 'autogenerar' => (string)($config->autogenerar ?? 1),
                 'validar_duplicados' => (string)($config->validar_duplicados ?? 1),
                 'factura_electronica' => (string)($config->factura_electronica ?? 0),
                 'tamaño_papel' => $config->tamaño_papel ?? 'thermal',
-                'copias' => $config->copias ?? 1,
-            ]
-        ]);
+                'copias' => (int)($config->copias ?? 1),
+            ],
+            'negocio' => [
+                'nombre_negocio' => $config->nombre_negocio ?? 'Mi Negocio',
+                'nit' => $config->nit ?? '',
+                'direccion' => $config->direccion ?? '',
+                'telefono_negocio' => $config->telefono_negocio ?? '',
+                'email_negocio' => $config->email_negocio ?? '',
+                'website' => $config->website ?? '',
+                'mensaje_factura' => $config->mensaje_factura ?? 'Gracias por su compra',
+                'logo_negocio' => $config->logo_negocio ?? null,
+            ],
+            'impuestos' => [
+                'iva' => (float)($config->iva ?? 19),
+                'incluir_iva' => (string)($config->incluir_iva ?? 1),
+                'mostrar_iva' => (string)($config->mostrar_iva ?? 1),
+            ],
+            'alertas' => [
+                'stock_minimo_alerta' => (int)($config->stock_minimo_alerta ?? 5),
+                'alertar_stock' => (string)($config->alertar_stock ?? 1),
+                'alertar_vencimiento' => (string)($config->alertar_vencimiento ?? 0),
+                'dias_vencimiento' => (int)($config->dias_vencimiento ?? 30),
+            ],
+        ];
+        
+        return response()->json($result);
     }
-    
-    // Obtener próximo número de factura
-    public function getProximoNumeroFactura()
-    {
-        $config = DB::table('configuraciones')->first();
-        $consecutivo = ($config->consecutivo_actual ?? 1) + 1;
-        $longitud = $config->longitud_numero ?? 6;
-        
-        return response()->json([
-            'success' => true,
-            'proximo_numero' => str_pad($consecutivo, $longitud, '0', STR_PAD_LEFT)
-        ]);
-    }
-    
-    // Obtener consecutivo actual
-    public function obtenerConsecutivo()
-    {
-        $config = DB::table('configuraciones')->first();
-        
-        $consecutivo = $config->consecutivo_actual ?? 1;
-        $prefijo = $config->prefijo_factura ?? 'FAC';
-        $longitud = $config->longitud_numero ?? 6;
-        
-        $numeroFormateado = $prefijo . str_pad($consecutivo, $longitud, '0', STR_PAD_LEFT);
-        
-        return response()->json([
-            'success' => true,
-            'consecutivo' => $consecutivo,
-            'numero_formateado' => $numeroFormateado
-        ]);
-    }
-    
-    // Incrementar consecutivo
-    public function incrementarConsecutivo()
-    {
-        $config = DB::table('configuraciones')->first();
-        $nuevoConsecutivo = ($config->consecutivo_actual ?? 1) + 1;
-        
-        DB::table('configuraciones')
-            ->where('id_configuracion', 1)
-            ->update(['consecutivo_actual' => $nuevoConsecutivo]);
-        
-        return response()->json([
-            'success' => true,
-            'consecutivo_nuevo' => $nuevoConsecutivo
-        ]);
-    }
-    
-    // Reiniciar consecutivo
-    public function reiniciarConsecutivo()
-    {
-        DB::table('configuraciones')
-            ->where('id_configuracion', 1)
-            ->update(['consecutivo_actual' => 1]);
-            
-        return response()->json(['success' => true, 'message' => 'Consecutivo reiniciado correctamente']);
-    }
-    
-    // Usuarios - Guardar nuevo usuario
-    public function guardarUsuario(Request $request)
-    {
-        $request->validate([
-            'usuario' => 'required|string|max:255|unique:users,name',
-            'nombre' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'rol' => 'required|string',
-            'password' => 'required|min:6',
-        ]);
-        
-        $user = User::create([
-            'name' => $request->usuario,
-            'email' => $request->email,
-            'rol' => $request->rol,
-            'password' => Hash::make($request->password),
-        ]);
-        
-        return response()->json(['success' => true, 'message' => 'Usuario creado correctamente', 'user' => $user]);
-    }
-    
-    // Actualizar usuario
-    public function actualizarUsuario(Request $request, $id)
-    {
-        $user = User::findOrFail($id);
-        
-        $request->validate([
-            'usuario' => 'required|string|max:255|unique:users,name,'.$id,
-            'nombre' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,'.$id,
-            'rol' => 'required|string',
-        ]);
-        
-        $user->name = $request->usuario;
-        $user->email = $request->email;
-        $user->rol = $request->rol;
-        
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
-        }
-        
-        $user->save();
-        
-        return response()->json(['success' => true, 'message' => 'Usuario actualizado correctamente']);
-    }
-    
-    // Eliminar usuario
-    public function eliminarUsuario($id)
-    {
-        $user = User::findOrFail($id);
-        
-        if ($user->id === auth()->id()) {
-            return response()->json(['success' => false, 'message' => 'No puedes eliminar tu propio usuario'], 422);
-        }
-        
-        $user->delete();
-        
-        return response()->json(['success' => true, 'message' => 'Usuario eliminado correctamente']);
-    }
-    
-    // Listar usuarios con filtros
-    public function listarUsuarios(Request $request)
-    {
-        $query = User::query();
-        
-        if ($request->filled('buscar')) {
-            $buscar = $request->buscar;
-            $query->where(function($q) use ($buscar) {
-                $q->where('name', 'like', "%{$buscar}%")
-                  ->orWhere('email', 'like', "%{$buscar}%");
-            });
-        }
-        
-        if ($request->filled('rol')) {
-            $query->where('rol', $request->rol);
-        }
-        
-        $orden = $request->get('orden', 'name');
-        $direccion = $request->get('direccion', 'asc');
-        
-        if (in_array($orden, ['name', 'email', 'rol', 'created_at'])) {
-            $query->orderBy($orden, $direccion === 'desc' ? 'desc' : 'asc');
-        }
-        
-        $usuarios = $query->get(['id', 'name', 'email', 'rol', 'created_at']);
-        
-        return response()->json([
-            'success' => true,
-            'usuarios' => $usuarios,
-            'total' => $usuarios->count(),
-        ]);
-    }
-    
-    // Crear backup
+
+    // app/Http/Controllers/ConfiguracionController.php
+
+
+
+/**
+ * Crear un respaldo de la base de datos
+ */
     public function crearBackup(Request $request)
     {
         try {
             $timestamp = date('Y-m-d_H-i-s');
             $filename = "backup_{$timestamp}.sql";
-            $path = storage_path("app/backups/{$filename}");
             
-            if (!is_dir(storage_path('app/backups'))) {
-                mkdir(storage_path('app/backups'), 0755, true);
+            // Crear directorio si no existe
+            $backupPath = storage_path('app/backups');
+            if (!is_dir($backupPath)) {
+                mkdir($backupPath, 0755, true);
             }
             
+            $path = $backupPath . '/' . $filename;
+            
+            // Construir comando mysqldump
             $command = sprintf(
-                'mysqldump --user=%s --password=%s --host=%s %s > %s',
-                env('DB_USERNAME'),
-                env('DB_PASSWORD'),
-                env('DB_HOST'),
-                env('DB_DATABASE'),
-                $path
+                'mysqldump --user=%s --password=%s --host=%s %s > %s 2>&1',
+                escapeshellarg(env('DB_USERNAME')),
+                escapeshellarg(env('DB_PASSWORD')),
+                escapeshellarg(env('DB_HOST')),
+                escapeshellarg(env('DB_DATABASE')),
+                escapeshellarg($path)
             );
             
-            exec($command);
+            exec($command, $output, $returnCode);
             
-            return response()->json(['success' => true, 'message' => 'Respaldo creado exitosamente']);
+            if ($returnCode !== 0) {
+                throw new \Exception("Error al ejecutar mysqldump: " . implode("\n", $output));
+            }
+            
+            if (!file_exists($path) || filesize($path) === 0) {
+                throw new \Exception("El archivo de respaldo está vacío o no se creó correctamente");
+            }
+            
+            return response()->json([
+                'success' => true, 
+                'message' => 'Respaldo creado exitosamente',
+                'filename' => $filename
+            ]);
+            
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Error al crear el respaldo'], 500);
+            \Log::error('Error al crear backup: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false, 
+                'message' => 'Error al crear el respaldo: ' . $e->getMessage()
+            ], 500);
         }
     }
-    
-    
-    // Listar backups
+
+ /**
+ * Descargar un respaldo específico
+ */
+    public function descargarBackup($filename)
+    {
+        $path = storage_path('app/backups/' . $filename);
+        
+        if (!file_exists($path)) {
+            abort(404, 'Archivo no encontrado');
+        }
+        
+        return response()->download($path, $filename, [
+            'Content-Type' => 'application/sql',
+        ]);
+    }
+   
+/**
+ * Listar los respaldos disponibles
+ */
     public function listarBackups()
     {
         $backups = [];
         $path = storage_path('app/backups');
         
+        // Verificar si el directorio existe
         if (is_dir($path)) {
             $files = scandir($path);
             foreach ($files as $file) {
+                // Solo archivos .sql
                 if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'sql') {
+                    $filePath = $path . '/' . $file;
                     $backups[] = [
                         'name' => $file,
-                        'size' => round(filesize($path . '/' . $file) / 1024, 2),
-                        'date' => date('Y-m-d H:i:s', filemtime($path . '/' . $file)),
+                        'size' => round(filesize($filePath) / 1024, 2),
+                        'date' => date('Y-m-d H:i:s', filemtime($filePath)),
                     ];
                 }
             }
+            
+            // Ordenar por fecha (más reciente primero)
+            usort($backups, function($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
         }
         
         return response()->json($backups);
     }
-    
-    // Cargar lista de roles (opcional)
-    public function listarRoles()
-    {
-        $roles = ['Administrador', 'Vendedor', 'Almacenista'];
-        return response()->json($roles);
-    }
-    
-    public function guardarRol(Request $request)
-    {
-        // Implementar según necesidades
-        return response()->json(['success' => true, 'message' => 'Rol guardado correctamente']);
-    }
-    
-    public function actualizarRol(Request $request, $id)
-    {
-        return response()->json(['success' => true, 'message' => 'Rol actualizado correctamente']);
-    }
-    
-    public function eliminarRol($id)
-    {
-        return response()->json(['success' => true, 'message' => 'Rol eliminado correctamente']);
-    }
-    
-    public function getConfiguracion()
-    {
-        $config = DB::table('configuraciones')->first();
-        return response()->json($config);
-    }
+
 }

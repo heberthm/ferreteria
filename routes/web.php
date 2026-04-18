@@ -396,7 +396,7 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     // Facturación
 
     Route::get('/facturacion', [ConfiguracionController::class, 'cargarFacturacion'])->name('facturacion.cargar');
-    Route::post('/guardar-facturacion', [ConfiguracionController::class, 'guardarFacturacion'])->name('guardar-facturacion');´
+    Route::post('/guardar-facturacion', [ConfiguracionController::class, 'guardarFacturacion'])->name('guardar-facturacion');
     Route::get('/facturacion/consecutivo', [ConfiguracionController::class, 'obtenerConsecutivo'])->name('facturacion.consecutivo');
     Route::post('/facturacion/incrementar', [ConfiguracionController::class, 'incrementarConsecutivo'])->name('facturacion.incrementar');
     Route::post('/facturacion/reiniciar', [ConfiguracionController::class, 'reiniciarConsecutivo'])->name('facturacion.reiniciar');
@@ -412,11 +412,12 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     // Backups
     Route::post('/crear-backup', [ConfiguracionController::class, 'crearBackup'])->name('crear-backup');
     Route::get('/listar-backups', [ConfiguracionController::class, 'listarBackups'])->name('listar-backups');
-    Route::get('/descargar-backup/{nombre}', [ConfiguracionController::class, 'descargarBackup'])->name('descargar-backup');
+    Route::get('/configuracion/descargar-backup/{filename}', [ConfiguracionController::class, 'descargarBackup']);
     Route::delete('/eliminar-backup', [ConfiguracionController::class, 'eliminarBackup'])->name('eliminar-backup');
     
     // Usuarios
     Route::get('/listar-usuarios', [ConfiguracionController::class, 'listarUsuarios'])->name('listar-usuarios');
+    Route::get('/usuario-actual', [ConfiguracionController::class, 'usuarioActual'])->name('configuracion.usuario-actual');
     Route::post('/guardar-usuario', [ConfiguracionController::class, 'guardarUsuario'])->name('guardar-usuario');
     Route::put('/actualizar-usuario/{id}', [ConfiguracionController::class, 'actualizarUsuario'])->name('actualizar-usuario');
     Route::delete('/eliminar-usuario/{id}', [ConfiguracionController::class, 'eliminarUsuario'])->name('eliminar-usuario');
