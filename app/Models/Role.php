@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Role extends Model
 {
     protected $table = 'roles';
-    protected $primaryKey = 'id_rol';
-    
-    protected $fillable = [
-        'name', 'description'
-    ];
+   protected $primaryKey = 'id_rol'; 
+    public $incrementing = true;
+    protected $keyType = 'int';
+
+    protected $fillable = ['name', 'description', 'permisos'];
     
     public function users()
     {

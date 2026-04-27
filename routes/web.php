@@ -421,16 +421,22 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     Route::post('/guardar-usuario', [ConfiguracionController::class, 'guardarUsuario'])->name('guardar-usuario');
     Route::put('/actualizar-usuario/{id}', [ConfiguracionController::class, 'actualizarUsuario'])->name('actualizar-usuario');
     Route::delete('/eliminar-usuario/{id}', [ConfiguracionController::class, 'eliminarUsuario'])->name('eliminar-usuario');
+    Route::post('/eliminar-avatar', [ConfiguracionController::class, 'eliminarAvatar'])->name('configuracion.eliminar-avatar');
     
     // Roles
     Route::get('/listar-roles', [ConfiguracionController::class, 'listarRoles'])->name('listar-roles');
     Route::post('/guardar-rol', [ConfiguracionController::class, 'guardarRol'])->name('guardar-rol');
     Route::put('/actualizar-rol/{id}', [ConfiguracionController::class, 'actualizarRol'])->name('actualizar-rol');
     Route::delete('/eliminar-rol/{id}', [ConfiguracionController::class, 'eliminarRol'])->name('eliminar-rol');
+
+   Route::get('/rol/{id}/permisos',  [ConfiguracionController::class, 'getPermisosRol']);
+    Route::post('/rol/{id}/permisos', [ConfiguracionController::class, 'guardarPermisosRol']);
+    Route::delete('/eliminar-rol/{id}', [ConfiguracionController::class, 'eliminarRol']);
+
     
     // Obtener configuración
     Route::get('/get-configuracion', [ConfiguracionController::class, 'getConfiguracion'])->name('get-configuracion');
-    Route::get('/configuracion/cargar-configuraciones', [ConfiguracionController::class, 'cargarConfiguraciones'])->name('configuracion.cargar');
+    Route::get('/cargar-configuraciones', [ConfiguracionController::class, 'cargarConfiguraciones'])->name('configuracion.cargar');
 
     
 });
