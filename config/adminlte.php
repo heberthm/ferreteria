@@ -477,13 +477,19 @@ return [
             'url' => 'configuracion',
         ],
 
-        [
-            'text' => 'Salir',
-            'icon' => 'nav-icon fas fa-power-off color:red',
-           'url' => 'login',
-            'icon_color' => 'danger',
+         [
+            'text' => 'Contabilidad',
+            'icon' => 'nav-icon fas book',
+            'url' => 'contabilidad',
         ],
 
+        [
+            'text' => 'Salir',
+            'icon' => 'nav-icon fas fa-power-off',
+            'icon_color' => 'danger',
+            'url' => '#',
+            'class' => 'btn-logout', // Agregar clase para identificar
+        ],
         
 
 

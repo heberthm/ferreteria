@@ -1049,7 +1049,7 @@
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
                 <h5 class="modal-title"><i class="fas fa-tag"></i> Editar Rol</h5>
-                <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
+                  <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editRolId">
@@ -2399,6 +2399,31 @@ $(document).on('click', '#btnCrearBackup', function(e) {
     });
 });
 
+
+  
+// ==// ======= // ============================= // ========
+
+    // ========================================
+    
+    // CIERRE MANUAL PARA TODOS LOS MODALES
+
+    // ======================================
+
+
+$(document).on('click', '.modal .close, .modal .btn-close, .modal [data-dismiss="modal"]', function(e) {
+    e.preventDefault();
+    var modal = $(this).closest('.modal');
+    if (modal.length) {
+        modal.modal('hide');
+    }
+});
+
+// También asegurar que el botón Cancelar funcione
+$(document).on('click', '.modal-footer .btn-secondary', function() {
+    $(this).closest('.modal').modal('hide');
+});
+
+
 // Función especial por si el botón no existe en el DOM al cargar
 $(document).ready(function() {
     // Verificar si el botón existe
@@ -2436,6 +2461,64 @@ function crearBackup() {
         }
     });
 }
+
+// Activar pestaña según el hash de la URL
+    function activarPestaniaPorHash() {
+        // Obtener el hash de la URL (ej: #perfil)
+        var hash = window.location.hash;
+        
+        if (hash) {
+            // Buscar el enlace que tiene el href igual al hash
+            var tabLink = $('.nav-tabs a[href="' + hash + '"]');
+            
+            if (tabLink.length) {
+                // Activar la pestaña
+                tabLink.tab('show');
+            } else {
+                // Intentar con el parámetro tab de la URL
+                var urlParams = new URLSearchParams(window.location.search);
+                var tab = urlParams.get('tab');
+                
+                if (tab) {
+                    tabLink = $('.nav-tabs a[href="#' + tab + '"]');
+                    if (tabLink.length) {
+                        tabLink.tab('show');
+                    }
+                }
+            }
+        }
+    }
+
+// Guardar la pestaña activa en el historial
+    function guardarPestaniaActiva() {
+        var activeTab = $('.nav-tabs .active').attr('href');
+        if (activeTab) {
+            // Actualizar el hash sin recargar la página
+            var newUrl = window.location.pathname + activeTab;
+            window.history.pushState(null, null, newUrl);
+        }
+    }
+
+    // Evento cuando se cambia de pestaña
+    $(document).ready(function() {
+        // Cuando se hace clic en una pestaña, actualizar la URL
+        $('.nav-tabs a').on('shown.bs.tab', function(e) {
+            var hash = $(e.target).attr('href');
+            if (hash) {
+                var newUrl = window.location.pathname + hash;
+                window.history.pushState(null, null, newUrl);
+            }
+        });
+        
+        // Activar la pestaña inicial según la URL
+        activarPestaniaPorHash();
+        
+        // Escuchar cambios en el historial (botones atrás/adelante)
+        window.addEventListener('popstate', function() {
+            activarPestaniaPorHash();
+        });
+    });
+
 
 // =====================================================================
 // INITIALIZATION

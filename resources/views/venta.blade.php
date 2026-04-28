@@ -2564,6 +2564,28 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
         toastr.success('Comprobante enviado a impresión', 'Impresión');
     });
 
+    
+// ==// ======= // ============================= // ========
+
+    // ========================================
+
+    // CIERRE MANUAL PARA TODOS LOS MODALES
+
+    // ======================================
+
+$(document).on('click', '.modal .close, .modal .btn-close, .modal [data-dismiss="modal"]', function(e) {
+    e.preventDefault();
+    var modal = $(this).closest('.modal');
+    if (modal.length) {
+        modal.modal('hide');
+    }
+});
+
+// También asegurar que el botón Cancelar funcione
+$(document).on('click', '.modal-footer .btn-secondary', function() {
+    $(this).closest('.modal').modal('hide');
+});
+
     $(document).on('click', '#btnNuevaVenta', function() { $('#modalVistaPrevia').modal('hide'); reiniciarVenta(); toastr.success('Nueva venta iniciada', 'Sistema'); });
     $(document).on('click', '#btnQuitarClienteInfo', function(e) { e.preventDefault(); e.stopPropagation(); limpiarClienteSeleccionado(); toastr.info('Cliente removido'); return false; });
     $(document).on('click', '#btnQuitarCliente', function(e) { e.preventDefault(); limpiarClienteSeleccionado(); toastr.info('Cliente removido'); });
