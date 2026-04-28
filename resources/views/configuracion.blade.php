@@ -31,6 +31,104 @@
 
    }
 
+    /* Estilos para la pestaña de alertas */
+    .custom-switch-lg .custom-control-label::before {
+        width: 3rem;
+        height: 1.5rem;
+        border-radius: 1rem;
+    }
+
+    .custom-switch-lg .custom-control-label::after {
+        width: calc(1.5rem - 4px);
+        height: calc(1.5rem - 4px);
+        border-radius: calc(1.5rem - 4px);
+    }
+
+    .custom-switch-lg .custom-control-input:checked ~ .custom-control-label::after {
+        transform: translateX(1.5rem);
+    }
+
+    .border-left-info {
+        border-left: 4px solid #17a2b8 !important;
+    }
+
+    .border-left-warning {
+        border-left: 4px solid #ffc107 !important;
+    }
+
+    .border-left-success {
+        border-left: 4px solid #28a745 !important;
+    }
+
+    .card-hover:hover {
+        transform: translateY(-2px);
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .form-group label i {
+        margin-right: 8px;
+    }
+
+    /* Mejoras visuales */
+    .config-card {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .alert i {
+        margin-right: 10px;
+    }
+
+    .custom-control-label {
+        cursor: pointer;
+    }
+
+    .custom-control-label i {
+        margin-right: 5px;
+    }´
+
+        /* Estilos para evitar que el botón cambie de tamaño */
+    .btn-fixed {
+        min-width: 180px;  /* Ancho mínimo fijo */
+        width: auto;
+        transition: none !important;  /* Elimina transiciones que puedan causar cambios */
+    }
+
+    .btn-fixed i {
+        transition: none !important;
+    }
+
+    /* Asegurar que el botón no cambie de tamaño al hacer hover o focus */
+    .btn-fixed:hover,
+    .btn-fixed:focus,
+    .btn-fixed:active {
+        transform: none !important;
+        min-width: 180px;
+    }
+
+    /* Estilos específicos para los switches */
+    .custom-control-input:checked ~ .custom-control-label::before {
+        background-color: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Evitar cualquier cambio de tamaño en los elementos */
+    .custom-control,
+    .custom-control-label,
+    .custom-control-label::before,
+    .custom-control-label::after {
+        transition: none !important;
+    }
+
+    /* Contenedor del botón para mantener el espacio */
+    .boton-container {
+        min-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+    }
+
 </style>
 @stop
 
@@ -483,79 +581,297 @@
                         </div>
                         {{-- ===== FIN Tab Impuestos ===== --}}
 
-                        {{-- ===== Tab Alertas ===== --}}
+                      {{-- ===== Tab Alertas ===== --}}
                         <div class="tab-pane fade" id="alertas" role="tabpanel">
                             <div class="card config-card">
                                 <div class="card-header bg-warning text-white">
-                                    <h3 class="card-title">Configuración de Alertas</h3>
+                                    <h3 class="card-title">
+                                        <i class="fas fa-bell"></i> Configuración de Alertas y Notificaciones
+                                    </h3>
                                 </div>
                                 <div class="card-body">
+                                    
+                                    {{-- Alertas de Inventario --}}
+                                    <div class="alert alert-info border-left-info mb-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="mr-3">
+                                                <i class="fas fa-boxes fa-2x"></i>
+                                            </div>
+                                            <div>
+                                                <h5 class="mb-0">Alertas de Inventario</h5>
+                                                <small>Configure los límites y tipos de alertas para el control de inventario</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
                                     <form id="formAlertas">
                                         @csrf
-                                        <div class="row">
+                                        <div class="row mb-4">
                                             <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Stock Mínimo de Alerta</label>
-                                                    <input type="number" name="stock_minimo_alerta" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="alertar_stock" name="alertar_stock">
-                                                        <label class="custom-control-label" for="alertar_stock">Alertar sobre stock bajo</label>
+                                                <div class="card h-100">
+                                                    <div class="card-body">
+                                                        <div class="form-group">
+                                                            <label class="font-weight-bold">
+                                                                <i class="fas fa-chart-line text-danger"></i> Stock Mínimo de Alerta
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text">
+                                                                        <i class="fas fa-cubes"></i>
+                                                                    </span>
+                                                                </div>
+                                                                <input type="number" name="stock_minimo_alerta" id="stock_minimo_alerta" 
+                                                                    class="form-control" min="0" step="1" required>
+                                                                <div class="input-group-append">
+                                                                    <span class="input-group-text">unidades</span>
+                                                                </div>
+                                                            </div>
+                                                            <small class="form-text text-muted">
+                                                                <i class="fas fa-info-circle"></i> 
+                                                                Cuando el stock sea menor o igual a este valor, se generará una alerta
+                                                            </small>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            
                                             <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <div class="custom-control custom-checkbox">
-                                                        <input type="checkbox" class="custom-control-input" id="alertar_vencimiento" name="alertar_vencimiento">
-                                                        <label class="custom-control-label" for="alertar_vencimiento">Alertar sobre productos próximos a vencer</label>
+                                                <div class="card h-100">
+                                                    <div class="card-body">
+                                                        <div class="form-group mb-4">
+                                                            <div class="custom-control custom-switch custom-switch-lg">
+                                                                <input type="checkbox" class="custom-control-input" id="alertar_stock" name="alertar_stock">
+                                                                <label class="custom-control-label font-weight-bold" for="alertar_stock">
+                                                                    <i class="fas fa-bell text-warning"></i> Activar alertas de stock bajo
+                                                                </label>
+                                                            </div>
+                                                            <small class="form-text text-muted ml-4">
+                                                                Recibirá notificaciones cuando los productos lleguen al stock mínimo
+                                                            </small>
+                                                        </div>
+                                                        
+                                                        <div class="mt-3">
+                                                            <div class="alert alert-sm alert-warning mb-0">
+                                                                <i class="fas fa-exclamation-triangle"></i>
+                                                                <small>Los productos con stock bajo se mostrarán en el panel de control</small>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Días de anticipación para vencimiento</label>
-                                                    <input type="number" name="dias_vencimiento" class="form-control">
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+                                        
+                                        {{-- Alertas de Vencimiento --}}
+                                        <div class="alert alert-info border-left-info mb-4 mt-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="mr-3">
+                                                    <i class="fas fa-calendar-alt fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-0">Alertas de Vencimiento</h5>
+                                                    <small>Configure las alertas para productos próximos a vencer</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-body">
+                                                        <div class="form-group">
+                                                            <label class="font-weight-bold">
+                                                                <i class="fas fa-hourglass-half text-danger"></i> Días de anticipación
+                                                            </label>
+                                                            <div class="input-group">
+                                                                <div class="input-group-prepend">
+                                                                    <span class="input-group-text">
+                                                                        <i class="fas fa-clock"></i>
+                                                                    </span>
+                                                                </div>
+                                                                <input type="number" name="dias_vencimiento" id="dias_vencimiento" 
+                                                                    class="form-control" min="1" max="365" required>
+                                                                <div class="input-group-append">
+                                                                    <span class="input-group-text">días antes</span>
+                                                                </div>
+                                                            </div>
+                                                            <small class="form-text text-muted">
+                                                                <i class="fas fa-info-circle"></i> 
+                                                                Recibirá alerta cuando falten esa cantidad de días o menos para el vencimiento
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-6">
+                                                <div class="card h-100">
+                                                    <div class="card-body">
+                                                        <div class="custom-control custom-switch mb-4">
+                                                            <input type="checkbox" class="custom-control-input" id="alertar_vencimiento" name="alertar_vencimiento">
+                                                            <label class="custom-control-label font-weight-bold" for="alertar_vencimiento">
+                                                                <i class="fas fa-bell text-warning"></i> Activar alertas de vencimiento
+                                                            </label>
+                                                            <small class="form-text text-muted ml-4">
+                                                                Recibirá notificaciones sobre productos que estén por vencer
+                                                            </small>
+                                                        </div>
+                                                        
+                                                        <div class="alert alert-sm alert-danger mb-0 mt-3">
+                                                            <i class="fas fa-exclamation-circle"></i>
+                                                            <small>Los productos vencidos se marcarán automáticamente en el sistema</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {{-- Opciones Adicionales --}}
+                                        <div class="alert alert-success border-left-success mb-4 mt-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="mr-3">
+                                                    <i class="fas fa-envelope fa-2x"></i>
+                                                </div>
+                                                <div>
+                                                    <h5 class="mb-0">Opciones de Notificación</h5>
+                                                    <small>Configure cómo y cuándo recibir las notificaciones</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row mb-4">
+                                            <div class="col-md-4">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="notificar_email" name="notificar_email">
+                                                    <label class="custom-control-label" for="notificar_email">
+                                                        <i class="fas fa-envelope"></i> Notificar por Email
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-4">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="notificar_panel" name="notificar_panel" checked>
+                                                    <label class="custom-control-label" for="notificar_panel">
+                                                        <i class="fas fa-tachometer-alt"></i> Mostrar en el Panel
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="col-md-4">
+                                                <div class="custom-control custom-checkbox">
+                                                    <input type="checkbox" class="custom-control-input" id="notificar_popup" name="notificar_popup">
+                                                    <label class="custom-control-label" for="notificar_popup">
+                                                        <i class="fas fa-window-popup"></i> Mostrar Popup
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        {{-- Resumen de configuración --}}
+                                        <div class="row mt-4">
+                                            <div class="col-md-12">
+                                                <div class="card bg-light">
+                                                    <div class="card-body py-3">
+                                                        <div class="d-flex justify-content-between align-items-center flex-wrap">
+                                                            <div class="mb-2 mb-md-0">
+                                                                <i class="fas fa-chart-simple"></i>
+                                                                <strong>Resumen de configuración:</strong>
+                                                                <span id="resumenAlertas" class="ml-2 text-muted">
+                                                                    Cargando configuración...
+                                                                </span>
+                                                            </div>
+                                                            <div class="boton-container">
+                                                                <button type="submit" class="btn btn-primary btn-fixed" id="btnGuardarAlertas" style="min-width: 180px;">
+                                                                    <i class="fas fa-save"></i> 
+                                                                    <span class="btn-text">Guardar Configuración</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
                         {{-- ===== FIN Tab Alertas ===== --}}
 
-                        {{-- ===== Tab Respaldo ===== --}}
+                        {{-- ===== Tab Respaldo  base de datos ´===== --}}
+                       
                         <div class="tab-pane fade" id="backup" role="tabpanel">
                             <div class="card config-card">
                                 <div class="card-header bg-dark text-white">
-                                    <h3 class="card-title">Respaldo de la Base de Datos</h3>
+                                    <h3 class="card-title"><i class="fas fa-database"></i> Respaldo de la Base de Datos</h3>
                                 </div>
                                 <div class="card-body">
                                     <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="alert alert-info">
-                                                <i class="fas fa-info-circle"></i> Realice respaldos periódicos para prevenir pérdida de información.
+                                        <div class="col-md-12">
+                                            <div class="alert alert-info alert-sm py-2 mb-3">
+                                                <i class="fas fa-info-circle"></i> 
+                                                <small>Realice respaldos periódicos para prevenir pérdida de información.</small>
                                             </div>
-                                            <button type="button" class="btn btn-success btn-lg btn-block" onclick="crearBackup()">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <button type="button" class="btn btn-success btn-block" id="btnCrearBackup">
                                                 <i class="fas fa-database"></i> Crear Respaldo Ahora
                                             </button>
                                         </div>
-                                        <div class="col-md-6">
+                                        
+                                        <div class="col-md-9">
+                                            <div class="card bg-light">
+                                                <div class="card-body py-2">
+                                                    <div class="form-row align-items-center">
+                                                        <div class="col-md-4">
+                                                            <div class="custom-control custom-switch">
+                                                                <input type="checkbox" class="custom-control-input" id="backup_automatico">
+                                                                <label class="custom-control-label" for="backup_automatico">
+                                                                    <i class="fas fa-clock"></i> Respaldo automático diario
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <input type="time" name="hora_backup" id="hora_backup" class="form-control form-control-sm" value="00:00">
+                                                        </div>
+                                                        <div class="col-md-3">
+                                                            <small class="text-muted">
+                                                                <i class="fas fa-info-circle"></i> Hora del servidor
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-4">
+                                        <div class="col-md-12">
                                             <div class="card">
-                                                <div class="card-header"><h4>Respaldos Recientes</h4></div>
-                                                <div class="card-body">
+                                                <div class="card-header py-2 bg-light">
+                                                    <h6 class="mb-0">
+                                                        <i class="fas fa-history"></i> 
+                                                        Últimos 10 Respaldos
+                                                        <span class="badge badge-info ml-2" id="totalBackups">0</span>
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body p-0">
                                                     <div class="table-responsive">
-                                                        <table class="table table-sm">
-                                                            <thead>
-                                                                <tr><th>Archivo</th><th>Fecha</th><th>Tamaño</th><th>Acción</th></tr>
+                                                        <table class="table table-sm table-hover mb-0">
+                                                            <thead class="thead-light">
+                                                                <tr>
+                                                                    <th width="40%">Archivo</th>
+                                                                    <th width="25%">Fecha</th>
+                                                                    <th width="15%">Tamaño</th>
+                                                                    <th width="20%">Acción</th>
+                                                                </tr>
                                                             </thead>
                                                             <tbody id="listaBackups">
-                                                                <tr><td colspan="4" class="text-center">No hay respaldos disponibles</td></tr>
+                                                                <tr><td colspan="4" class="text-center text-muted py-3">
+                                                                    <i class="fas fa-spinner fa-spin"></i> Cargando respaldos...
+                                                                </td></tr>
                                                             </tbody>
                                                         </table>
                                                     </div>
@@ -563,24 +879,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <div class="custom-control custom-checkbox">
-                                                    <input type="checkbox" class="custom-control-input" id="backup_automatico" name="backup_automatico">
-                                                    <label class="custom-control-label" for="backup_automatico">Habilitar respaldo automático diario</label>
-                                                </div>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Hora del respaldo automático</label>
-                                                <input type="time" name="hora_backup" class="form-control" style="max-width:200px">
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                        {{-- ===== FIN Tab Respaldo ===== --}}
 
                     </div>{{-- fin tab-content --}}
                 </div>{{-- fin card-body --}}
@@ -1035,6 +1336,294 @@ function cargarConfiguraciones() {
         }
     });
 }
+
+
+// =====================================================================
+// MANEJADORES DE FORMULARIOS - VERSIÓN CORREGIDA CON RUTAS
+// =====================================================================
+
+// Guardar Configuración General
+$('#formConfigGeneral').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this).find('[type="submit"]');
+    var origText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+    
+    $.ajax({
+        url: '/configuracion/guardar-general',  // ← Ruta corregida
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            if (r.success) {
+                toastr.success(r.message || 'Configuración general guardada');
+                cargarConfiguraciones();
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origText);
+        }
+    });
+});
+
+// Guardar Configuración de Facturación
+$('#formFacturacion').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this).find('[type="submit"]');
+    var origText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+    
+    var fd = new FormData(this);
+    
+    $.ajax({
+        url: '/configuracion/guardar-facturacion',  // ← Ruta corregida
+        type: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function(r) {
+            if (r.success) {
+                toastr.success(r.message || 'Configuración de facturación guardada');
+                cargarConfiguraciones();
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origText);
+        }
+    });
+});
+
+// Guardar Datos del Negocio - ¡ESTE ES EL QUE NECESITAS!
+$('#formNegocio').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this).find('[type="submit"]');
+    var origText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+    
+    var fd = new FormData(this);
+    
+    $.ajax({
+        url: '/configuracion/guardar-negocio',  // ← Ruta corregida
+        type: 'POST',
+        data: fd,
+        processData: false,
+        contentType: false,
+        success: function(r) {
+            if (r.success) {
+                toastr.success(r.message || 'Datos del negocio guardados correctamente');
+                cargarConfiguraciones();
+                // Limpiar el input de archivo después de guardar
+                $('[name="logo_negocio"]').val('');
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origText);
+        }
+    });
+});
+
+// Guardar Configuración de Impuestos
+$('#formImpuestos').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this).find('[type="submit"]');
+    var origText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+    
+    $.ajax({
+        url: '/configuracion/guardar-impuestos',  // ← Ruta corregida
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            if (r.success) {
+                toastr.success(r.message || 'Configuración de impuestos guardada');
+                cargarConfiguraciones();
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origText);
+        }
+    });
+});
+
+// Guardar configuración de alertas - Con tamaño de botón fijo
+$('#formAlertas').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $('#btnGuardarAlertas');
+    var originalHtml = btn.html(); // Guardar el HTML original
+    
+    // Deshabilitar botón pero mantener el mismo ancho
+    btn.prop('disabled', true);
+    
+    // Cambiar solo el contenido manteniendo la misma estructura
+    btn.html('<i class="fas fa-spinner fa-pulse"></i> <span class="btn-text">Guardando...</span>');
+    
+    // Asegurar que el botón mantiene su tamaño
+    btn.css({
+        'min-width': btn.outerWidth() + 'px',
+        'transition': 'none'
+    });
+    
+    $.ajax({
+        url: '/configuracion/guardar-alertas',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            if (r.success) {
+                toastr.success('Configuración de alertas guardada correctamente');
+                actualizarResumenAlertas();
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            // Restaurar el botón después de 500ms
+            setTimeout(function() {
+                btn.prop('disabled', false);
+                btn.html(originalHtml);
+                btn.css('min-width', '');
+            }, 500);
+        }
+    });
+});
+
+// Función para actualizar el resumen de alertas
+function actualizarResumenAlertas() {
+    var stockMinimo = $('#stock_minimo_alerta').val() || 0;
+    var diasVen = $('#dias_vencimiento').val() || 0;
+    var alertaStock = $('#alertar_stock').is(':checked');
+    var alertaVencimiento = $('#alertar_vencimiento').is(':checked');
+    var email = $('#notificar_email').is(':checked');
+    var panel = $('#notificar_panel').is(':checked');
+    var popup = $('#notificar_popup').is(':checked');
+    
+    var resumen = [];
+    
+    if (alertaStock) {
+        resumen.push(`<span class="badge badge-warning">⚠️ Stock mínimo: ${stockMinimo} unidades</span>`);
+    } else {
+        resumen.push(`<span class="badge badge-secondary">⛔ Alertas de stock desactivadas</span>`);
+    }
+    
+    if (alertaVencimiento) {
+        resumen.push(`<span class="badge badge-danger">📅 Alerta ${diasVen} días antes de vencer</span>`);
+    } else {
+        resumen.push(`<span class="badge badge-secondary">⛔ Alertas de vencimiento desactivadas</span>`);
+    }
+    
+    var notificaciones = [];
+    if (email) notificaciones.push('Email');
+    if (panel) notificaciones.push('Panel');
+    if (popup) notificaciones.push('Popup');
+    
+    if (notificaciones.length > 0) {
+        resumen.push(`<span class="badge badge-info">📢 Notificaciones: ${notificaciones.join(', ')}</span>`);
+    }
+    
+    if (resumen.length === 0) {
+        resumen.push('<span class="text-muted">No hay alertas configuradas</span>');
+    }
+    
+    $('#resumenAlertas').html(resumen.join(' '));
+}
+
+// Eventos para actualizar el resumen
+$(document).ready(function() {
+    // Actualizar resumen cuando cambien los valores
+    $('#stock_minimo_alerta, #dias_vencimiento').on('change keyup', function() {
+        actualizarResumenAlertas();
+    });
+    
+    $('#alertar_stock, #alertar_vencimiento, #notificar_email, #notificar_panel, #notificar_popup').on('change', function() {
+        actualizarResumenAlertas();
+    });
+    
+    // Cargar configuración existente
+    function cargarAlertas() {
+        $.ajax({
+            url: '/configuracion/cargar-configuraciones',
+            type: 'GET',
+            success: function(r) {
+                if (r.alertas) {
+                    $('#stock_minimo_alerta').val(r.alertas.stock_minimo_alerta || 5);
+                    $('#dias_vencimiento').val(r.alertas.dias_vencimiento || 30);
+                    $('#alertar_stock').prop('checked', r.alertas.alertar_stock === '1');
+                    $('#alertar_vencimiento').prop('checked', r.alertas.alertar_vencimiento === '1');
+                    
+                    // Cargar opciones adicionales
+                    $('#notificar_email').prop('checked', r.alertas.notificar_email === '1');
+                    $('#notificar_panel').prop('checked', r.alertas.notificar_panel !== '0');
+                    $('#notificar_popup').prop('checked', r.alertas.notificar_popup === '1');
+                    
+                    actualizarResumenAlertas();
+                }
+            }
+        });
+    }
+    
+    cargarAlertas();
+});
+
+// Guardar configuración de alertas
+$('#formAlertas').on('submit', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this).find('[type="submit"]');
+    var origText = btn.html();
+    btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+    
+    $.ajax({
+        url: '/configuracion/guardar-alertas',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function(r) {
+            if (r.success) {
+                toastr.success('Configuración de alertas guardada correctamente');
+                actualizarResumenAlertas();
+            } else {
+                toastr.error(r.message || 'Error al guardar');
+            }
+        },
+        error: function(xhr) {
+            var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+            toastr.error(msg);
+        },
+        complete: function() {
+            btn.prop('disabled', false).html(origText);
+        }
+    });
+});
 
 
 // =====================================================================
@@ -1602,36 +2191,226 @@ function guardarRol() {
     });
 }
 
+// Cargar configuración de backup
+
+    function cargarConfiguracionBackup() {
+        $.ajax({
+            url: '/configuracion/obtener-configuracion-backup',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    $('#backup_automatico').prop('checked', response.backup_automatico == 1);
+                    $('#hora_backup').val(response.hora_backup || '00:00');
+                }
+            },
+            error: function() {
+                console.error('Error al cargar configuración de backup');
+            }
+        });
+    }
+
+    // Guardar configuración de backup
+    $('#backup_automatico, #hora_backup').on('change', function() {
+        var data = {
+            backup_automatico: $('#backup_automatico').is(':checked') ? 1 : 0,
+            hora_backup: $('#hora_backup').val(),
+            _token: $('meta[name="csrf-token"]').attr('content')
+        };
+        
+        $.ajax({
+            url: '/configuracion/guardar-configuracion-backup',
+            type: 'POST',
+            data: data,
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('Configuración de respaldo guardada');
+                    if (data.backup_automatico) {
+                        toastr.info('Respaldo automático programado para las ' + data.hora_backup);
+                    }
+                } else {
+                    toastr.error(response.message || 'Error al guardar');
+                }
+            },
+            error: function() {
+                toastr.error('Error al guardar configuración');
+            }
+        });
+    });
+
+    // Actualizar total de backups
+    function actualizarTotalBackups() {
+        var total = $('#listaBackups tr:not(:contains("No hay respaldos"))').length;
+        $('#totalBackups').text(total);
+    }
+
+
+
 // =====================================================================
 // BACKUP FUNCTIONS
 // =====================================================================
+
+
+// Función para cargar lista de backups
 function cargarListaBackups() {
     $.ajax({
         url: '/configuracion/listar-backups',
         type: 'GET',
-        success: function(b) {
+        dataType: 'json',
+        success: function(backups) {
             var tbody = $('#listaBackups');
-            if (!b || !b.length) {
-                tbody.html('<tr><td colspan="4" class="text-center">No hay respaldos disponibles</td></tr>');
+            if (!backups || backups.length === 0) {
+                tbody.html('<tr><td colspan="4" class="text-center text-muted">No hay respaldos disponibles</td></tr>');
                 return;
             }
             
             var html = '';
-            for (var i = 0; i < b.length; i++) {
+            for (var i = 0; i < backups.length; i++) {
                 html += '<tr>' +
-                    '<td>' + b[i].name + '</td>' +
-                    '<td>' + b[i].date + '</td>' +
-                    '<td>' + b[i].size + ' KB</td>' +
-                    '<td><button class="btn btn-sm btn-info" onclick="descargarBackup(\'' + b[i].name + '\')"><i class="fas fa-download"></i></button></td>' +
-                    '</tr>';
+                    '<td><small>' + backups[i].name + '</small></td>' +
+                    '<td><small>' + backups[i].date + '</small></td>' +
+                    '<td><small>' + backups[i].size + ' KB</small></td>' +
+                    '<td>' +
+                        '<button class="btn btn-sm btn-info descargar-backup" data-file="' + backups[i].name + '" style="padding: 2px 8px;" title="Descargar">' +
+                            '<i class="fas fa-download"></i>' +
+                        '</button>' +
+                    '</td>' +
+                '</tr>';
             }
             tbody.html(html);
         },
-        error: function() {
+        error: function(xhr, status, error) {
+            console.error('Error al cargar backups:', error);
             $('#listaBackups').html('<tr><td colspan="4" class="text-center text-danger">Error al cargar respaldos</td></tr>');
         }
     });
 }
+
+// Función para descargar backup - Abre cuadro de diálogo para guardar
+    function descargarBackup(filename) {
+        // Crear un formulario temporal para hacer la petición AJAX
+        $.ajax({
+            url: '/configuracion/descargar-backup/' + filename,
+            type: 'GET',
+            xhrFields: {
+                responseType: 'blob' // Importante: para recibir el archivo como blob
+            },
+            success: function(data, status, xhr) {
+                // Obtener el nombre del archivo del header Content-Disposition
+                var disposition = xhr.getResponseHeader('Content-Disposition');
+                var filename = "backup.sql";
+                
+                if (disposition && disposition.indexOf('filename=') !== -1) {
+                    var matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(disposition);
+                    if (matches != null && matches[1]) {
+                        filename = matches[1].replace(/['"]/g, '');
+                    }
+                }
+                
+                // Crear un blob con los datos
+                var blob = new Blob([data], { type: 'application/sql' });
+                
+                // Crear URL para el blob
+                var url = window.URL.createObjectURL(blob);
+                
+                // Crear un elemento <a> temporal y hacer clic
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                
+                // Limpiar
+                setTimeout(function() {
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }, 100);
+                
+                toastr.success('Descargando respaldo...', 'Éxito');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al descargar:', error);
+                toastr.error('Error al descargar el respaldo', 'Error');
+            }
+        });
+    }
+
+// Evento para descargar backup (usando delegación de eventos)
+$(document).on('click', '.descargar-backup', function() {
+    var filename = $(this).data('file');
+    if (filename) {
+        descargarBackup(filename);
+    }
+});
+
+// Evento para crear backup - MÁS ROBUSTO
+$(document).on('click', '#btnCrearBackup', function(e) {
+    e.preventDefault();
+    
+    var btn = $(this);
+    var originalText = btn.html();
+    
+    // Deshabilitar botón y mostrar spinner
+    btn.prop('disabled', true);
+    btn.html('<i class="fas fa-spinner fa-pulse"></i> Creando respaldo...');
+    
+    console.log('Iniciando creación de backup...'); // Para depuración
+    
+    $.ajax({
+        url: '/configuracion/crear-backup',
+        type: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content')
+        },
+        dataType: 'json',
+        success: function(response) {
+            console.log('Respuesta del servidor:', response);
+            
+            if (response.success) {
+                toastr.success(response.message, '¡Éxito!', { timeOut: 3000 });
+                // Recargar la lista de backups
+                cargarListaBackups();
+            } else {
+                toastr.error(response.message || 'Error al crear el respaldo', 'Error');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en AJAX:', {
+                status: status,
+                error: error,
+                response: xhr.responseText
+            });
+            
+            var errorMsg = 'Error al crear el respaldo';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errorMsg = xhr.responseJSON.message;
+            } else if (xhr.status === 500) {
+                errorMsg = 'Error interno del servidor. Revisa los logs.';
+            }
+            
+            toastr.error(errorMsg, 'Error');
+        },
+        complete: function() {
+            // Restaurar botón después de 1 segundo
+            setTimeout(function() {
+                btn.prop('disabled', false);
+                btn.html(originalText);
+            }, 1000);
+        }
+    });
+});
+
+// Función especial por si el botón no existe en el DOM al cargar
+$(document).ready(function() {
+    // Verificar si el botón existe
+    if ($('#btnCrearBackup').length === 0) {
+        console.warn('El botón #btnCrearBackup no existe en el DOM');
+    } else {
+        console.log('Botón #btnCrearBackup encontrado');
+    }
+    
+    // Cargar listas
+    cargarListaBackups();
+});
 
 function descargarBackup(filename) {
     window.location.href = '/configuracion/descargar-backup/' + filename;

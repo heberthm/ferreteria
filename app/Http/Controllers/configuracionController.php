@@ -42,42 +42,46 @@ class ConfiguracionController extends Controller
      * Crear configuración por defecto si no existe
      */
     private function crearConfiguracionPorDefecto()
-    {
-        $configData = [
-            'id_configuracion' => 1,
-            'nombre_sistema' => 'Sistema Ferretero',
-            'version' => '1.0.0',
-            'zona_horaria' => 'America/Bogota',
-            'formato_fecha' => 'd/m/Y',
-            'moneda' => 'COP',
-            'simbolo_moneda' => '$',
-            'prefijo_factura' => 'FAC',
-            'consecutivo_inicial' => 1,
-            'consecutivo_actual' => 1,
-            'longitud_numero' => 6,
-            'formato_factura' => 'simple',
-            'autogenerar' => 1,
-            'validar_duplicados' => 1,
-            'factura_electronica' => 0,
-            'tamaño_papel' => 'thermal',
-            'copias' => 1,
-            'nombre_negocio' => 'Mi Negocio',
-            'iva' => 19,
-            'incluir_iva' => 1,
-            'mostrar_iva' => 1,
-            'stock_minimo_alerta' => 5,
-            'alertar_stock' => 1,
-            'alertar_vencimiento' => 0,
-            'dias_vencimiento' => 30,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-        
-        DB::table('configuraciones')->insert($configData);
-        
-        return (object) $configData;
-    }
-
+{
+    $configData = [
+        'id_configuracion' => 1,
+        'nombre_sistema' => 'Sistema Ferretero',
+        'version' => '1.0.0',
+        'zona_horaria' => 'America/Bogota',
+        'formato_fecha' => 'd/m/Y',
+        'moneda' => 'COP',
+        'simbolo_moneda' => '$',
+        'prefijo_factura' => 'FAC',
+        'consecutivo_inicial' => 1,
+        'consecutivo_actual' => 1,
+        'longitud_numero' => 6,
+        'formato_factura' => 'simple',
+        'autogenerar' => 1,
+        'validar_duplicados' => 1,
+        'factura_electronica' => 0,
+        'tamaño_papel' => 'thermal',
+        'copias' => 1,
+        'nombre_negocio' => 'Mi Negocio',
+        'iva' => 19,
+        'incluir_iva' => 1,
+        'mostrar_iva' => 1,
+        'stock_minimo_alerta' => 5,
+        'alertar_stock' => 1,
+        'alertar_vencimiento' => 0,
+        'dias_vencimiento' => 30,
+        // Nuevas columnas
+        'backup_automatico' => 0,
+        'hora_backup' => '00:00',
+        'periodo_backup' => 'diario',
+        'ultimo_backup' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ];
+    
+    DB::table('configuraciones')->insert($configData);
+    
+    return (object) $configData;
+}
     /**
      * Obtener el usuario actual (API)
      */
@@ -828,9 +832,10 @@ public function actualizarPerfil(Request $request)
         }
     }
 
-    /**
-     * Crear respaldo de la base de datos
-     */
+  
+  /**
+ * Crear respaldo de la base de datos (versión que funciona sin mysqldump)
+ */
     public function crearBackup(Request $request)
     {
         try {
@@ -842,28 +847,76 @@ public function actualizarPerfil(Request $request)
                 mkdir($backupPath, 0755, true);
             }
             
-            $path = $backupPath . '/' . $filename;
+            $filePath = $backupPath . '/' . $filename;
             
-            $command = sprintf(
-                'mysqldump --user=%s --password=%s --host=%s %s > %s 2>&1',
-                escapeshellarg(env('DB_USERNAME')),
-                escapeshellarg(env('DB_PASSWORD')),
-                escapeshellarg(env('DB_HOST')),
-                escapeshellarg(env('DB_DATABASE')),
-                escapeshellarg($path)
-            );
+            // Obtener todas las tablas de la base de datos
+            $tables = DB::select('SHOW TABLES');
+            $databaseName = env('DB_DATABASE');
+            $tableKey = "Tables_in_{$databaseName}";
             
-            exec($command, $output, $returnCode);
+            $sql = "-- ---------------------------------------------\n";
+            $sql .= "-- Respaldado de Base de Datos\n";
+            $sql .= "-- Fecha: " . date('Y-m-d H:i:s') . "\n";
+            $sql .= "-- Base de datos: {$databaseName}\n";
+            $sql .= "-- ---------------------------------------------\n\n";
+            $sql .= "SET FOREIGN_KEY_CHECKS=0;\n\n";
             
-            if ($returnCode !== 0) {
-                throw new \Exception("Error al ejecutar mysqldump: " . implode("\n", $output));
+            foreach ($tables as $table) {
+                $tableName = $table->$tableKey;
+                
+                // Obtener estructura de la tabla
+                $createTable = DB::select("SHOW CREATE TABLE {$tableName}");
+                $sql .= "-- --------------------------------------------------------\n";
+                $sql .= "-- Estructura de tabla `{$tableName}`\n";
+                $sql .= "-- --------------------------------------------------------\n";
+                $sql .= "DROP TABLE IF EXISTS `{$tableName}`;\n";
+                $sql .= $createTable[0]->{"Create Table"} . ";\n\n";
+                
+                // Obtener datos de la tabla
+                $rows = DB::table($tableName)->get();
+                
+                if ($rows->count() > 0) {
+                    $sql .= "-- --------------------------------------------------------\n";
+                    $sql .= "-- Volcado de datos para tabla `{$tableName}`\n";
+                    $sql .= "-- --------------------------------------------------------\n";
+                    $sql .= "INSERT INTO `{$tableName}` VALUES ";
+                    
+                    $values = [];
+                    foreach ($rows as $row) {
+                        $rowArray = (array) $row;
+                        $escapedValues = [];
+                        foreach ($rowArray as $value) {
+                            if ($value === null) {
+                                $escapedValues[] = 'NULL';
+                            } else {
+                                $escapedValues[] = "'" . str_replace(["\\", "'"], ["\\\\", "\\'"], $value) . "'";
+                            }
+                        }
+                        $values[] = "(" . implode(',', $escapedValues) . ")";
+                    }
+                    
+                    $sql .= implode(",\n", $values) . ";\n\n";
+                }
             }
             
-            return response()->json([
-                'success' => true,
-                'message' => 'Respaldo creado exitosamente',
-                'filename' => $filename
-            ]);
+            $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
+            $sql .= "-- ---------------------------------------------\n";
+            $sql .= "-- Fin del respaldo\n";
+            $sql .= "-- ---------------------------------------------\n";
+            
+            // Guardar el archivo
+            file_put_contents($filePath, $sql);
+            
+            // Verificar que el archivo se creó correctamente
+            if (file_exists($filePath) && filesize($filePath) > 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Respaldo creado exitosamente (' . round(filesize($filePath) / 1024, 2) . ' KB)',
+                    'filename' => $filename
+                ]);
+            } else {
+                throw new \Exception("No se pudo crear el archivo de respaldo");
+            }
             
         } catch (\Exception $e) {
             \Log::error('Error al crear backup: ' . $e->getMessage());
@@ -875,51 +928,180 @@ public function actualizarPerfil(Request $request)
         }
     }
 
-    /**
-     * Listar respaldos
-     */
+  
+  /**
+ * Listar respaldos - Solo últimos 10
+ */
     public function listarBackups()
     {
         $backups = [];
         $path = storage_path('app/backups');
         
         if (is_dir($path)) {
-            $files = scandir($path);
-            foreach ($files as $file) {
-                if ($file != '.' && $file != '..' && pathinfo($file, PATHINFO_EXTENSION) == 'sql') {
-                    $filePath = $path . '/' . $file;
-                    $backups[] = [
-                        'name' => $file,
-                        'size' => round(filesize($filePath) / 1024, 2),
-                        'date' => date('Y-m-d H:i:s', filemtime($filePath)),
-                    ];
-                }
+            $files = glob($path . '/backup_*.sql');
+            
+            foreach ($files as $filePath) {
+                $backups[] = [
+                    'name' => basename($filePath),
+                    'size' => round(filesize($filePath) / 1024, 2),
+                    'date' => date('Y-m-d H:i:s', filemtime($filePath)),
+                    'timestamp' => filemtime($filePath)
+                ];
             }
             
+            // Ordenar por fecha (más reciente primero)
             usort($backups, function($a, $b) {
-                return strtotime($b['date']) - strtotime($a['date']);
+                return $b['timestamp'] - $a['timestamp'];
             });
+            
+            // Limitar a solo los últimos 10
+            $backups = array_slice($backups, 0, 10);
         }
         
         return response()->json($backups);
     }
-
-    /**
-     * Descargar respaldo
-     */
+   
+   /**
+ * Descargar respaldo - Con headers correctos para forzar descarga
+ */
     public function descargarBackup($filename)
     {
-        $path = storage_path('app/backups/' . $filename);
-        
-        if (!file_exists($path)) {
-            abort(404, 'Archivo no encontrado');
+        try {
+            $path = storage_path('app/backups/' . $filename);
+            
+            if (!file_exists($path)) {
+                abort(404, 'Archivo no encontrado');
+            }
+            
+            // Headers para forzar la descarga
+            $headers = [
+                'Content-Type' => 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => filesize($path),
+                'Cache-Control' => 'no-cache, must-revalidate',
+                'Pragma' => 'public',
+            ];
+            
+            return response()->download($path, $filename, $headers);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error al descargar backup: ' . $e->getMessage());
+            abort(500, 'Error al descargar el archivo');
         }
-        
-        return response()->download($path, $filename, [
-            'Content-Type' => 'application/sql',
-        ]);
     }
     
+
+/**
+ * Guardar configuración de respaldo automático
+ */
+public function guardarConfiguracionBackup(Request $request)
+{
+    try {
+        // Verificar si el registro existe
+        $config = DB::table('configuraciones')->first();
+        
+        $data = [
+            'backup_automatico' => $request->has('backup_automatico') ? 1 : 0,
+            'hora_backup' => $request->hora_backup ?? '00:00',
+            'periodo_backup' => $request->periodo_backup ?? 'diario',
+            'updated_at' => now(),
+        ];
+        
+        if ($config) {
+            // Actualizar existente
+            DB::table('configuraciones')->update($data);
+        } else {
+            // Crear nuevo registro
+            $data['id_configuracion'] = 1;
+            $data['created_at'] = now();
+            DB::table('configuraciones')->insert($data);
+        }
+        
+        // Si se habilitó el respaldo automático, programarlo
+        if ($data['backup_automatico']) {
+            $this->programarBackupAutomatico($data['hora_backup'], $data['periodo_backup']);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Configuración de respaldo guardada correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error al guardar configuración backup: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al guardar configuración: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
+/**
+ * Obtener configuración de respaldo
+ */
+        public function obtenerConfiguracionBackup()
+        {
+            try {
+                $config = DB::table('configuraciones')->first();
+                
+                // Si no hay configuración, crear una por defecto
+                if (!$config) {
+                    $this->crearConfiguracionPorDefecto();
+                    $config = DB::table('configuraciones')->first();
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'backup_automatico' => $config->backup_automatico ?? 0,
+                    'hora_backup' => $config->hora_backup ?? '00:00',
+                    'periodo_backup' => $config->periodo_backup ?? 'diario'
+                ]);
+                
+            } catch (\Exception $e) {
+                \Log::error('Error al obtener configuración backup: ' . $e->getMessage());
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al obtener configuración'
+                ], 500);
+            }
+        }
+
+        /**
+        * Programar respaldo automático
+        */
+        private function programarBackupAutomatico($hora, $periodo)
+        {
+            // Actualizar el último backup programado
+            DB::table('configuraciones')->update([
+                'ultimo_backup' => now(),
+                'updated_at' => now()
+            ]);
+            
+            \Log::info("Respaldo automático programado - Hora: {$hora}, Periodo: {$periodo}");
+        }
+
+
+
+/**
+ * Actualizar el schedule del backup
+ */
+    private function actualizarScheduleBackup($hora)
+    {
+        // Este método registra en log la nueva configuración
+        \Log::info("Respaldo automático programado para las: {$hora}");
+        
+        // Puedes guardar en un archivo de configuración
+        $configPath = storage_path('app/backup_config.json');
+        file_put_contents($configPath, json_encode([
+            'enabled' => true,
+            'hora' => $hora,
+            'last_update' => now()
+        ]));
+    }
+
     /**
      * Reiniciar consecutivo
      */

@@ -4,29 +4,28 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use Illuminate\Support\Facades\DB;
 
 class Kernel extends ConsoleKernel
 {
-    /**
-     * Define the application's command schedule.
-     *
-     * @param  \Illuminate\Console\Scheduling\Schedule  $schedule
-     * @return void
-     */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
-    }
-
-    /**
-     * Register the commands for the application.
-     *
-     * @return void
-     */
-    protected function commands()
-    {
-        $this->load(__DIR__.'/Commands');
-
-        require base_path('routes/console.php');
+        // Respaldo automático - La hora se configura desde la base de datos
+        $schedule->call(function () {
+            $config = DB::table('configuraciones')->first();
+            
+            if ($config && $config->backup_automatico) {
+                $hora = $config->hora_backup ?? '00:00';
+                $horaActual = date('H:i');
+                
+                // Ejecutar solo en la hora configurada
+                if ($horaActual === $hora) {
+                    \Artisan::call('backup:auto');
+                }
+            }
+        })->everyMinute();
+        
+        // Alternativa: programar directamente a una hora específica
+        // $schedule->command('backup:auto')->dailyAt('02:00');
     }
 }

@@ -412,8 +412,10 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     // Backups
     Route::post('/crear-backup', [ConfiguracionController::class, 'crearBackup'])->name('crear-backup');
     Route::get('/listar-backups', [ConfiguracionController::class, 'listarBackups'])->name('listar-backups');
-    Route::get('/configuracion/descargar-backup/{filename}', [ConfiguracionController::class, 'descargarBackup']);
+    Route::get('//descargar-backup/{filename}', [ConfiguracionController::class, 'descargarBackup']);
     Route::delete('/eliminar-backup', [ConfiguracionController::class, 'eliminarBackup'])->name('eliminar-backup');
+    Route::post('/guardar-configuracion-backup', [ConfiguracionController::class, 'guardarConfiguracionBackup'])->name('guardar-configuracion-backup');
+ Route::get('/obtener-configuracion-backup', [ConfiguracionController::class, 'obtenerConfiguracionBackup'])->name('obtener-configuracion-backup');
     
     // Usuarios
     Route::get('/listar-usuarios', [ConfiguracionController::class, 'listarUsuarios'])->name('listar-usuarios');
