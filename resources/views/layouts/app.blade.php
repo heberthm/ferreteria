@@ -59,63 +59,7 @@
 
     <script>
       
-         // Script para manejar el cierre de sesión
-    $(document).ready(function() {
-        // Manejador para el enlace de salir
-        $(document).on('click', '.btn-logout, a[href*="logout"], a:contains("Salir")', function(e) {
-            // Verificar si es nuestro enlace de salir
-            if ($(this).text().trim() === 'Salir' || $(this).hasClass('btn-logout')) {
-                e.preventDefault();
-                confirmarCierreSesion(e);
-            }
-        });
-    });
-
-    function confirmarCierreSesion(event) {
-        if (event) event.preventDefault();
-        
-        Swal.fire({
-            title: '¿Cerrar Sesión?',
-            text: '¿Estás seguro de que deseas salir del sistema?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: '<i class="fas fa-sign-out-alt"></i> Sí, salir',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-            reverseButtons: true
-        }).then((result) => {
-            if (result.isConfirmed) {
-                cerrarSesion();
-            }
-        });
-    }
-
-    function cerrarSesion() {
-        // Mostrar loading
-        Swal.fire({
-            title: 'Cerrando sesión...',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-        
-        // Crear y enviar formulario de logout
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '{{ route("logout") }}';
-        form.style.display = 'none';
-        
-        const csrfToken = document.createElement('input');
-        csrfToken.type = 'hidden';
-        csrfToken.name = '_token';
-        csrfToken.value = '{{ csrf_token() }}';
-        
-        form.appendChild(csrfToken);
-        document.body.appendChild(form);
-        form.submit();
-    }
+    
 
     </script>
 @endpush

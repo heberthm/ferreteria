@@ -412,10 +412,10 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     // Backups
     Route::post('/crear-backup', [ConfiguracionController::class, 'crearBackup'])->name('crear-backup');
     Route::get('/listar-backups', [ConfiguracionController::class, 'listarBackups'])->name('listar-backups');
-    Route::get('//descargar-backup/{filename}', [ConfiguracionController::class, 'descargarBackup']);
+    Route::get('/descargar-backup/{filename}', [ConfiguracionController::class, 'descargarBackup']);
     Route::delete('/eliminar-backup', [ConfiguracionController::class, 'eliminarBackup'])->name('eliminar-backup');
     Route::post('/guardar-configuracion-backup', [ConfiguracionController::class, 'guardarConfiguracionBackup'])->name('guardar-configuracion-backup');
- Route::get('/obtener-configuracion-backup', [ConfiguracionController::class, 'obtenerConfiguracionBackup'])->name('obtener-configuracion-backup');
+    Route::get('/obtener-configuracion-backup', [ConfiguracionController::class, 'obtenerConfiguracionBackup'])->name('obtener-configuracion-backup');
     
     // Usuarios
     Route::get('/listar-usuarios', [ConfiguracionController::class, 'listarUsuarios'])->name('listar-usuarios');
@@ -439,7 +439,14 @@ Route::middleware(['auth'])->prefix('configuracion')->name('configuracion.')->gr
     // Obtener configuración
     Route::get('/get-configuracion', [ConfiguracionController::class, 'getConfiguracion'])->name('get-configuracion');
     Route::get('/cargar-configuraciones', [ConfiguracionController::class, 'cargarConfiguraciones'])->name('configuracion.cargar');
+    Route::get('/cargar-facturacion', [ConfiguracionController::class, 'cargarFacturacion'])->name('cargar-facturacion');
+    Route::get('/cargar-impuestos', [ConfiguracionController::class, 'cargarImpuestos'])->name('cargar-impuestos');
 
+   
+    // Rutas para el manejo del logo
+    Route::get('/obtener-logo', [ConfiguracionController::class, 'obtenerLogo'])->name('configuracion.obtener-logo');
+    Route::post('/eliminar-logo', [ConfiguracionController::class, 'eliminarLogo'])->name('configuracion.eliminar-logo');
+  Route::get('/cargar-datos-negocio', [ConfiguracionController::class, 'cargarDatosNegocio'])->name('configuracion.cargar-datos-negocio');
     
 });
 

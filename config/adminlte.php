@@ -472,25 +472,24 @@ return [
 
         ],
         [
-            'text' => 'Configuración',
-            'icon' => 'nav-icon fas fa-cog',
-            'url' => 'configuracion',
-        ],
-
-         [
             'text' => 'Contabilidad',
-            'icon' => 'nav-icon fas book',
+            'icon' => 'nav-icon fa fa-book',
             'url' => 'contabilidad',
         ],
 
+        [
+            'text' => 'Configuración',
+            'icon' => 'nav-icon fas fa-cog',
+            'url' => 'configuracion',
+        ],       
         [
             'text' => 'Salir',
             'icon' => 'nav-icon fas fa-power-off',
             'icon_color' => 'danger',
             'url' => '#',
-            'class' => 'btn-logout', // Agregar clase para identificar
+            'route' => 'logout',
+            'method' => 'POST', 
         ],
-        
 
 
     ],

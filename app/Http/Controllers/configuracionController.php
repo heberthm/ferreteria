@@ -121,9 +121,9 @@ class ConfiguracionController extends Controller
         }
     }
 
-    /**
-     * Cargar todas las configuraciones (API)
-     */
+   /**
+ * Cargar todas las configuraciones (API)
+ */
     public function cargarConfiguraciones()
     {
         try {
@@ -149,9 +149,9 @@ class ConfiguracionController extends Controller
                     'proximo_numero' => (int)($config->consecutivo_actual ?? 1) + 1,
                     'longitud_numero' => (int)($config->longitud_numero ?? 6),
                     'formato_factura' => $config->formato_factura ?? 'simple',
-                    'autogenerar' => (string)($config->autogenerar ?? 1),
-                    'validar_duplicados' => (string)($config->validar_duplicados ?? 1),
-                    'factura_electronica' => (string)($config->factura_electronica ?? 0),
+                    'autogenerar' => (bool)($config->autogenerar ?? 1),
+                    'validar_duplicados' => (bool)($config->validar_duplicados ?? 1),
+                    'factura_electronica' => (bool)($config->factura_electronica ?? 0),
                     'tamaño_papel' => $config->tamaño_papel ?? 'thermal',
                     'copias' => (int)($config->copias ?? 1),
                 ],
@@ -165,15 +165,15 @@ class ConfiguracionController extends Controller
                     'mensaje_factura' => $config->mensaje_factura ?? 'Gracias por su compra',
                     'logo_negocio' => $config->logo_negocio ?? null,
                 ],
-                'impuestos' => [
+                'impuestos' => [  // ← IMPORTANTE: Asegurar que esto está presente
                     'iva' => (float)($config->iva ?? 19),
-                    'incluir_iva' => (string)($config->incluir_iva ?? 1),
-                    'mostrar_iva' => (string)($config->mostrar_iva ?? 1),
+                    'incluir_iva' => (bool)($config->incluir_iva ?? 1),
+                    'mostrar_iva' => (bool)($config->mostrar_iva ?? 1),
                 ],
                 'alertas' => [
                     'stock_minimo_alerta' => (int)($config->stock_minimo_alerta ?? 5),
-                    'alertar_stock' => (string)($config->alertar_stock ?? 1),
-                    'alertar_vencimiento' => (string)($config->alertar_vencimiento ?? 0),
+                    'alertar_stock' => (bool)($config->alertar_stock ?? 1),
+                    'alertar_vencimiento' => (bool)($config->alertar_vencimiento ?? 0),
                     'dias_vencimiento' => (int)($config->dias_vencimiento ?? 30),
                 ],
             ];
@@ -185,7 +185,7 @@ class ConfiguracionController extends Controller
             
             return response()->json([
                 'success' => false,
-                'message' => 'Error al cargar configuraciones'
+                'message' => 'Error al cargar configuraciones: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -798,6 +798,75 @@ public function actualizarPerfil(Request $request)
     }
 
     /**
+ * Cargar configuración de facturación (API)
+ */
+public function cargarFacturacion()
+{
+    try {
+        $config = DB::table('configuraciones')->first();
+        
+        if (!$config) {
+            $config = $this->crearConfiguracionPorDefecto();
+        }
+        
+        \Log::info('cargarFacturacion ejecutado', ['config' => $config]); // temporal
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'prefijo_factura'      => $config->prefijo_factura      ?? 'FAC',
+                'consecutivo_inicial'  => (int)($config->consecutivo_inicial  ?? 1),
+                'consecutivo_actual'   => (int)($config->consecutivo_actual   ?? 1),
+                'proximo_numero'       => (int)($config->consecutivo_actual   ?? 1) + 1,
+                'longitud_numero'      => (int)($config->longitud_numero      ?? 6),
+                'formato_factura'      => $config->formato_factura      ?? 'simple',
+                'autogenerar'          => (bool)($config->autogenerar         ?? 1),
+                'validar_duplicados'   => (bool)($config->validar_duplicados  ?? 1),
+                'factura_electronica'  => (bool)($config->factura_electronica ?? 0),
+                'tamaño_papel'         => $config->tamaño_papel         ?? 'thermal',
+                'copias'               => (int)($config->copias               ?? 1),
+            ]
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error cargarFacturacion: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar facturación: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Cargar configuración de impuestos (API)
+ */
+    public function cargarImpuestos()
+    {
+        try {
+            $config = DB::table('configuraciones')->first();
+            
+            if (!$config) {
+                $config = $this->crearConfiguracionPorDefecto();
+            }
+            
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'iva' => (float)($config->iva ?? 19),
+                    'incluir_iva' => (bool)($config->incluir_iva ?? 1),
+                    'mostrar_iva' => (bool)($config->mostrar_iva ?? 1),
+                ]
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cargar impuestos: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Guardar usuario
      */
     public function guardarUsuario(Request $request)
@@ -997,7 +1066,6 @@ public function actualizarPerfil(Request $request)
 public function guardarConfiguracionBackup(Request $request)
 {
     try {
-        // Verificar si el registro existe
         $config = DB::table('configuraciones')->first();
         
         $data = [
@@ -1008,18 +1076,16 @@ public function guardarConfiguracionBackup(Request $request)
         ];
         
         if ($config) {
-            // Actualizar existente
             DB::table('configuraciones')->update($data);
         } else {
-            // Crear nuevo registro
             $data['id_configuracion'] = 1;
             $data['created_at'] = now();
             DB::table('configuraciones')->insert($data);
         }
         
-        // Si se habilitó el respaldo automático, programarlo
+        // Si se activó, programar el comando
         if ($data['backup_automatico']) {
-            $this->programarBackupAutomatico($data['hora_backup'], $data['periodo_backup']);
+            $this->scheduleBackupJob($data['hora_backup'], $data['periodo_backup']);
         }
         
         return response()->json([
@@ -1037,6 +1103,24 @@ public function guardarConfiguracionBackup(Request $request)
     }
 }
 
+/**
+ * Programar el respaldo automático
+ */
+private function scheduleBackupJob($hora, $periodo)
+{
+    // Crear archivo de configuración del scheduler
+    $scheduleConfig = [
+        'enabled' => true,
+        'hora' => $hora,
+        'periodo' => $periodo,
+        'last_schedule' => now()->toDateTimeString()
+    ];
+    
+    $configPath = storage_path('app/backup_schedule.json');
+    file_put_contents($configPath, json_encode($scheduleConfig, JSON_PRETTY_PRINT));
+    
+    \Log::info("Respaldo automático programado - Hora: {$hora}, Periodo: {$periodo}");
+}
 
 /**
  * Obtener configuración de respaldo
@@ -1125,4 +1209,106 @@ public function guardarConfiguracionBackup(Request $request)
             ], 500);
         }
     }
+
+  public function obtenerLogo()
+{
+    try {
+        $config = DB::table('configuraciones')->first();
+        
+        $logoUrl = null;
+        
+        if ($config && !empty($config->logo_negocio)) {
+            if (Storage::disk('public')->exists($config->logo_negocio)) {
+                $logoUrl = Storage::url($config->logo_negocio);
+            } else {
+                // Limpiar referencia si el archivo no existe
+                DB::table('configuraciones')->update(['logo_negocio' => null]);
+            }
+        }
+        
+        return response()->json([
+            'success' => true,
+            'logo_url' => $logoUrl,
+            'has_logo' => !is_null($logoUrl)
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error en obtenerLogo: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage(),
+            'logo_url' => null
+        ], 500);
+    }
 }
+
+public function eliminarLogo(Request $request)
+{
+    try {
+        $config = DB::table('configuraciones')->first();
+        
+        if ($config && !empty($config->logo_negocio)) {
+            if (Storage::disk('public')->exists($config->logo_negocio)) {
+                Storage::disk('public')->delete($config->logo_negocio);
+            }
+            DB::table('configuraciones')->update(['logo_negocio' => null]);
+        }
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Logo eliminado correctamente'
+        ]);
+        
+    } catch (\Exception $e) {
+        \Log::error('Error en eliminarLogo: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al eliminar el logo: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+
+        
+
+public function cargarDatosNegocio()
+{
+    try {
+        $config = DB::table('configuraciones')->first();
+
+        if (!$config) {
+            $this->crearConfiguracionPorDefecto();
+            $config = DB::table('configuraciones')->first();
+        }
+
+        $logoUrl = null;
+        if ($config && !empty($config->logo_negocio)) {
+            if (Storage::disk('public')->exists($config->logo_negocio)) {
+                $logoUrl = Storage::url($config->logo_negocio);
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'nombre_negocio'   => $config->nombre_negocio   ?? '',
+                'nit'              => $config->nit              ?? '',
+                'direccion'        => $config->direccion        ?? '',
+                'telefono_negocio' => $config->telefono_negocio ?? '',
+                'email_negocio'    => $config->email_negocio    ?? '',
+                'website'          => $config->website          ?? '',
+                'mensaje_factura'  => $config->mensaje_factura  ?? '',
+            ],
+            'logo_url' => $logoUrl
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+       
+}
+

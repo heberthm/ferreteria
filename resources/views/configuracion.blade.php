@@ -129,6 +129,206 @@
         justify-content: flex-end;
     }
 
+    /* Estilos para la vista previa del logo */
+    #logoPreviewContainer {
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #logoPreviewContainer:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    #logoPreview {
+        transition: all 0.3s ease;
+    }
+
+    #logoPlaceholder {
+        transition: all 0.3s ease;
+        color: #6c757d;
+    }
+
+    /* Botón de eliminar logo */
+    #btnEliminarLogo {
+        transition: all 0.3s ease;
+    }
+
+    #btnEliminarLogo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(220,53,69,0.3);
+    }
+
+        /* Estilos para el contenedor del logo */
+    #logoPreviewContainer {
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: relative;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    #logoPreviewContainer .overlay-logo {
+        background: rgba(0,0,0,0.7);
+        border-radius: 8px;
+    }
+
+    #logoPreviewContainer .overlay-logo i {
+        font-size: 2rem;
+    }
+
+    /* Animación para el contenedor del logo */
+    #logoPreviewContainer {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    #logoPreviewContainer:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Estilos para las tarjetas */
+    .card.shadow-sm {
+        transition: box-shadow 0.3s ease;
+    }
+
+    .card.shadow-sm:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Mejorar espaciado en móviles */
+    @media (max-width: 768px) {
+        #logoPreviewContainer {
+            width: 150px;
+            height: 150px;
+        }
+        
+        .col-md-4, .col-md-8 {
+            margin-bottom: 20px;
+        }
+    }
+
+      /* Estilos para el tab de negocio */
+    #negocio .card {
+        transition: all 0.3s ease;
+    }
+    
+    #negocio .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+    }
+    
+    /* Contenedor del logo */
+    #logoPreviewContainer {
+        transition: all 0.3s ease;
+    }
+    
+    #logoPreviewContainer:hover {
+        transform: scale(1.05);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    }
+    
+    #logoPreviewContainer:hover .logo-overlay {
+        opacity: 1 !important;
+    }
+    
+    /* Efectos en los inputs */
+    #negocio .form-control {
+        transition: all 0.3s ease;
+        border-radius: 0.375rem;
+    }
+    
+    #negocio .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+        transform: translateY(-2px);
+    }
+    
+    /* Secciones del formulario */
+    #negocio .form-section {
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Campos requeridos */
+    #negocio .required:after {
+        content: " *";
+        color: red;
+        font-weight: bold;
+    }
+    
+    /* Input groups */
+    #negocio .input-group-text {
+        background-color: #f8f9fa;
+        border-right: none;
+    }
+    
+    #negocio .input-group .form-control {
+        border-left: none;
+    }
+    
+    #negocio .input-group .form-control:focus {
+        border-left: none;
+    }
+    
+    /* Botones */
+    #negocio .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+    }
+    
+    #negocio .btn-primary {
+        transition: all 0.3s ease;
+    }
+    
+    #negocio .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,123,255,0.3);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        #logoPreviewContainer {
+            width: 140px;
+            height: 140px;
+        }
+        
+        #negocio .btn-lg {
+            width: 100%;
+        }
+        
+        #negocio .d-flex {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+    
+    /* Estilo para el estado del logo */
+    .badge-success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.4);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+        }
+    }
+
 </style>
 @stop
 
@@ -475,70 +675,296 @@
                         </div>
                         {{-- ===== FIN Tab Mi Perfil ===== --}}
 
-                        {{-- ===== Tab Datos del Negocio ===== --}}
-                        <div class="tab-pane fade" id="negocio" role="tabpanel">
-                            <div class="card config-card">
-                                <div class="card-header bg-secondary text-white">
-                                    <h3 class="card-title">Información de la Ferretería</h3>
+                      {{-- ===== Tab Datos del Negocio ===== --}}
+                <div class="tab-pane fade" id="negocio" role="tabpanel">
+                    <div class="card config-card shadow-sm">
+                        <div class="card-header bg-gradient-secondary text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <h3 class="card-title mb-0">
+                                <i class="fas fa-store mr-2"></i> Información Corporativa
+                            </h3>
+                            <div class="card-tools">
+                                <small class="text-white-50">
+                                    <i class="fas fa-building"></i> Datos de la empresa
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <form id="formNegocio" enctype="multipart/form-data">
+                                @csrf
+                                
+                                {{-- Encabezado con instrucciones --}}
+                                <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+                                    <i class="fas fa-info-circle mr-2"></i>
+                                    Complete los datos de su negocio. Esta información aparecerá en las facturas y documentos del sistema.
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
                                 </div>
-                                <div class="card-body">
-                                    <form id="formNegocio">
-                                        @csrf
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label class="required">Nombre del Negocio</label>
-                                                    <input type="text" name="nombre_negocio" class="form-control" required>
-                                                </div>
+                                
+                                <div class="row">
+                                    {{-- Columna Izquierda: Logo y configuración visual --}}
+                                    <div class="col-lg-4">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-header bg-light">
+                                                <h5 class="card-title mb-0">
+                                                    <i class="fas fa-image text-primary"></i> Logo de la empresa
+                                                </h5>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>NIT / RUC</label>
-                                                    <input type="text" name="nit" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Dirección</label>
-                                                    <input type="text" name="direccion" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Teléfono</label>
-                                                    <input type="text" name="telefono_negocio" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Email</label>
-                                                    <input type="email" name="email_negocio" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>Sitio Web</label>
-                                                    <input type="url" name="website" class="form-control">
-                                                </div>
-                                            </div>
-                                            <div class="col-md-12">
-                                                <div class="form-group">
-                                                    <label>Mensaje en Factura</label>
-                                                    <textarea name="mensaje_factura" class="form-control" rows="3"></textarea>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-12">
-                                                <div class="form-group">
-                                                    <label>Logo del Negocio</label>
-                                                    <input type="file" name="logo_negocio" class="form-control-file" accept="image/*">
+                                            <div class="card-body text-center">
+                                                {{-- Contenedor del logo --}}
+                                                <div class="logo-container mb-4">
+                                                    <div id="logoPreviewWrapper" class="position-relative d-inline-block">
+                                                        <div id="logoPreviewContainer" style="
+                                                            width: 180px;
+                                                            height: 180px;
+                                                            margin: 0 auto;
+                                                            border: 3px solid #e9ecef;
+                                                            border-radius: 50%;
+                                                            overflow: hidden;
+                                                            background: #f8f9fa;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            cursor: pointer;
+                                                            transition: all 0.3s ease;
+                                                            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+                                                            position: relative;">
+                                                            
+                                                            <img id="logoPreview" src="" alt="Logo del negocio" 
+                                                                style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                                                            
+                                                            <i id="logoPlaceholder" class="fas fa-store fa-5x text-secondary"></i>
+                                                            
+                                                            {{-- Overlay para subir imagen --}}
+                                                            <div class="logo-overlay" style="
+                                                                position: absolute;
+                                                                top: 0;
+                                                                left: 0;
+                                                                width: 100%;
+                                                                height: 100%;
+                                                                background: rgba(0,0,0,0.7);
+                                                                display: flex;
+                                                                align-items: center;
+                                                                justify-content: center;
+                                                                opacity: 0;
+                                                                transition: all 0.3s ease;
+                                                                color: white;
+                                                                cursor: pointer;
+                                                                border-radius: 50%;">
+                                                                <div class="text-center">
+                                                                    <i class="fas fa-camera fa-2x mb-2"></i>
+                                                                    <br>
+                                                                    <small>Cambiar logo</small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {{-- Indicador de estado --}}
+                                                        <div class="position-absolute" style="bottom: 10px; right: 10px;">
+                                                            <span id="logoStatus" class="badge badge-success" style="display: none;">
+                                                                <i class="fas fa-check-circle"></i> Logo subido
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <input type="file" name="logo_negocio" id="logo_negocio" 
+                                                        class="d-none" accept="image/*">
+                                                    
+                                                    <div class="mt-3">
+                                                        <button type="button" id="btnCambiarLogo" class="btn btn-outline-primary btn-sm">
+                                                            <i class="fas fa-upload"></i> Subir logo
+                                                        </button>
+                                                        <button type="button" id="btnEliminarLogo" class="btn btn-outline-danger btn-sm" style="display: none;">
+                                                            <i class="fas fa-trash"></i> Eliminar
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div class="mt-3 text-left">
+                                                        <small class="text-muted">
+                                                            <i class="fas fa-info-circle"></i> Formatos permitidos:<br>
+                                                            JPG, PNG, GIF (Máx. 2MB)<br>
+                                                            Tamaño recomendado: 500x500px
+                                                        </small>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary">Guardar Información</button>
-                                    </form>
+                                    </div>
+                                    
+                                    {{-- Columna Derecha: Datos de la empresa --}}
+                                    <div class="col-lg-8">
+                                        <div class="card h-100 border-0 shadow-sm">
+                                            <div class="card-header bg-light">
+                                                <h5 class="card-title mb-0">
+                                                    <i class="fas fa-building text-success"></i> Información General
+                                                </h5>
+                                            </div>
+                                            <div class="card-body">
+                                                {{-- Sección: Datos básicos --}}
+                                                <div class="form-section mb-4">
+                                                    <h6 class="border-bottom pb-2 mb-3 text-primary">
+                                                        <i class="fas fa-address-card"></i> Datos básicos
+                                                    </h6>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="form-group">
+                                                                <label class="required font-weight-bold">
+                                                                    <i class="fas fa-store text-primary"></i> Razón Social / Nombre del Negocio
+                                                                </label>
+                                                                <input type="text" name="nombre_negocio" class="form-control form-control-lg" 
+                                                                    placeholder="Ej: Ferretería El Tornillo S.A.S." required>
+                                                                <small class="form-text text-muted">Nombre que aparecerá en facturas y documentos</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-id-card"></i> NIT / RUC
+                                                                </label>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text">
+                                                                            <i class="fas fa-hashtag"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                    <input type="text" name="nit" class="form-control" 
+                                                                        placeholder="900.123.456-7">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-phone-alt"></i> Teléfono / Celular
+                                                                </label>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text">
+                                                                            <i class="fas fa-phone"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                    <input type="text" name="telefono_negocio" class="form-control" 
+                                                                        placeholder="(601) 123-4567">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {{-- Sección: Ubicación y contacto --}}
+                                                <div class="form-section mb-4">
+                                                    <h6 class="border-bottom pb-2 mb-3 text-info">
+                                                        <i class="fas fa-map-marker-alt"></i> Ubicación y contacto
+                                                    </h6>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-location-dot"></i> Dirección
+                                                                </label>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text">
+                                                                            <i class="fas fa-map"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                    <input type="text" name="direccion" class="form-control" 
+                                                                        placeholder="Calle 123 # 45-67, Ciudad">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="row">
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-envelope"></i> Correo Electrónico
+                                                                </label>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text">
+                                                                            <i class="fas fa-at"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                    <input type="email" name="email_negocio" class="form-control" 
+                                                                        placeholder="info@ferreteria.com">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div class="col-md-6">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-globe"></i> Sitio Web
+                                                                </label>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text">
+                                                                            <i class="fas fa-link"></i>
+                                                                        </span>
+                                                                    </div>
+                                                                    <input type="url" name="website" class="form-control" 
+                                                                        placeholder="www.ferreteria.com">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                {{-- Sección: Documentación fiscal --}}
+                                                <div class="form-section mb-4">
+                                                    <h6 class="border-bottom pb-2 mb-3 text-warning">
+                                                        <i class="fas fa-file-invoice-dollar"></i> Información fiscal
+                                                    </h6>
+                                                    <div class="row">
+                                                        <div class="col-md-12">
+                                                            <div class="form-group">
+                                                                <label>
+                                                                    <i class="fas fa-note-sticky"></i> Mensaje en Factura
+                                                                </label>
+                                                                <textarea name="mensaje_factura" class="form-control" rows="3" 
+                                                                        placeholder="¡Gracias por su compra! | ¡Los mejores precios del mercado!"></textarea>
+                                                                <small class="form-text text-muted">
+                                                                    Este mensaje aparecerá al pie de todas las facturas
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                                
+                                {{-- Footer con botones de acción --}}
+                                <div class="row mt-4">
+                                    <div class="col-md-12">
+                                        <div class="card-footer bg-transparent px-0">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <button type="reset" class="btn btn-outline-secondary">
+                                                        <i class="fas fa-undo"></i> Restablecer
+                                                    </button>
+                                                </div>
+                                                <div>
+                                                    <button type="submit" class="btn btn-primary btn-lg px-5" id="btnGuardarNegocio">
+                                                        <i class="fas fa-save"></i> Guardar información
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
+                    </div>
+                </div>
                         {{-- ===== FIN Tab Datos del Negocio ===== --}}
 
                         {{-- ===== Tab Impuestos ===== --}}
@@ -554,7 +980,7 @@
                                             <div class="col-md-4">
                                                 <div class="form-group">
                                                     <label>IVA (%)</label>
-                                                    <input type="number" name="iva" class="form-control" step="0.01" min="0" max="100">
+                                                      <input type="number" name="iva" id="iva" class="form-control" step="0.01" min="0" max="100">
                                                 </div>
                                             </div>
                                             <div class="col-md-4">
@@ -834,11 +1260,21 @@
                                                             </div>
                                                         </div>
                                                         <div class="col-md-3">
-                                                            <input type="time" name="hora_backup" id="hora_backup" class="form-control form-control-sm" value="00:00">
+                                                            <label class="small text-muted mb-0">Período:</label>
+                                                            <select id="periodo_backup" class="form-control form-control-sm">
+                                                                <option value="diario">Diario</option>
+                                                                <option value="semanal">Semanal (Lunes)</option>
+                                                                <option value="mensual">Mensual (Día 1)</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-2">
+                                                            <label class="small text-muted mb-0">Hora:</label>
+                                                            <input type="time" id="hora_backup" class="form-control form-control-sm" value="02:00">
                                                         </div>
                                                         <div class="col-md-3">
                                                             <small class="text-muted">
-                                                                <i class="fas fa-info-circle"></i> Hora del servidor
+                                                                <i class="fas fa-info-circle"></i> Hora del servidor<br>
+                                                                <span id="estado_backup" class="badge badge-secondary">Inactivo</span>
                                                             </small>
                                                         </div>
                                                     </div>
@@ -1282,60 +1718,561 @@ $(document).on('keyup', '#modalPasswordNueva, #modalPasswordConfirmacion', funct
 });
 
 
-
-// =====================================================================
-// LOAD CONFIGURATIONS
-// =====================================================================
-function cargarConfiguraciones() {
+// Función específica para cargar el logo
+function cargarLogoNegocio() {
+    console.log('Cargando logo del negocio...');
+    
+    // Mostrar estado de carga
+    $('#logoPlaceholder').hide();
+    $('#logoPreview').hide();
+    $('#logoPreviewContainer').append('<div class="spinner-border text-primary" id="logoSpinner" style="position: absolute;"></div>');
+    
     $.ajax({
-        url: '/configuracion/cargar-configuraciones',
+        url: '/configuracion/obtener-logo',
         type: 'GET',
-        success: function(r) {
-            if (r.general) {
-                $('#nombre_sistema').val(r.general.nombre_sistema || '');
-                $('#version').val(r.general.version || '1.0.0');
-                $('#zona_horaria').val(r.general.zona_horaria || 'America/Bogota');
-                $('#formato_fecha').val(r.general.formato_fecha || 'd/m/Y');
-                $('#moneda').val(r.general.moneda || 'COP');
-                $('#simbolo_moneda').val(r.general.simbolo_moneda || '$');
-            }
-            if (r.facturacion) {
-                $('#prefijo_factura').val(r.facturacion.prefijo_factura || '');
-                $('#consecutivo_inicial').val(r.facturacion.consecutivo_inicial || '');
-                $('#consecutivo_actual').val(r.facturacion.consecutivo_actual || '');
-                $('#proximo_numero').val(r.facturacion.proximo_numero || '');
-                $('#longitud_numero').val(r.facturacion.longitud_numero || '6');
-                $('#formato_factura').val(r.facturacion.formato_factura || 'simple');
-                $('#autogenerar').prop('checked', r.facturacion.autogenerar === '1');
-                $('#validar_duplicados').prop('checked', r.facturacion.validar_duplicados === '1');
-                $('#factura_electronica').prop('checked', r.facturacion.factura_electronica === '1');
-            }
-            if (r.negocio) {
-                $('[name="nombre_negocio"]').val(r.negocio.nombre_negocio || '');
-                $('[name="nit"]').val(r.negocio.nit || '');
-                $('[name="direccion"]').val(r.negocio.direccion || '');
-                $('[name="telefono_negocio"]').val(r.negocio.telefono_negocio || '');
-                $('[name="email_negocio"]').val(r.negocio.email_negocio || '');
-                $('[name="website"]').val(r.negocio.website || '');
-                $('[name="mensaje_factura"]').val(r.negocio.mensaje_factura || '');
-            }
-            if (r.impuestos) {
-                $('[name="iva"]').val(r.impuestos.iva || '');
-                $('#incluir_iva').prop('checked', r.impuestos.incluir_iva === '1');
-                $('#mostrar_iva').prop('checked', r.impuestos.mostrar_iva === '1');
-            }
-            if (r.alertas) {
-                $('[name="stock_minimo_alerta"]').val(r.alertas.stock_minimo_alerta || '');
-                $('[name="dias_vencimiento"]').val(r.alertas.dias_vencimiento || '');
-                $('#alertar_stock').prop('checked', r.alertas.alertar_stock === '1');
-                $('#alertar_vencimiento').prop('checked', r.alertas.alertar_vencimiento === '1');
+        dataType: 'json',
+        success: function(response) {
+            $('#logoSpinner').remove();
+            
+            console.log('Respuesta del servidor:', response);
+            
+            if (response.success && response.logo_url && response.logo_url !== '') {
+                // Limpiar URL duplicada de storage
+                let logoUrl = response.logo_url;
+                if (logoUrl.includes('/storage/storage/')) {
+                    logoUrl = logoUrl.replace('/storage/storage/', '/storage/');
+                }
+                
+                console.log('Cargando logo desde:', logoUrl);
+                
+                // Probar si la imagen existe
+                const img = new Image();
+                img.onload = function() {
+                    $('#logoPreview').attr('src', logoUrl);
+                    $('#logoPreview').show();
+                    $('#logoPlaceholder').hide();
+                    $('#btnEliminarLogo').show();
+                    $('#logoStatus').show().text('Logo actual');
+                    console.log('Logo cargado correctamente');
+                };
+                img.onerror = function() {
+                    console.error('No se pudo cargar la imagen:', logoUrl);
+                    $('#logoPlaceholder').show();
+                    $('#logoPreview').hide();
+                    $('#btnEliminarLogo').hide();
+                    $('#logoStatus').hide();
+                    toastr.warning('No se pudo cargar el logo del negocio');
+                };
+                img.src = logoUrl;
+            } else {
+                console.log('No hay logo guardado');
+                $('#logoPlaceholder').show();
+                $('#logoPreview').hide();
+                $('#btnEliminarLogo').hide();
+                $('#logoStatus').hide();
             }
         },
-        error: function() {
-            toastr.error('Error al cargar configuraciones');
+        error: function(xhr, status, error) {
+            $('#logoSpinner').remove();
+            console.error('Error al cargar el logo:', error);
+            $('#logoPlaceholder').show();
+            $('#logoPreview').hide();
+            toastr.error('Error al cargar el logo del negocio');
         }
     });
 }
+
+// Evento cuando se abre el tab de negocio
+$(document).ready(function() {
+    // Cuando se hace clic en el tab
+    $('a[href="#negocio"]').on('shown.bs.tab', function(e) {
+        console.log('Abriendo tab de negocio');
+        cargarLogoNegocio();
+        cargarDatosNegocio(); // Cargar también los demás datos
+    });
+    
+    // Si la pestaña está activa al cargar la página
+    if ($('#negocio').hasClass('active')) {
+        console.log('Tab negocio activo al cargar');
+        cargarLogoNegocio();
+        cargarDatosNegocio();
+    }
+});
+
+    // Función para cargar todos los datos del negocio
+    function cargarDatosNegocio() {
+        $.ajax({
+            url: '/configuracion/cargar-datos-negocio',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    $('[name="nombre_negocio"]').val(response.data.nombre_negocio || '');
+                    $('[name="nit"]').val(response.data.nit || '');
+                    $('[name="direccion"]').val(response.data.direccion || '');
+                    $('[name="telefono_negocio"]').val(response.data.telefono_negocio || '');
+                    $('[name="email_negocio"]').val(response.data.email_negocio || '');
+                    $('[name="website"]').val(response.data.website || '');
+                    $('[name="mensaje_factura"]').val(response.data.mensaje_factura || '');
+                }
+            },
+            error: function() {
+                console.error('Error al cargar datos del negocio');
+            }
+        });
+    }
+
+
+// Función para cargar datos de facturación
+ // =====================================================================
+// CARGAR FACTURACIÓN
+// =====================================================================
+    function cargarFacturacion() {
+        $.ajax({
+            url: '/configuracion/cargar-facturacion',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Facturación cargada:', response);
+                
+                if (response.success && response.data) {
+                    var d = response.data;
+                    $('#prefijo_factura').val(d.prefijo_factura || 'FAC');
+                    $('#consecutivo_inicial').val(d.consecutivo_inicial || 1);
+                    $('#consecutivo_actual').val(d.consecutivo_actual || 1);
+                    $('#proximo_numero').val(d.proximo_numero || 2);
+                    $('#longitud_numero').val(String(d.longitud_numero || 6));
+                    $('#formato_factura').val(d.formato_factura || 'simple');
+                    $('#tamaño_papel').val(d.tamaño_papel || 'thermal');
+                    $('#copias').val(String(d.copias || 1));
+                    $('#autogenerar').prop('checked', d.autogenerar === true || d.autogenerar == 1);
+                    $('#validar_duplicados').prop('checked', d.validar_duplicados === true || d.validar_duplicados == 1);
+                    $('#factura_electronica').prop('checked', d.factura_electronica === true || d.factura_electronica == 1);
+                } else {
+                    console.warn('Respuesta inesperada:', response);
+                    toastr.warning('No se pudieron cargar los datos de facturación');
+                }
+            },
+            error: function(xhr) {
+                console.error('Error facturación:', xhr.status, xhr.responseText);
+                toastr.error('Error al cargar configuración de facturación');
+            }
+        });
+    }
+
+   // =====================================================================
+// CARGA DE IMPUESTOS (INDEPENDIENTE)
+// =====================================================================
+function cargarImpuestos() {
+    console.log('Cargando impuestos específicamente...');
+    
+    $.ajax({
+        url: '/configuracion/cargar-impuestos',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Respuesta impuestos:', response);
+            
+            if (response.success && response.data) {
+                $('#iva').val(response.data.iva || 19);
+                $('#incluir_iva').prop('checked', response.data.incluir_iva === true);
+                $('#mostrar_iva').prop('checked', response.data.mostrar_iva === true);
+                console.log('✅ Impuestos cargados correctamente');
+            } else {
+                console.warn('⚠️ Respuesta inesperada de impuestos:', response);
+                // Valores por defecto si no hay datos
+                $('#iva').val(19);
+                $('#incluir_iva').prop('checked', true);
+                $('#mostrar_iva').prop('checked', true);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error al cargar impuestos:', error);
+            // Valores por defecto en caso de error
+            $('#iva').val(19);
+            $('#incluir_iva').prop('checked', true);
+            $('#mostrar_iva').prop('checked', true);
+            toastr.warning('Usando valores por defecto para impuestos');
+        }
+    });
+}
+
+// =====================================================================
+// CARGA DE FACTURACIÓN (INDEPENDIENTE)
+// =====================================================================
+    function cargarFacturacion() {
+        console.log('Cargando facturación específicamente...');
+        
+        $.ajax({
+            url: '/configuracion/cargar-facturacion',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Respuesta facturación:', response);
+                
+                if (response.success && response.data) {
+                    var d = response.data;
+                    $('#prefijo_factura').val(d.prefijo_factura || 'FAC');
+                    $('#consecutivo_inicial').val(d.consecutivo_inicial || 1);
+                    $('#consecutivo_actual').val(d.consecutivo_actual || 1);
+                    $('#proximo_numero').val(d.proximo_numero || 2);
+                    $('#longitud_numero').val(String(d.longitud_numero || 6));
+                    $('#formato_factura').val(d.formato_factura || 'simple');
+                    $('#tamaño_papel').val(d.tamaño_papel || 'thermal');
+                    $('#copias').val(String(d.copias || 1));
+                    $('#autogenerar').prop('checked', d.autogenerar === true);
+                    $('#validar_duplicados').prop('checked', d.validar_duplicados === true);
+                    $('#factura_electronica').prop('checked', d.factura_electronica === true);
+                    console.log('✅ Facturación cargada correctamente');
+                } else {
+                    console.warn('⚠️ Respuesta inesperada de facturación:', response);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error al cargar facturación:', error);
+                toastr.error('Error al cargar configuración de facturación');
+            }
+        });
+    }
+
+    // =====================================================================
+    // EVENTOS DE TABS — REEMPLAZAR TODOS LOS ANTERIORES CON ESTE ÚNICO BLOQUE
+    // =====================================================================
+    $(document).ready(function() {
+
+        // Facturación
+        $('a[href="#facturacion"]').on('shown.bs.tab', function() {
+            cargarFacturacion();
+        });
+
+        // Impuestos
+        $('a[href="#impuestos"]').on('shown.bs.tab', function() {
+            cargarImpuestos();
+        });
+
+        // Negocio
+        $('a[href="#negocio"]').on('shown.bs.tab', function() {
+            cargarDatosNegocio();
+            cargarLogoActual();
+        });
+
+        // Si alguna pestaña ya está activa al cargar la página
+        var hashActivo = window.location.hash;
+        if (hashActivo === '#facturacion') cargarFacturacion();
+        if (hashActivo === '#impuestos')   cargarImpuestos();
+        if (hashActivo === '#negocio')     { cargarDatosNegocio(); cargarLogoActual(); }
+
+        // Inicialización general
+        cargarConfiguraciones();
+        cargarListaBackups();
+        cargarConfiguracionBackup();
+
+        console.log('Sistema de configuración inicializado');
+    });
+
+    // Función para cargar datos de impuestos
+    function cargarImpuestos() {
+        $.ajax({
+            url: '/configuracion/cargar-impuestos',
+            type: 'GET',
+            success: function(response) {
+                if (response.success && response.data) {
+                    $('input[name="iva"]').val(response.data.iva);
+                    $('#incluir_iva').prop('checked', response.data.incluir_iva);
+                    $('#mostrar_iva').prop('checked', response.data.mostrar_iva);
+                }
+            },
+            error: function() {
+                toastr.error('Error al cargar configuración de impuestos');
+            }
+        });
+    }
+
+    // Eventos para cargar datos cuando se abren las pestañas
+        $(document).ready(function () {
+
+        // ── Facturación ──────────────────────────────────────
+        $('a[href="#facturacion"]').on('shown.bs.tab', function () {
+            cargarFacturacion();
+        });
+        if ($('#facturacion').hasClass('active')) cargarFacturacion();
+
+        // ── Impuestos ────────────────────────────────────────
+        $('a[href="#impuestos"]').on('shown.bs.tab', function () {
+            cargarImpuestos();
+        });
+        if ($('#impuestos').hasClass('active')) cargarImpuestos();
+
+        // ── Negocio ──────────────────────────────────────────
+        $('a[href="#negocio"]').on('shown.bs.tab', function () {
+            cargarDatosNegocio();
+            cargarLogoActual();
+        });
+        if ($('#negocio').hasClass('active')) {
+            cargarDatosNegocio();
+            cargarLogoActual();
+        }
+
+        // ── Inicio general ───────────────────────────────────
+        cargarConfiguraciones();
+        cargarListaBackups();
+        cargarConfiguracionBackup();
+    });
+
+    // Script completo y depurado para el logo
+$(document).ready(function() {
+    // Variable para evitar múltiples cargas
+    let cargandoLogo = false;
+    
+    // Función para cargar el logo
+    window.cargarLogoNegocio = function() {
+        if (cargandoLogo) {
+            console.log('Ya se está cargando el logo...');
+            return;
+        }
+        
+        cargandoLogo = true;
+        console.log('Iniciando carga del logo...');
+        
+        // Limpiar estado actual
+        $('#logoPreview').hide().attr('src', '');
+        $('#logoPlaceholder').show();
+        $('#btnEliminarLogo').hide();
+        
+        $.ajax({
+            url: '/configuracion/obtener-logo',
+            type: 'GET',
+            dataType: 'json',
+            timeout: 10000, // Timeout de 10 segundos
+            success: function(response) {
+                console.log('Respuesta recibida:', response);
+                
+                if (response.success && response.logo_url) {
+                    let logoUrl = response.logo_url;
+                    
+                    // Corregir URL si es necesario
+                    if (logoUrl.includes('/storage/storage/')) {
+                        logoUrl = logoUrl.replace('/storage/storage/', '/storage/');
+                    }
+                    
+                    console.log('URL del logo:', logoUrl);
+                    
+                    // Probar si la imagen existe
+                    const testImg = new Image();
+                    testImg.onload = function() {
+                        console.log('Logo cargado exitosamente');
+                        $('#logoPreview').attr('src', logoUrl);
+                        $('#logoPreview').show();
+                        $('#logoPlaceholder').hide();
+                        $('#btnEliminarLogo').show();
+                        toastr.success('Logo cargado correctamente', '', { timeOut: 2000 });
+                    };
+                    testImg.onerror = function() {
+                        console.error('Error: La imagen no existe en el servidor');
+                        $('#logoPlaceholder').show();
+                        $('#logoPreview').hide();
+                        $('#btnEliminarLogo').hide();
+                        toastr.warning('No se encontró el archivo del logo');
+                    };
+                    testImg.src = logoUrl + '?t=' + new Date().getTime(); // Evitar caché
+                } else {
+                    console.log('No hay logo guardado en la base de datos');
+                    $('#logoPlaceholder').show();
+                    $('#logoPreview').hide();
+                    $('#btnEliminarLogo').hide();
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error en AJAX:', status, error);
+                console.error('Respuesta:', xhr.responseText);
+                $('#logoPlaceholder').show();
+                $('#logoPreview').hide();
+                $('#btnEliminarLogo').hide();
+                toastr.error('Error al conectar con el servidor');
+            },
+            complete: function() {
+                cargandoLogo = false;
+            }
+        });
+    };
+    
+    // Forzar carga cuando se abre el tab
+    $('a[data-toggle="tab"][href="#negocio"]').on('shown.bs.tab', function(e) {
+        console.log('Tab negocio abierto - forzando carga de logo');
+        cargarLogoNegocio();
+    });
+    
+    // Si el tab está activo al cargar la página
+    if ($('#negocio').hasClass('active')) {
+        console.log('Tab negocio activo al inicio');
+        setTimeout(function() {
+            cargarLogoNegocio();
+        }, 500);
+    }
+    
+    // También cargar al hacer clic directo en el enlace
+    $('a[href="#negocio"]').on('click', function() {
+        setTimeout(function() {
+            cargarLogoNegocio();
+        }, 100);
+    });
+});
+
+    // Modificar el guardado para actualizar el logo
+    $('#formNegocio').on('submit', function(e) {
+        e.preventDefault();
+        
+        var btn = $(this).find('[type="submit"]');
+        var origText = btn.html();
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+        
+        var fd = new FormData(this);
+        
+        $.ajax({
+            url: '/configuracion/guardar-negocio',
+            type: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(r) {
+                if (r.success) {
+                    toastr.success(r.message || 'Datos guardados correctamente');
+                    // Recargar el logo después de guardar
+                    setTimeout(function() {
+                        cargarLogoNegocio();
+                    }, 1000);
+                    $('[name="logo_negocio"]').val('');
+                } else {
+                    toastr.error(r.message || 'Error al guardar');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+                toastr.error(msg);
+            },
+            complete: function() {
+                btn.prop('disabled', false).html(origText);
+            }
+        });
+    });
+
+
+// =====================================================================
+// CARGA MEJORADA DE CONFIGURACIONES
+// =====================================================================
+    function cargarConfiguraciones() {
+        console.log('Cargando configuraciones...');
+        
+        $.ajax({
+            url: '/configuracion/cargar-configuraciones',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log('Respuesta completa:', response);
+                
+                // Cargar configuración GENERAL
+                if (response.general) {
+                    $('#nombre_sistema').val(response.general.nombre_sistema || '');
+                    $('#version').val(response.general.version || '1.0.0');
+                    $('#zona_horaria').val(response.general.zona_horaria || 'America/Bogota');
+                    $('#formato_fecha').val(response.general.formato_fecha || 'd/m/Y');
+                    $('#moneda').val(response.general.moneda || 'COP');
+                    $('#simbolo_moneda').val(response.general.simbolo_moneda || '$');
+                    console.log('✅ Configuración general cargada');
+                }
+                
+                // Cargar configuración de FACTURACIÓN
+                if (response.facturacion) {
+                    $('#prefijo_factura').val(response.facturacion.prefijo_factura || 'FAC');
+                    $('#consecutivo_inicial').val(response.facturacion.consecutivo_inicial || 1);
+                    $('#consecutivo_actual').val(response.facturacion.consecutivo_actual || 1);
+                    $('#proximo_numero').val(response.facturacion.proximo_numero || 2);
+                    $('#longitud_numero').val(String(response.facturacion.longitud_numero || 6));
+                    $('#formato_factura').val(response.facturacion.formato_factura || 'simple');
+                    $('#tamaño_papel').val(response.facturacion.tamaño_papel || 'thermal');
+                    $('#copias').val(String(response.facturacion.copias || 1));
+                    $('#autogenerar').prop('checked', response.facturacion.autogenerar === true);
+                    $('#validar_duplicados').prop('checked', response.facturacion.validar_duplicados === true);
+                    $('#factura_electronica').prop('checked', response.facturacion.factura_electronica === true);
+                    console.log('✅ Configuración de facturación cargada');
+                }
+                
+                // Cargar configuración de IMPUESTOS ← ESTO ES CRÍTICO
+                if (response.impuestos) {
+                    console.log('📊 Datos de impuestos recibidos:', response.impuestos);
+                    $('#iva').val(response.impuestos.iva || 19);
+                    $('#incluir_iva').prop('checked', response.impuestos.incluir_iva === true);
+                    $('#mostrar_iva').prop('checked', response.impuestos.mostrar_iva === true);
+                    console.log('✅ Configuración de impuestos cargada:', {
+                        iva: $('#iva').val(),
+                        incluir: $('#incluir_iva').is(':checked'),
+                        mostrar: $('#mostrar_iva').is(':checked')
+                    });
+                } else {
+                    console.warn('⚠️ No se recibieron datos de impuestos');
+                    // Cargar datos de impuestos por separado como respaldo
+                    cargarImpuestos();
+                }
+                
+                // Cargar datos del NEGOCIO
+                if (response.negocio) {
+                    $('[name="nombre_negocio"]').val(response.negocio.nombre_negocio || '');
+                    $('[name="nit"]').val(response.negocio.nit || '');
+                    $('[name="direccion"]').val(response.negocio.direccion || '');
+                    $('[name="telefono_negocio"]').val(response.negocio.telefono_negocio || '');
+                    $('[name="email_negocio"]').val(response.negocio.email_negocio || '');
+                    $('[name="website"]').val(response.negocio.website || '');
+                    $('[name="mensaje_factura"]').val(response.negocio.mensaje_factura || '');
+                    console.log('✅ Datos del negocio cargados');
+                }
+                
+                // Cargar configuración de ALERTAS
+                if (response.alertas) {
+                    $('#stock_minimo_alerta').val(response.alertas.stock_minimo_alerta || 5);
+                    $('#dias_vencimiento').val(response.alertas.dias_vencimiento || 30);
+                    $('#alertar_stock').prop('checked', response.alertas.alertar_stock === true);
+                    $('#alertar_vencimiento').prop('checked', response.alertas.alertar_vencimiento === true);
+                    console.log('✅ Configuración de alertas cargada');
+                    actualizarResumenAlertas();
+                }
+                
+                toastr.success('Configuraciones cargadas correctamente', '', { timeOut: 2000 });
+            },
+            error: function(xhr, status, error) {
+                console.error('❌ Error al cargar configuraciones:', {
+                    status: status,
+                    error: error,
+                    response: xhr.responseText
+                });
+                toastr.error('Error al cargar las configuraciones del sistema');
+            }
+        });
+    }
+
+// Recargar configuración cuando se abre el tab de negocio
+    $(document).ready(function() {
+        // Cuando se hace clic en el tab de negocio
+        $('a[data-toggle="tab"][href="#negocio"]').on('shown.bs.tab', function (e) {
+            // Recargar todos los datos del negocio
+            $.ajax({
+                url: '/configuracion/cargar-configuraciones',
+                type: 'GET',
+                success: function(r) {
+                    if (r.negocio) {
+                        $('[name="nombre_negocio"]').val(r.negocio.nombre_negocio || '');
+                        $('[name="nit"]').val(r.negocio.nit || '');
+                        $('[name="direccion"]').val(r.negocio.direccion || '');
+                        $('[name="telefono_negocio"]').val(r.negocio.telefono_negocio || '');
+                        $('[name="email_negocio"]').val(r.negocio.email_negocio || '');
+                        $('[name="website"]').val(r.negocio.website || '');
+                        $('[name="mensaje_factura"]').val(r.negocio.mensaje_factura || '');
+                    }
+                }
+            });
+            
+            // Cargar el logo actual
+            cargarLogoActual();
+        });
+    });
 
 
 // =====================================================================
@@ -1517,6 +2454,149 @@ $('#formAlertas').on('submit', function(e) {
         }
     });
 });
+
+// =====================================================================
+// VISTA PREVIA DEL LOGO DEL NEGOCIO
+// =====================================================================
+
+    // Función para mostrar la vista previa del logo
+    function mostrarVistaPreviaLogo() {
+        var input = document.getElementById('logo_negocio');
+        var preview = document.getElementById('logoPreview');
+        var placeholder = document.getElementById('logoPlaceholder');
+        
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Función para cargar el logo actual desde el servidor
+    function cargarLogoActual() {
+        $.ajax({
+            url: '/obtener-logo',
+            type: 'GET',
+            success: function(response) {
+                if (response.logo_url && response.logo_url !== '') {
+                    $('#logoPreview').attr('src', response.logo_url);
+                    $('#logoPreview').show();
+                    $('#logoPlaceholder').hide();
+                    $('#btnEliminarLogo').show();
+                } else {
+                    $('#logoPreview').hide();
+                    $('#logoPlaceholder').show();
+                    $('#btnEliminarLogo').hide();
+                }
+            },
+            error: function() {
+                console.error('Error al cargar el logo');
+            }
+        });
+    }
+
+    // Función para eliminar el logo
+    function eliminarLogo() {
+        Swal.fire({
+            title: '¿Eliminar logo?',
+            text: '¿Estás seguro de que deseas eliminar el logo del negocio?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/configuracion/eliminar-logo',
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Logo eliminado correctamente');
+                            $('#logoPreview').hide();
+                            $('#logoPlaceholder').show();
+                            $('#btnEliminarLogo').hide();
+                            $('#logo_negocio').val('');
+                        } else {
+                            toastr.error(response.message || 'Error al eliminar logo');
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error al eliminar el logo');
+                    }
+                });
+            }
+        });
+    }
+
+    // Evento cuando se selecciona una imagen
+    $(document).ready(function() {
+        // Vista previa al seleccionar archivo
+        $('#logo_negocio').on('change', function() {
+            mostrarVistaPreviaLogo();
+        });
+        
+        // Eliminar logo
+        $('#btnEliminarLogo').on('click', function() {
+            eliminarLogo();
+        });
+        
+        // Cargar logo actual al mostrar la pestaña
+        $('a[href="#negocio"]').on('shown.bs.tab', function() {
+            cargarLogoActual();
+        });
+        
+        // También cargar al iniciar si la pestaña negocio está activa
+        if ($('#negocio').hasClass('active')) {
+            cargarLogoActual();
+        }
+    });
+
+    // Modificar el guardado para actualizar la vista previa
+    $('#formNegocio').on('submit', function(e) {
+        e.preventDefault();
+        
+        var btn = $(this).find('[type="submit"]');
+        var origText = btn.html();
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
+        
+        var fd = new FormData(this);
+        
+        $.ajax({
+            url: '/configuracion/guardar-negocio',
+            type: 'POST',
+            data: fd,
+            processData: false,
+            contentType: false,
+            success: function(r) {
+                if (r.success) {
+                    toastr.success(r.message || 'Datos del negocio guardados correctamente');
+                    cargarConfiguraciones();
+                    cargarLogoActual(); // Actualizar la vista previa
+                    $('[name="logo_negocio"]').val('');
+                } else {
+                    toastr.error(r.message || 'Error al guardar');
+                }
+            },
+            error: function(xhr) {
+                var msg = xhr.responseJSON ? xhr.responseJSON.message : 'Error al guardar';
+                toastr.error(msg);
+            },
+            complete: function() {
+                btn.prop('disabled', false).html(origText);
+            }
+        });
+    });
 
 // Función para actualizar el resumen de alertas
 function actualizarResumenAlertas() {
@@ -1862,7 +2942,7 @@ function eliminarUsuario(id, nombre) {
         });
 
         $.ajax({
-            url: '/eliminar-usuario/' + id,
+            url: '/configuracion/eliminar-usuario/' + id,
             type: 'DELETE',
             headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
             success: function(r) {
@@ -2168,7 +3248,7 @@ function guardarRol() {
     btn.prop('disabled', true).html('<i class="fas fa-spinner fa-pulse"></i> Guardando...');
 
     $.ajax({
-        url: '/guardar-rol',
+        url: '/configuracion/guardar-rol',
         type: 'POST',
         data: $('#formNuevoRol').serialize(),
         success: function(r) {
@@ -2396,6 +3476,349 @@ $(document).on('click', '#btnCrearBackup', function(e) {
                 btn.html(originalText);
             }, 1000);
         }
+    });
+});
+
+// Guardar configuración de backup con período
+function guardarConfiguracionBackup() {
+    var data = {
+        backup_automatico: $('#backup_automatico').is(':checked') ? 1 : 0,
+        hora_backup: $('#hora_backup').val(),
+        periodo_backup: $('#periodo_backup').val(),
+        _token: $('meta[name="csrf-token"]').attr('content')
+    };
+    
+    $.ajax({
+        url: '/configuracion/guardar-configuracion-backup',
+        type: 'POST',
+        data: data,
+        success: function(response) {
+            if (response.success) {
+                toastr.success('Configuración de respaldo guardada');
+                if (data.backup_automatico) {
+                    var mensaje = 'Respaldo automático programado ' + 
+                        data.periodo_backup + ' a las ' + data.hora_backup;
+                    toastr.info(mensaje);
+                    $('#estado_backup').removeClass('badge-secondary').addClass('badge-success').text('Activo');
+                } else {
+                    $('#estado_backup').removeClass('badge-success').addClass('badge-secondary').text('Inactivo');
+                }
+            } else {
+                toastr.error(response.message || 'Error al guardar');
+            }
+        },
+        error: function() {
+            toastr.error('Error al guardar configuración');
+        }
+    });
+}
+
+// Cargar configuración de backup con período
+    function cargarConfiguracionBackup() {
+        $.ajax({
+            url: '/configuracion/obtener-configuracion-backup',
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    $('#backup_automatico').prop('checked', response.backup_automatico == 1);
+                    $('#hora_backup').val(response.hora_backup || '02:00');
+                    $('#periodo_backup').val(response.periodo_backup || 'diario');
+                    
+                    if (response.backup_automatico == 1) {
+                        $('#estado_backup').removeClass('badge-secondary').addClass('badge-success').text('Activo');
+                    } else {
+                        $('#estado_backup').removeClass('badge-success').addClass('badge-secondary').text('Inactivo');
+                    }
+                }
+            },
+            error: function() {
+                console.error('Error al cargar configuración de backup');
+            }
+        });
+    }
+
+    // Eventos
+    $(document).ready(function() {
+        $('#backup_automatico, #hora_backup, #periodo_backup').on('change', function() {
+            guardarConfiguracionBackup();
+        });
+    });
+
+// =====================================================================
+// MANEJO DEL LOGO EN TAB DATOS DEL NEGOCIO
+// =====================================================================
+
+$(document).ready(function() {
+    // Click en el contenedor del logo o en el botón para subir imagen
+    $('#logoPreviewContainer, #btnCambiarLogo').on('click', function() {
+        $('#logo_negocio').click();
+    });
+    
+    // Efecto hover en el contenedor del logo
+    $('#logoPreviewContainer').hover(
+        function() {
+            $(this).find('.overlay-logo').css('opacity', '1');
+        },
+        function() {
+            $(this).find('.overlay-logo').css('opacity', '0');
+        }
+    );
+    
+    // Vista previa al seleccionar imagen
+    $('#logo_negocio').on('change', function() {
+        if (this.files && this.files[0]) {
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                $('#logoPreview').attr('src', e.target.result);
+                $('#logoPreview').show();
+                $('#logoPlaceholder').hide();
+                $('#btnEliminarLogo').show();
+                
+                // Mostrar notificación
+                toastr.info('Logo seleccionado. Guarde los cambios para actualizar.', 'Vista previa');
+            }
+            
+            reader.readAsDataURL(this.files[0]);
+        }
+    });
+    
+    // Eliminar logo
+    $('#btnEliminarLogo').on('click', function(e) {
+        e.stopPropagation();
+        
+        Swal.fire({
+            title: '¿Eliminar logo?',
+            text: '¿Estás seguro de que deseas eliminar el logo del negocio?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/configuracion/eliminar-logo',
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            toastr.success('Logo eliminado correctamente');
+                            $('#logoPreview').hide();
+                            $('#logoPreview').attr('src', '');
+                            $('#logoPlaceholder').show();
+                            $('#btnEliminarLogo').hide();
+                            $('#logo_negocio').val('');
+                        } else {
+                            toastr.error(response.message || 'Error al eliminar logo');
+                        }
+                    },
+                    error: function() {
+                        toastr.error('Error al eliminar el logo');
+                    }
+                });
+            }
+        });
+    });
+    
+    // Cargar logo actual al mostrar la pestaña
+        function cargarLogoActual() {
+            $.ajax({
+                url: '/configuracion/obtener-logo',
+                type: 'GET',
+                success: function(response) {
+                    if (response.logo_url && response.logo_url !== '') {
+                        $('#logoPreview').attr('src', response.logo_url);
+                        $('#logoPreview').show();
+                        $('#logoPlaceholder').hide();
+                        $('#btnEliminarLogo').show();
+                    } else {
+                        $('#logoPreview').hide();
+                        $('#logoPreview').attr('src', '');
+                        $('#logoPlaceholder').show();
+                        $('#btnEliminarLogo').hide();
+                    }
+                },
+                error: function() {
+                    console.error('Error al cargar el logo');
+                }
+            });
+        }
+        
+        // Evento cuando se abre el tab de negocio
+        $('a[href="#negocio"]').on('shown.bs.tab', function() {
+            cargarLogoActual();
+        });
+        
+        // Si la pestaña negocio está activa al cargar
+        if ($('#negocio').hasClass('active')) {
+            cargarLogoActual();
+        }
+    });
+
+    // =====================================================================
+// MANEJO PROFESIONAL DEL LOGO EN TAB DATOS DEL NEGOCIO
+// =====================================================================
+
+$(document).ready(function() {
+    // Variables globales
+    let logoChanged = false;
+    
+    // Click para cambiar logo
+    $('#logoPreviewContainer, #btnCambiarLogo').on('click', function() {
+        $('#logo_negocio').click();
+    });
+    
+    // Vista previa y validación del logo
+    $('#logo_negocio').on('change', function(e) {
+        const file = this.files[0];
+        
+        if (!file) return;
+        
+        // Validar tipo de archivo
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+        if (!allowedTypes.includes(file.type)) {
+            toastr.error('Formato no válido. Solo se permiten JPG, PNG o GIF');
+            $(this).val('');
+            return;
+        }
+        
+        // Validar tamaño (2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            toastr.error('El archivo es demasiado grande. Máximo 2MB');
+            $(this).val('');
+            return;
+        }
+        
+        // Validar dimensiones (opcional)
+        const img = new Image();
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            img.src = e.target.result;
+            img.onload = function() {
+                if (img.width < 200 || img.height < 200) {
+                    toastr.warning('La imagen es muy pequeña. Recomendado: 500x500px');
+                }
+                
+                // Mostrar preview
+                $('#logoPreview').attr('src', e.target.result).show();
+                $('#logoPlaceholder').hide();
+                $('#btnEliminarLogo').show();
+                $('#logoStatus').show().text('Logo seleccionado');
+                logoChanged = true;
+                
+                toastr.info('Logo seleccionado. Guarde los cambios para actualizar.', 'Vista previa', {
+                    timeOut: 3000
+                });
+            };
+        };
+        
+        reader.readAsDataURL(file);
+    });
+    
+    // Eliminar logo
+    $('#btnEliminarLogo').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        Swal.fire({
+            title: '¿Eliminar logo?',
+            text: 'Esta acción eliminará el logo actual del negocio',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                $.ajax({
+                    url: '/configuracion/eliminar-logo',
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: 'Logo eliminado correctamente',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            
+                            $('#logoPreview').hide().attr('src', '');
+                            $('#logoPlaceholder').show();
+                            $('#btnEliminarLogo').hide();
+                            $('#logoStatus').hide();
+                            $('#logo_negocio').val('');
+                            logoChanged = false;
+                        } else {
+                            Swal.fire('Error', response.message || 'Error al eliminar logo', 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Error al eliminar el logo', 'error');
+                    }
+                });
+            }
+        });
+    });
+    
+    // Cargar logo actual
+    function cargarLogoActual() {
+        $('#logoPreview').hide();
+        $('#logoPlaceholder').show();
+        $('#btnEliminarLogo').hide();
+        $('#logoStatus').hide();
+        
+        $.ajax({
+            url: '/configuracion/obtener-logo',
+            type: 'GET',
+            success: function(response) {
+                if (response.logo_url && response.logo_url !== '') {
+                    $('#logoPreview').attr('src', response.logo_url).show();
+                    $('#logoPlaceholder').hide();
+                    $('#btnEliminarLogo').show();
+                    $('#logoStatus').show().text('Logo actual');
+                }
+            },
+            error: function() {
+                console.error('Error al cargar el logo');
+            }
+        });
+    }
+    
+    // Evento cuando se abre el tab de negocio
+    $('a[href="#negocio"]').on('shown.bs.tab', function() {
+        cargarLogoActual();
+    });
+    
+    // Si la pestaña negocio está activa al cargar
+    if ($('#negocio').hasClass('active')) {
+        cargarLogoActual();
+    }
+    
+    // Resetear formulario
+    $('#formNegocio').on('reset', function() {
+        setTimeout(() => {
+            cargarLogoActual();
+        }, 100);
     });
 });
 
