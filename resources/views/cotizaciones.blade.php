@@ -1441,6 +1441,23 @@ $(document).on('input',
     });
 
     // ================================================
+// ELIMINAR FILA DE PRODUCTO (AGREGAR ESTE CÓDIGO)
+// ================================================
+$(document).on('click', '.btn-eliminar-fila', function() {
+    var $fila = $(this).closest('.fila-producto');
+    $fila.remove();
+    
+    // Si no quedan productos, mostrar mensaje y ocultar tabla
+    if ($('#tbody-productos .fila-producto').length === 0) {
+        $('#sin-productos-msg').show();
+        $('#tabla-productos-container').hide();
+    }
+    
+    // Recalcular totales después de eliminar
+    calcularTotales();
+});
+
+    // ================================================
     // UTILIDADES
     // ================================================
     function resetForm() {
