@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Venta;
 use App\Models\DetalleVenta;
 use App\Models\Producto;
+use App\Helpers\ConfiguracionHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -25,6 +26,22 @@ class VentaController extends Controller
 
     public function store(Request $request)
     {
+
+    // Obtener configuración de impuestos
+    $configImpuestos = ConfiguracionHelper::getImpuestosConfig();
+    // Calcular IVA automáticamente si es necesario
+    if ($configImpuestos['calcular_iva']) {
+        $calculoIVA = ConfiguracionHelper::calcularIVA($request->subtotal);
+        $request->merge([
+            'iva' => $calculoIVA['iva'],
+            'total' => $calculoIVA['total']
+        ]);
+    }
+    
+    // Generar número de factura
+    $numeroFactura = ConfiguracionHelper::generarNumeroFactura();
+    
+
         DB::beginTransaction();
 
         try {

@@ -22,8 +22,9 @@ class ProductoController extends Controller
         $this->middleware('auth')->only(['registrarCompra', 'store', 'update', 'destroy']);
     }
 
-    public function index(Request $request)
-    {
+   public function index(Request $request)
+{
+    // Si es una petición AJAX para DataTable
     if ($request->ajax()) {
         // Para DataTable - incluir TODOS los campos necesarios
         $productos = Producto::with(['categoria', 'proveedor'])
@@ -38,7 +39,7 @@ class ProductoController extends Controller
                 'ubicacion',
                 'marca',
                 'unidad_medida',
-                'imagen', // 👈 ASEGURAR QUE IMAGEN ESTÁ INCLUIDA
+                'imagen',
                 'frecuente',
                 'id_categoria',
                 'id_proveedor'
@@ -51,6 +52,14 @@ class ProductoController extends Controller
             ->addColumn('proveedor_nombre', function($producto) {
                 return $producto->proveedor ? $producto->proveedor->nombre : 'Sin proveedor';
             })
+            ->addColumn('stock_bajo', function($producto) {
+                // Aquí sí podemos verificar el stock bajo
+                $stockBajo = \App\Helpers\ConfiguracionHelper::verificarStockBajo(
+                    $producto->stock_actual, 
+                    $producto->stock_minimo
+                );
+                return $stockBajo ? '<span class="badge badge-warning">Stock Bajo</span>' : '';
+            })
             ->addColumn('action', function($producto) {
                 $btn = '<div class="btn-group" role="group">';
                 $btn .= '<button class="btn btn-xs btn-info verProducto" data-id="'.$producto->id_producto.'" data-target="#modalVerProducto" title="Ver datos del productos"><i class="fa fa-eye"></i></button>';
@@ -59,14 +68,29 @@ class ProductoController extends Controller
                 $btn .= '</div>';
                 return $btn;
             })
-            ->rawColumns(['action']) 
+            ->rawColumns(['action', 'stock_bajo']) 
             ->make(true);
     }
     
-    // Para vista normal
+    // Para vista normal (NO AJAX)
+    // Obtener productos para la vista normal (con verificaciones de stock)
+    $productos = Producto::with(['categoria', 'proveedor'])->get();
+    
+    foreach ($productos as $producto) {
+        $producto->stock_bajo = \App\Helpers\ConfiguracionHelper::verificarStockBajo(
+            $producto->stock_actual, 
+            $producto->stock_minimo
+        );
+        
+        $producto->por_vencer = \App\Helpers\ConfiguracionHelper::verificarVencimientoProximo(
+            $producto->fecha_vencimiento ?? null
+        );
+    }
+    
     $categorias = Categoria::all();
     $proveedores = Proveedor::all();
-    return view('productos', compact('categorias', 'proveedores'));
+    
+    return view('productos', compact('productos', 'categorias', 'proveedores'));
 }
 
     public function search(Request $request)

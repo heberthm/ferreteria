@@ -1069,6 +1069,71 @@
     let contenidoTicketGenerado = '';
     let contenidoFacturaGenerado = '';
 
+
+// =============================================
+// DATOS DE LA EMPRESA
+// =============================================
+let datosEmpresa = {
+    nombre: 'SUPERMERCADO XYZ',
+    nit: '123456789-0',
+    telefono: '(601) 123-4567',
+    direccion: 'Calle 123 #45-67',
+    email: 'info@superxyz.com',
+    mensaje: '¡Gracias por su compra!',
+    logo_url: null
+};
+
+// Cargar datos de la empresa desde el servidor
+// Cargar datos de la empresa desde el servidor
+function cargarDatosEmpresa() {
+    console.log('🔍 Cargando datos de empresa...');
+    
+    // Primero, intentar cargar específicamente el logo
+    $.ajax({
+        url: '/configuracion/obtener-logo',
+        type: 'GET',
+        success: function(logoResponse) {
+            console.log('Respuesta de obtener-logo:', logoResponse);
+            if (logoResponse.logo_url && logoResponse.logo_url !== '') {
+                datosEmpresa.logo_url = logoResponse.logo_url;
+                console.log('✅ Logo cargado correctamente:', datosEmpresa.logo_url);
+            } else {
+                console.log('⚠️ No se encontró logo en obtener-logo');
+            }
+        },
+        error: function(err) {
+            console.error('Error al obtener logo:', err);
+        }
+    });
+    
+    // Luego cargar el resto de datos
+    $.ajax({
+        url: '/configuracion/cargar-configuraciones',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('Respuesta de cargar-configuraciones:', response);
+            
+            if (response.negocio) {
+                datosEmpresa.nombre = response.negocio.nombre_negocio || datosEmpresa.nombre;
+                datosEmpresa.nit = response.negocio.nit || datosEmpresa.nit;
+                datosEmpresa.telefono = response.negocio.telefono_negocio || datosEmpresa.telefono;
+                datosEmpresa.direccion = response.negocio.direccion || datosEmpresa.direccion;
+                datosEmpresa.email = response.negocio.email_negocio || datosEmpresa.email;
+                datosEmpresa.mensaje = response.negocio.mensaje_factura || datosEmpresa.mensaje;
+                
+                console.log('✅ Datos empresa actualizados:', datosEmpresa);
+                verificarLogo();
+            }
+        },
+        error: function(error) {
+            console.error('Error al cargar configuraciones:', error);
+        }
+    });
+}
+
+
+
     // Configurar toastr
     toastr.options = {
         closeButton: true,
@@ -1318,10 +1383,10 @@ function prepararDatosVistaPrevia(tipo) {
                     
                     <!-- HEADER -->
                     <div style="text-align: center; padding-bottom: 8px; border-bottom: 1px dashed #000; margin-bottom: 8px;">
-                        <h4 style="margin: 0; font-size: 14px; font-weight: bold;">SUPERMERCADO XYZ</h4>
-                        <p style="margin: 2px 0; font-size: 10px;">NIT: 123456789-0</p>
-                        <p style="margin: 2px 0; font-size: 9px;">Dirección: Calle 123 #45-67</p>
-                        <p style="margin: 2px 0; font-size: 9px;">Tel: (601) 123-4567</p>
+                        <h4 style="margin: 0; font-size: 14px; font-weight: bold;"> XYZ</h4>
+                        <p style="margin: 2px 0; font-size: 10px;"></p>
+                        <p style="margin: 2px 0; font-size: 9px;"></p>
+                        <p style="margin: 2px 0; font-size: 9px;"></p>
                         <hr style="border-top: 1px dashed #000; margin: 5px 0;">
                         <p style="margin: 2px 0;"><strong>FACTURA:</strong> ${datosVenta.numero_factura || 'N/A'}</p>
                         
@@ -2326,30 +2391,56 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
     $('#modalVistaPrevia').modal('show');
 }
 
-   function generarComprobanteHTML(ventaData) {
+// Función de depuración para verificar el logo
+function verificarLogo() {
+    console.log('=== DIAGNÓSTICO DEL LOGO ===');
+    console.log('datosEmpresa.logo_url:', datosEmpresa.logo_url);
+    console.log('datosEmpresa completo:', datosEmpresa);
+    
+    // Verificar si hay algún logo en el DOM
+    const logoExistente = document.querySelector('#vistaPreviaComprobante img');
+    if (logoExistente) {
+        console.log('Logo encontrado en DOM:', logoExistente.src);
+    } else {
+        console.log('No hay logo en el DOM actualmente');
+    }
+}
+
+ function generarComprobanteHTML(ventaData) {
     const esTicket = ventaData.tipo === 'ticket';
     const totalProductos = ventaData.items.reduce((sum, item) => sum + item.cantidad, 0);
     const metodoPagoTexto = (ventaData.metodoPago || 'efectivo').charAt(0).toUpperCase() + (ventaData.metodoPago || 'efectivo').slice(1);
     const fechaFormateada = ventaData.fecha ? ventaData.fecha.split(',')[0] : new Date().toLocaleDateString('es-CO');
     const horaFormateada = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const documentoCliente = (ventaData.cedula && ventaData.cedula !== 'N/A' && ventaData.cedula !== 'null') ? ventaData.cedula : 'Consumidor Final';
-    const cambio = ventaData.cambio || 0;
-    const efectivoRecibido = ventaData.efectivoRecibido || 0;
     const ivaPorcentaje = ventaData.porcentajeIva || 19;
-    const vendedorNombre = ventaData.vendedor || window.vendedorNombre || 'Administrador'; // 👈 TOMA EL NOMBRE
+    const vendedorNombre = ventaData.vendedor || window.vendedorNombre || 'Administrador';
 
     // ============================================
     // TICKET 80mm
     // ============================================
     if (esTicket) {
+        // Logo para ticket
+        let logoTicketSrc = datosEmpresa.logo_url;
+        let logoTicketHTML = '';
+        
+        if (logoTicketSrc && logoTicketSrc !== 'null' && logoTicketSrc !== '') {
+            if (logoTicketSrc.includes('/storage/storage/')) {
+                logoTicketSrc = logoTicketSrc.replace('/storage/storage/', '/storage/');
+            }
+            logoTicketHTML = `<img src="${logoTicketSrc}" alt="Logo" style="max-height: 40px; margin-bottom: 5px;">`;
+        }
+
         return `
         <div style="width: 80mm; font-family: 'Courier New', monospace; font-size: 11px; margin: 0 auto; background: white; padding: 8px; box-sizing: border-box;">
             
             <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
-                <div style="font-weight: bold; font-size: 14px;">SUPERMERCADO XYZ</div>
-                <div style="font-size: 9px;">NIT: 123456789-0</div>
-                <div style="font-size: 9px;">Dirección: Calle 123 #45-67</div>
-                <div style="font-size: 9px;">Tel: (601) 123-4567</div>
+                ${logoTicketHTML}
+                <div style="font-weight: bold; font-size: 14px;">${datosEmpresa.nombre}</div>
+                <div style="font-size: 9px;">NIT: ${datosEmpresa.nit}</div>
+                <div style="font-size: 9px;">${datosEmpresa.direccion}</div>
+                <div style="font-size: 9px;">Tel: ${datosEmpresa.telefono}</div>
+                ${datosEmpresa.email ? `<div style="font-size: 9px;">${datosEmpresa.email}</div>` : ''}
                 <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
                 <div><strong>FACTURA: ${ventaData.numeroFactura || 'N/A'}</strong></div>
                 <div>FECHA: ${fechaFormateada} HORA: ${horaFormateada}</div>
@@ -2358,7 +2449,7 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
             <div style="margin: 6px 0;">
                 <div><strong>CLIENTE:</strong> ${ventaData.cliente || 'Cliente General'}</div>
                 <div><strong>DOC:</strong> ${documentoCliente}</div>
-                <div><strong>VENDEDOR:</strong> ${vendedorNombre}</div> <!-- 👈 AHORA DINÁMICO -->
+                <div><strong>VENDEDOR:</strong> ${vendedorNombre}</div>
             </div>
 
             <div style="border-top: 1px dashed #000; margin: 6px 0;"></div>
@@ -2398,7 +2489,7 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
             </div>
 
             <div style="border-top: 1px dashed #000; margin: 10px 0 6px 0; text-align: center;">
-                <div style="font-weight: bold; margin: 6px 0;">¡GRACIAS POR SU COMPRA!</div>
+                <div style="font-weight: bold; margin: 6px 0;">${datosEmpresa.mensaje}</div>
                 <div style="font-size: 9px;">Conserve este ticket para cambios</div>
                 <div style="font-size: 9px; margin-top: 4px;">${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}</div>
             </div>
@@ -2406,16 +2497,61 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
         `;
     }
 
-    // ============================================
-    // FACTURA CARTA
-    // ============================================
+   // ============================================
+// FACTURA CARTA - CON LOGO (VERSIÓN ROBUSTA)
+// ============================================
+
+// Construir el HTML del logo con múltiples intentos
+let logoFacturaSrc = null;
+let logoFacturaHTML = '';
+
+// Intentar obtener el logo de diferentes fuentes
+if (datosEmpresa.logo_url && datosEmpresa.logo_url !== 'null' && datosEmpresa.logo_url !== '') {
+    logoFacturaSrc = datosEmpresa.logo_url;
+} else if (window.logoUrlGlobal) {
+    logoFacturaSrc = window.logoUrlGlobal;
+} else if (window.empresaLogo) {
+    logoFacturaSrc = window.empresaLogo;
+}
+
+// Limpiar la URL si es necesario
+if (logoFacturaSrc) {
+    if (logoFacturaSrc.includes('/storage/storage/')) {
+        logoFacturaSrc = logoFacturaSrc.replace('/storage/storage/', '/storage/');
+    }
+    
+    // Agregar timestamp para evitar caché
+    const timestamp = new Date().getTime();
+    logoFacturaHTML = `
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="${logoFacturaSrc}?t=${timestamp}" 
+             alt="Logo ${datosEmpresa.nombre}" 
+             style="max-height: 100px; max-width: 200px; object-fit: contain;"
+             onerror="this.style.display='none'; console.error('Error al cargar logo:', this.src)">
+    </div>
+    `;
+    console.log('🖼️ Logo HTML generado con src:', logoFacturaSrc);
+} else {
+    console.log('⚠️ No hay logo disponible para mostrar');
+    // Opcional: mostrar un placeholder
+    logoFacturaHTML = `
+    <div style="text-align: center; margin-bottom: 20px;">
+        <div style="width: 100px; height: 100px; background: #f0f0f0; margin: 0 auto; display: flex; align-items: center; justify-content: center; border-radius: 10px;">
+            <span style="color: #999; font-size: 12px;">Sin logo</span>
+        </div>
+    </div>
+    `;
+}
     return `
     <div style="font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: white; border: 1px solid #ccc;">
         
+        ${logoFacturaHTML}
+        
         <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 24px;">FACTURA DE VENTA<br>SUPERMERCADO XYZ</h1>
+            <h1 style="margin: 0; font-size: 24px;">FACTURA DE VENTA<br>${datosEmpresa.nombre}</h1>
             <div style="margin-top: 8px; font-size: 12px;">
-                NIT: 123456789-0 | Dirección: Calle 123 #45-67, Bogotá D.C. | Tel: (601) 123-4567 | Email: info@superxyz.com
+                NIT: ${datosEmpresa.nit} | Dirección: ${datosEmpresa.direccion} | Tel: ${datosEmpresa.telefono}
+                ${datosEmpresa.email ? `<br>Email: ${datosEmpresa.email}` : ''}
             </div>
         </div>
 
@@ -2432,7 +2568,7 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
                 <div><strong>Nombre:</strong> ${ventaData.cliente || 'Cliente General'}</div>
                 <div><strong>Documento:</strong> ${documentoCliente}</div>
                 <div><strong>Método de Pago:</strong> ${metodoPagoTexto}</div>
-                <div><strong>Vendedor:</strong> ${vendedorNombre}</div> <!-- 👈 AHORA DINÁMICO -->
+                <div><strong>Vendedor:</strong> ${vendedorNombre}</div>
             </div>
         </div>
 
@@ -2470,7 +2606,11 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
             <div style="font-size: 18px; font-weight: bold;">TOTAL: $${Math.round(ventaData.total || 0).toLocaleString('es-CO')}</div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; margin-top: 50px;">
+        <div style="margin-top: 30px; text-align: center; font-size: 12px; color: #666; background: #f9f9f9; padding: 10px; border-top: 1px solid #ddd;">
+            ${datosEmpresa.mensaje}
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 40px;">
             <div style="text-align: center; width: 45%;">
                 <hr style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">
                 <p style="margin-top: 8px;">Firma del Cliente</p>
@@ -2483,7 +2623,7 @@ function mostrarVistaPrevia(numeroFacturaServidor) {
 
         <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #666;">
             <p>Documento generado el: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO')}</p>
-            <p>Este documento es válido como factura de venta según Resolución DIAN 12345</p>
+            <p>Este documento es válido como factura de venta</p>
         </div>
     </div>
     `;
@@ -2639,18 +2779,19 @@ $(document).on('click', '.modal-footer .btn-secondary', function() {
     // INICIALIZACIÓN
     // =============================================
     function inicializarSistema() {
-        console.log('🚀 Inicializando sistema...');
-        configurarSelect2Clientes();
-        cargarProductosDesdeDB();
-        configurarMetodosPago();
-        configurarBusquedaTiempoReal();
-        configurarInputEfectivo();
-        $('#selectIva').on('change', () => actualizarTotales(parseFloat(window.ventaSubtotalNumerico) || 0));
-        $('#btnAtajos').on('click', () => $('#modalAtajos').modal('show'));
-        $('#numeroFactura').text(numeroFactura);
-        console.log('✅ Sistema inicializado');
-        toastr.success('Sistema de punto de venta listo');
-    }
+    console.log('🚀 Inicializando sistema...');
+    cargarDatosEmpresa();  // 👈 AGREGAR ESTA LÍNEA
+    configurarSelect2Clientes();
+    cargarProductosDesdeDB();
+    configurarMetodosPago();
+    configurarBusquedaTiempoReal();
+    configurarInputEfectivo();
+    $('#selectIva').on('change', () => actualizarTotales(parseFloat(window.ventaSubtotalNumerico) || 0));
+    $('#btnAtajos').on('click', () => $('#modalAtajos').modal('show'));
+    $('#numeroFactura').text(numeroFactura);
+    console.log('✅ Sistema inicializado');
+    toastr.success('Sistema de punto de venta listo');
+}
 
     window.agregarProductoFrecuente = function(id) { const producto = productos[id]; if (producto) agregarAlCarrito(producto); else toastr.error('Producto no encontrado'); };
     window.recargarFrecuentes = function() { cargarProductosFrecuentes(); toastr.info('Productos frecuentes actualizados'); };

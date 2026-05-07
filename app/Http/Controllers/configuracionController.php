@@ -121,6 +121,26 @@ class ConfiguracionController extends Controller
         }
     }
 
+    /**
+ * Obtener todas las configuraciones en una sola llamada
+ */
+public function obtenerTodasConfiguraciones()
+{
+    try {
+        $configuracion = \App\Helpers\ConfiguracionHelper::getConfiguracionCompleta();
+        
+        return response()->json([
+            'success' => true,
+            'data' => $configuracion
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al obtener configuraciones: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
    /**
  * Cargar todas las configuraciones (API)
  */
@@ -222,6 +242,9 @@ class ConfiguracionController extends Controller
                 $data['created_at'] = now();
                 DB::table('configuraciones')->insert($data);
             }
+
+             // Limpiar caché
+        \App\Helpers\ConfiguracionHelper::clearCache();
             
             return response()->json([
                 'success' => true,
@@ -237,6 +260,7 @@ class ConfiguracionController extends Controller
             ], 500);
         }
     }
+
 
     /**
      * Guardar configuración de facturación
@@ -280,6 +304,7 @@ class ConfiguracionController extends Controller
                 DB::table('configuraciones')->update(['logo_negocio' => $path]);
             }
             
+             \App\Helpers\ConfiguracionHelper::clearCache();
             return response()->json([
                 'success' => true,
                 'message' => 'Configuración de facturación guardada correctamente'
@@ -737,6 +762,8 @@ public function actualizarPerfil(Request $request)
                 $data['created_at'] = now();
                 DB::table('configuraciones')->insert($data);
             }
+             // Limpiar caché
+              \App\Helpers\ConfiguracionHelper::clearCache();
             
             return response()->json([
                 'success' => true,
@@ -782,6 +809,9 @@ public function actualizarPerfil(Request $request)
                 DB::table('configuraciones')->insert($data);
             }
             
+            // Limpiar caché
+           \App\Helpers\ConfiguracionHelper::clearCache();
+
             return response()->json([
                 'success' => true,
                 'message' => 'Configuración de alertas guardada correctamente'

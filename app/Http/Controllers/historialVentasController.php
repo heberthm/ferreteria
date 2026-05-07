@@ -12,9 +12,10 @@ use App\Models\Cliente;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use App\Models\User;
 use App\Models\Producto;
-use App\Models\VentaDetalle;
 use Yajra\DataTables\Facades\DataTables;
 use Carbon\Carbon;
+use App\Helpers\NegocioHelper;
+use App\Helpers\ConfiguracionHelper;
 
 class HistorialVentasController extends Controller
 {
@@ -89,7 +90,6 @@ class HistorialVentasController extends Controller
                 $query->where('ventas.numero_factura', 'like', '%' . $request->factura . '%');
             }
 
-            // Usar DataTables
             return DataTables::of($query)
                 ->addColumn('fecha_formateada', function($row) {
                     return Carbon::parse($row->fecha_venta)->format('d/m/Y');
@@ -104,7 +104,9 @@ class HistorialVentasController extends Controller
                     return $row->vendedor_nombre ?? 'N/A';
                 })
                 ->editColumn('total', function($row) {
-                    return '$' . number_format($row->total, 0, ',', '.');
+                    $config = ConfiguracionHelper::getGeneralConfig();
+                    $simbolo = $config['simbolo_moneda'] ?? '$';
+                    return $simbolo . ' ' . number_format($row->total, 0, ',', '.');
                 })
                 ->editColumn('estado', function($row) {
                     $badgeClass = 'secondary';
@@ -145,9 +147,8 @@ class HistorialVentasController extends Controller
                     return $icon . ucfirst($row->metodo_pago);
                 })
                 ->addColumn('acciones', function($row) {
-                    // Botón eliminar solo visible para ventas no canceladas
                     $btnEliminar = '';
-                    if ($row->estado !== 'cancelada') {
+                    if ($row->estado !== 'cancelada' && $row->estado !== 'eliminada') {
                         $btnEliminar = '<button type="button" class="btn btn-danger btn-sm" onclick="eliminarVenta('.$row->id_venta.')" title="Eliminar factura y restablecer stock">
                                             <i class="fas fa-trash"></i>
                                         </button>';
@@ -159,7 +160,10 @@ class HistorialVentasController extends Controller
                                 <i class="fas fa-eye"></i>
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" onclick="imprimirTicket('.$row->id_venta.')" title="Imprimir ticket">
-                                <i class="fas fa-print"></i>
+                                <i class="fas fa-receipt"></i>
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="imprimirFactura('.$row->id_venta.')" title="Imprimir factura completa">
+                                <i class="fas fa-file-invoice"></i>
                             </button>
                             ' . $btnEliminar . '
                         </div>
@@ -182,12 +186,10 @@ class HistorialVentasController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Error en getVentasData: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             return response()->json([
                 'error' => 'Error al cargar los datos',
-                'message' => $e->getMessage(),
-                'line' => $e->getLine()
+                'message' => $e->getMessage()
             ], 500);
         }
     }
@@ -195,141 +197,199 @@ class HistorialVentasController extends Controller
     /**
      * Obtener detalle completo de una venta
      */
-    public function getDetalleVenta($id)
-    {
-        try {
-            \Log::info('=== INICIO getDetalleVenta ===');
-            \Log::info('ID recibido: ' . $id);
-            
-            // Verificar que el ID es válido
-            if (!$id || !is_numeric($id)) {
-                \Log::error('ID inválido: ' . $id);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'ID de venta inválido'
-                ], 400);
-            }
-
-            // Buscar la venta
-            $venta = DB::table('ventas')->where('id_venta', $id)->first();
-            
-            if (!$venta) {
-                \Log::error('Venta no encontrada: ' . $id);
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Venta no encontrada'
-                ], 404);
-            }
-
-            // Obtener cliente
-            $cliente = null;
-            if ($venta->id_cliente) {
-                $cliente = DB::table('clientes')->where('id_cliente', $venta->id_cliente)->first();
-            }
-            
-            // Obtener vendedor
-            $vendedor = null;
-            if ($venta->userId) {
-                $vendedor = DB::table('users')->where('id', $venta->userId)->first();
-            }
-            
-            // Obtener detalles
-            $detalles = DB::table('detalle_ventas')
-                ->join('productos', 'detalle_ventas.id_producto', '=', 'productos.id_producto')
-                ->where('detalle_ventas.id_venta', $id)
-                ->select(
-                    'productos.nombre',
-                    'productos.codigo',
-                    'detalle_ventas.cantidad',
-                    'detalle_ventas.precio_unitario',
-                    'detalle_ventas.subtotal'
-                )
-                ->get();
-
-            // Calcular el total sumando los subtotales
-            $totalCalculadoDetalles = $detalles->sum(function($detalle) {
-                return floatval($detalle->subtotal);
-            });
-
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'venta' => [
-                        'id_venta' => $venta->id_venta,
-                        'numero_factura' => $venta->numero_factura,
-                        'fecha' => Carbon::parse($venta->fecha_venta)->format('d/m/Y'),
-                        'hora' => Carbon::parse($venta->fecha_venta)->format('H:i:s'),
-                        'total' => floatval($venta->total),
-                        'estado' => $venta->estado,
-                        'metodo_pago' => $venta->metodo_pago,
-                        'observaciones' => $venta->observaciones ?? ''
-                    ],
-                    'cliente' => $cliente ? [
-                        'nombre' => $cliente->nombre,
-                        'cedula' => $cliente->cedula ?? 'N/A'
-                    ] : null,
-                    'vendedor' => $vendedor ? [
-                        'nombre' => $vendedor->name
-                    ] : null,
-                    'detalles' => $detalles,
-                    'total_detalles' => $totalCalculadoDetalles
-                ]
-            ]);
-
-        } catch (\Exception $e) {
-            \Log::error('=== ERROR en getDetalleVenta ===');
-            \Log::error('Mensaje: ' . $e->getMessage());
-            \Log::error('Archivo: ' . $e->getFile());
-            \Log::error('Línea: ' . $e->getLine());
-            
+public function getDetalleVenta($id)
+{
+    try {
+        $venta = Venta::with(['cliente', 'usuario', 'detalles.producto'])
+            ->where('id_venta', $id)
+            ->first();
+        
+        if (!$venta) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al cargar el detalle: ' . $e->getMessage()
-            ], 500);
+                'message' => 'Venta no encontrada'
+            ], 404);
         }
+
+        $configGeneral = ConfiguracionHelper::getGeneralConfig();
+        $simbolo = $configGeneral['simbolo_moneda'] ?? '$';
+        
+        // Obtener datos de la empresa
+        $datosEmpresa = NegocioHelper::getDatosEmpresa();
+
+        // Calcular valores correctamente
+        $subtotal = floatval($venta->subtotal);
+        $iva = floatval($venta->iva);
+        $total = floatval($venta->total);
+        
+        // Determinar si hay descuento (si subtotal + IVA > total)
+        $descuento = 0;
+        $subtotalConIva = $subtotal + $iva;
+        if ($subtotalConIva > $total) {
+            $descuento = $subtotalConIva - $total;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'venta' => [
+                    'id_venta' => $venta->id_venta,
+                    'numero_factura' => $venta->numero_factura,
+                    'fecha' => Carbon::parse($venta->fecha_venta)->format('d/m/Y'),
+                    'hora' => Carbon::parse($venta->fecha_venta)->format('H:i:s'),
+                    'subtotal' => $simbolo . ' ' . number_format($subtotal, 0),
+                    'subtotal_numero' => $subtotal,
+                    'iva' => $simbolo . ' ' . number_format($iva, 0),
+                    'iva_numero' => $iva,
+                    'descuento' => $simbolo . ' ' . number_format($descuento, 0),
+                    'descuento_numero' => $descuento,
+                    'total' => $simbolo . ' ' . number_format($total, 0),
+                    'total_numero' => $total,
+                    'estado' => $venta->estado,
+                    'metodo_pago' => $venta->metodo_pago,
+                    'efectivo_recibido' => $venta->efectivo_recibido ? $simbolo . ' ' . number_format($venta->efectivo_recibido, 0) : null,
+                    'cambio' => $venta->cambio ? $simbolo . ' ' . number_format($venta->cambio, 0) : null,
+                    'observaciones' => $venta->observaciones ?? ''
+                ],
+                'cliente' => $venta->cliente ? [
+                    'nombre' => $venta->cliente->nombre,
+                    'cedula' => $venta->cliente->cedula ?? 'N/A',
+                    'telefono' => $venta->cliente->telefono ?? 'N/A',
+                    'direccion' => $venta->cliente->direccion ?? 'N/A'
+                ] : null,
+                'usuario' => $venta->usuario ? [
+                    'nombre' => $venta->usuario->name
+                ] : null,
+                'detalles' => $venta->detalles->map(function($detalle) use ($simbolo) {
+                    return [
+                        'nombre' => $detalle->producto->nombre,
+                        'codigo' => $detalle->producto->codigo ?? 'N/A',
+                        'cantidad' => $detalle->cantidad,
+                        'precio_unitario' => floatval($detalle->precio_unitario),
+                        'precio_formateado' => $simbolo . ' ' . number_format($detalle->precio_unitario, 0),
+                        'subtotal' => floatval($detalle->subtotal),
+                        'subtotal_formateado' => $simbolo . ' ' . number_format($detalle->subtotal, 0)
+                    ];
+                }),
+                'empresa' => [
+                    'nombre' => $datosEmpresa['nombre'] ?? 'SUPERMERCADO XYZ',
+                    'nit' => $datosEmpresa['nit'] ?? '123456789-0',
+                    'telefono' => $datosEmpresa['telefono'] ?? '(601) 123-4567',
+                    'direccion' => $datosEmpresa['direccion'] ?? 'Calle 123 #45-67',
+                    'email' => $datosEmpresa['email'] ?? 'info@superxyz.com',
+                    'mensaje' => $datosEmpresa['mensaje_factura'] ?? '¡Gracias por su compra!',
+                    'logo_url' => $datosEmpresa['logo_url'] ?? null
+                ]
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Error en getDetalleVenta: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar el detalle: ' . $e->getMessage()
+        ], 500);
     }
+}
 
     /**
-     * Imprimir ticket de venta
+     * Imprimir ticket térmico de venta
      */
     public function imprimirTicket($id)
     {
         try {
-            // Obtener datos de la venta igual que getDetalleVenta
-            $venta = DB::table('ventas')->where('id_venta', $id)->first();
+            $venta = Venta::with(['cliente', 'usuario', 'detalles.producto'])
+                ->where('id_venta', $id)
+                ->firstOrFail();
             
-            if (!$venta) {
-                abort(404, 'Venta no encontrada');
-            }
-
-            $cliente = null;
-            if ($venta->id_cliente) {
-                $cliente = DB::table('clientes')->where('id_cliente', $venta->id_cliente)->first();
+            // Obtener configuración de facturación
+            $configFacturacion = ConfiguracionHelper::getFacturacionConfig();
+            
+            // Generar HTML del ticket usando NegocioHelper
+            $html = NegocioHelper::generarTicketHTML($venta, $configFacturacion);
+            
+            // Determinar tamaño de papel según configuración
+            $papel = $configFacturacion['tamaño_papel'];
+            
+            if ($papel == 'thermal') {
+                // Para impresora térmica
+                return view('ventas.ticket_thermal', compact('html'));
+            } else {
+                // Para impresión normal
+                return view('ventas.ticket_normal', compact('html'));
             }
             
-            $vendedor = null;
-            if ($venta->userId) {
-                $vendedor = DB::table('users')->where('id', $venta->userId)->first();
-            }
-            
-            $detalles = DB::table('detalle_ventas')
-                ->join('productos', 'detalle_ventas.id_producto', '=', 'productos.id_producto')
-                ->where('detalle_ventas.id_venta', $id)
-                ->select(
-                    'productos.nombre',
-                    'productos.codigo',
-                    'detalle_ventas.cantidad',
-                    'detalle_ventas.precio_unitario',
-                    'detalle_ventas.subtotal'
-                )
-                ->get();
-
-            // Retornar vista de ticket (crea esta vista o redirige al detalle)
-            return view('ventas.ticket', compact('venta', 'cliente', 'vendedor', 'detalles'));
-
         } catch (\Exception $e) {
             \Log::error('Error en imprimirTicket: ' . $e->getMessage());
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al generar el ticket: ' . $e->getMessage()
+                ], 500);
+            }
+            
             return redirect()->back()->with('error', 'Error al generar el ticket');
+        }
+    }
+
+    /**
+     * Imprimir factura completa (PDF)
+     */
+    public function imprimirFactura($id)
+    {
+        try {
+            $venta = Venta::with(['cliente', 'usuario', 'detalles.producto'])
+                ->where('id_venta', $id)
+                ->firstOrFail();
+            
+            // Generar HTML de la factura usando NegocioHelper
+            $html = NegocioHelper::generarFacturaHTML($venta);
+            
+            // Retornar vista para imprimir
+            return view('ventas.factura_completa', compact('html'));
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en imprimirFactura: ' . $e->getMessage());
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al generar la factura: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Error al generar la factura');
+        }
+    }
+
+    /**
+     * Generar y descargar PDF de factura
+     */
+    public function generarPDF($id)
+    {
+        try {
+            $venta = Venta::with(['cliente', 'usuario', 'detalles.producto'])
+                ->where('id_venta', $id)
+                ->firstOrFail();
+            
+            // Generar HTML de la factura
+            $html = NegocioHelper::generarFacturaHTML($venta);
+            
+            // Usar DomPDF para generar el PDF
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
+            $pdf->setPaper('legal', 'portrait');
+            
+            return $pdf->download('factura_' . $venta->numero_factura . '.pdf');
+            
+        } catch (\Exception $e) {
+            \Log::error('Error en generarPDF: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al generar PDF: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -360,7 +420,7 @@ class HistorialVentasController extends Controller
             foreach ($detalles as $detalle) {
                 $producto = Producto::where('id_producto', $detalle->id_producto)->first();
                 if ($producto) {
-                    $producto->stock += $detalle->cantidad;
+                    $producto->stock_actual += $detalle->cantidad;
                     $producto->save();
                 }
             }
@@ -377,7 +437,7 @@ class HistorialVentasController extends Controller
             \Log::error('Error en cancelarVenta: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Error al cancelar la venta'
+                'message' => 'Error al cancelar la venta: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -392,18 +452,15 @@ class HistorialVentasController extends Controller
             
             \Log::info('Intentando eliminar venta ID: ' . $id);
             
-            // Buscar la venta
             $venta = Venta::where('id_venta', $id)->first();
             
             if (!$venta) {
-                \Log::error('Venta no encontrada: ' . $id);
                 return response()->json([
                     'success' => false,
                     'message' => 'Venta no encontrada'
                 ], 404);
             }
 
-            // Verificar que la venta no esté cancelada
             if ($venta->estado === 'cancelada') {
                 return response()->json([
                     'success' => false,
@@ -411,53 +468,33 @@ class HistorialVentasController extends Controller
                 ], 400);
             }
 
-            // Obtener los detalles de la venta
             $detalles = DB::table('detalle_ventas')
                 ->where('id_venta', $id)
                 ->get();
 
-            // Restablecer el stock de cada producto
             $productos_actualizados = 0;
             foreach ($detalles as $detalle) {
                 $producto = Producto::where('id_producto', $detalle->id_producto)->first();
                 if ($producto) {
-                    // Incrementar el stock en la cantidad vendida
-                    $producto->stock += $detalle->cantidad;
+                    $producto->stock_actual += $detalle->cantidad;
                     $producto->save();
                     $productos_actualizados++;
-                    
-                    \Log::info('Stock restablecido - Producto ID: ' . $producto->id_producto . 
-                              ', Nuevo stock: ' . $producto->stock . 
-                              ', Cantidad devuelta: ' . $detalle->cantidad);
                 }
             }
             
-            // Registrar la eliminación
-            $observacion = '[ELIMINADA] - ' . Carbon::now()->format('d/m/Y H:i:s') . 
-                           ' por ' . (Auth::check() ? Auth::user()->name : 'Sistema') . 
-                           ' - Stock restablecido: ' . $productos_actualizados . ' productos';
-            
-            \Log::info('Venta eliminada: ' . $venta->numero_factura . ' - ' . $observacion);
-            
-            // Eliminar los detalles primero
             DB::table('detalle_ventas')->where('id_venta', $id)->delete();
-            
-            // Eliminar la venta
             $venta->delete();
             
             DB::commit();
             
             return response()->json([
                 'success' => true,
-                'message' => 'Venta eliminada exitosamente. Stock restablecido para ' . $productos_actualizados . ' productos.',
-                'productos_restablecidos' => $productos_actualizados
+                'message' => 'Venta eliminada exitosamente. Stock restablecido para ' . $productos_actualizados . ' productos.'
             ]);
             
         } catch (\Exception $e) {
             DB::rollBack();
-            
             \Log::error('Error al eliminar venta: ' . $e->getMessage());
-            \Log::error('Stack trace: ' . $e->getTraceAsString());
             
             return response()->json([
                 'success' => false,
@@ -466,48 +503,42 @@ class HistorialVentasController extends Controller
         }
     }
 
-/**
- * Exportar ventas a Excel
- */
-public function exportarExcel(Request $request)
-{
-    try {
-        // Validar que no haya salida previa
-        if (ob_get_length()) {
-            ob_end_clean();
-        }
-        
-        $filters = [
-            'fecha_desde' => $request->fecha_desde,
-            'fecha_hasta' => $request->fecha_hasta,
-            'estado' => $request->estado,
-            'metodo_pago' => $request->metodo_pago,
-            'cliente' => $request->cliente,
-            'factura' => $request->factura,
-        ];
+    /**
+     * Exportar ventas a Excel
+     */
+    public function exportarExcel(Request $request)
+    {
+        try {
+            if (ob_get_length()) {
+                ob_end_clean();
+            }
+            
+            $filters = [
+                'fecha_desde' => $request->fecha_desde,
+                'fecha_hasta' => $request->fecha_hasta,
+                'estado' => $request->estado,
+                'metodo_pago' => $request->metodo_pago,
+                'cliente' => $request->cliente,
+                'factura' => $request->factura,
+            ];
 
-        $nombreArchivo = 'ventas_' . date('Y-m-d_His') . '.xlsx';
-        
-        // Usar Excel::download() que es el método correcto
-        return Excel::download(new VentasExport($filters), $nombreArchivo);
-        
-    } catch (\Exception $e) {
-        \Log::error('Error exportando a Excel: ' . $e->getMessage());
-        \Log::error('Stack trace: ' . $e->getTraceAsString());
-        
-        // Si la petición es AJAX, devolver JSON
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al exportar: ' . $e->getMessage()
-            ], 500);
+            $nombreArchivo = 'ventas_' . date('Y-m-d_His') . '.xlsx';
+            
+            return Excel::download(new VentasExport($filters), $nombreArchivo);
+            
+        } catch (\Exception $e) {
+            \Log::error('Error exportando a Excel: ' . $e->getMessage());
+            
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al exportar: ' . $e->getMessage()
+                ], 500);
+            }
+            
+            return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
         }
-        
-        // Si es una petición normal, redirigir con error
-        return redirect()->back()->with('error', 'Error al exportar: ' . $e->getMessage());
     }
-}
-    
 
     /**
      * Ver todas las ventas (vista alternativa)
@@ -515,7 +546,7 @@ public function exportarExcel(Request $request)
     public function ventasTodas()
     {
         try {
-            $ventas = Venta::with(['cliente', 'user'])
+            $ventas = Venta::with(['cliente', 'usuario'])
                 ->orderBy('fecha_venta', 'desc')
                 ->paginate(20);
 

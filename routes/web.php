@@ -124,6 +124,7 @@ Route::post('/ventas/cancelar/{id}', [VentaController::class, 'cancelar'])->name
     // Ruta para vista de todas las ventas (opcional - como alternativa)
     Route::get('/ventas/todas', [HistorialVentasController::class, 'ventasTodas'])->name('ventas.todas');
   Route::get('/historial-ventas/exportar-excel', [App\Http\Controllers\HistorialVentasController::class, 'exportarExcel'])->name('historial.ventas.exportar.excel');
+
   
 
 /*
@@ -457,3 +458,5 @@ Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(functi
     Route::get('/compras-data', [ReporteController::class, 'getComprasData'])->name('compras-data');
     Route::get('/inventario-data', [ReporteController::class, 'getInventarioData'])->name('inventario-data');
 });
+
+

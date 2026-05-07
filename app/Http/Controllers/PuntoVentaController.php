@@ -429,6 +429,224 @@ class PuntoVentaController extends Controller
         }
     }
 
+public function obtenerDetalleVenta($id)
+{
+    try {
+        $venta = Venta::with(['cliente', 'usuario', 'detalles.producto'])
+            ->where('id_venta', $id)
+            ->first();
+        
+        if (!$venta) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Venta no encontrada'
+            ], 404);
+        }
+
+        // Obtener configuración
+        $configGeneral = ConfiguracionHelper::getGeneralConfig();
+        $simbolo = $configGeneral['simbolo_moneda'] ?? '$';
+        
+        // Obtener datos de la empresa
+        $datosEmpresa = NegocioHelper::getDatosEmpresa();
+        
+        // Calcular valores CORRECTAMENTE
+        $subtotal = floatval($venta->subtotal);
+        $iva = floatval($venta->iva);
+        $total = floatval($venta->total);
+        
+        // Calcular descuento (si existe)
+        $descuento = 0;
+        $subtotalConIva = $subtotal + $iva;
+        if ($subtotalConIva > $total) {
+            $descuento = $subtotalConIva - $total;
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'venta' => [
+                    'id_venta' => $venta->id_venta,
+                    'numero_factura' => $venta->numero_factura,
+                    'fecha' => Carbon::parse($venta->fecha_venta)->format('d/m/Y'),
+                    'hora' => Carbon::parse($venta->fecha_venta)->format('H:i:s'),
+                    'subtotal' => $simbolo . ' ' . number_format($subtotal, 0),
+                    'subtotal_numero' => $subtotal,
+                    'iva' => $simbolo . ' ' . number_format($iva, 0),
+                    'iva_numero' => $iva,
+                    'descuento' => $descuento > 0 ? $simbolo . ' ' . number_format($descuento, 0) : '0',
+                    'descuento_numero' => $descuento,
+                    'total' => $simbolo . ' ' . number_format($total, 0),
+                    'total_numero' => $total,
+                    'estado' => $venta->estado,
+                    'metodo_pago' => $venta->metodo_pago,
+                    'efectivo_recibido' => $venta->efectivo_recibido ? $simbolo . ' ' . number_format($venta->efectivo_recibido, 0) : null,
+                    'cambio' => $venta->cambio ? $simbolo . ' ' . number_format($venta->cambio, 0) : null,
+                    'observaciones' => $venta->observaciones ?? ''
+                ],
+                'cliente' => $venta->cliente ? [
+                    'nombre' => $venta->cliente->nombre,
+                    'cedula' => $venta->cliente->cedula ?? 'N/A',
+                    'telefono' => $venta->cliente->telefono ?? 'N/A',
+                    'direccion' => $venta->cliente->direccion ?? 'N/A'
+                ] : null,
+                'usuario' => $venta->usuario ? [
+                    'nombre' => $venta->usuario->name
+                ] : null,
+                'detalles' => $venta->detalles->map(function($detalle) use ($simbolo) {
+                    return [
+                        'nombre' => $detalle->producto->nombre,
+                        'codigo' => $detalle->producto->codigo ?? 'N/A',
+                        'cantidad' => $detalle->cantidad,
+                        'precio_unitario' => floatval($detalle->precio_unitario),
+                        'precio_formateado' => $simbolo . ' ' . number_format($detalle->precio_unitario, 0),
+                        'subtotal' => floatval($detalle->subtotal),
+                        'subtotal_formateado' => $simbolo . ' ' . number_format($detalle->subtotal, 0)
+                    ];
+                }),
+                'empresa' => [
+                    'nombre' => $datosEmpresa['nombre'] ?? 'SUPERMERCADO XYZ',
+                    'nit' => $datosEmpresa['nit'] ?? '123456789-0',
+                    'telefono' => $datosEmpresa['telefono'] ?? '(601) 123-4567',
+                    'direccion' => $datosEmpresa['direccion'] ?? 'Calle 123 #45-67',
+                    'email' => $datosEmpresa['email'] ?? 'info@superxyz.com',
+                    'mensaje' => $datosEmpresa['mensaje_factura'] ?? '¡Gracias por su compra!',
+                    'logo_url' => $datosEmpresa['logo_url'] ?? null
+                ]
+            ]
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error('Error en obtenerDetalleVenta: ' . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Error al cargar el detalle: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+function verDetalleVenta(id) {
+    modalVentaId = id;
+    console.log('Cargando detalle venta ID:', id);
+    
+    $.ajax({
+        url: "{{ url('ventas/detalle') }}/" + id,
+        type: "GET",
+        dataType: "json",
+        success: function(response) {
+            console.log('Respuesta recibida:', response);
+            
+            if (response.success) {
+                datosVenta = response.data.venta;
+                datosCliente = response.data.cliente;
+                datosVendedor = response.data.usuario;
+                detallesVenta = response.data.detalles;
+                datosEmpresa = response.data.empresa;
+                
+                console.log('Datos empresa:', datosEmpresa);
+                
+                // Información de la venta
+                $('#modalFactura').text(datosVenta.numero_factura || 'N/A');
+                $('#modalFecha').text(datosVenta.fecha || 'N/A');
+                $('#modalHora').text(datosVenta.hora || 'N/A');
+                
+                // Estado
+                var estado = datosVenta.estado || 'pendiente';
+                var badgeClass = '';
+                switch(estado) {
+                    case 'completada': badgeClass = 'badge-success'; break;
+                    case 'pendiente': badgeClass = 'badge-warning'; break;
+                    case 'cancelada': badgeClass = 'badge-danger'; break;
+                    default: badgeClass = 'badge-secondary';
+                }
+                $('#modalEstado').removeClass().addClass('badge ' + badgeClass).text(estado);
+                
+                // Cliente
+                $('#modalCliente').text(datosCliente ? datosCliente.nombre : 'Cliente General');
+                $('#modalDocumento').text(datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A');
+                $('#modalMetodoPago').text(datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A');
+                $('#modalVendedor').text(datosVendedor ? datosVendedor.nombre : 'N/A');
+                
+                // Detalle de productos
+                var htmlProductos = '';
+                var subtotalProductos = 0;
+                
+                if (detallesVenta && detallesVenta.length > 0) {
+                    detallesVenta.forEach(function(p) {
+                        var cantidad = parseFloat(p.cantidad) || 0;
+                        var precioUnitario = parseFloat(p.precio_unitario) || 0;
+                        var subtotal = parseFloat(p.subtotal) || 0;
+                        
+                        subtotalProductos += subtotal;
+                        
+                        htmlProductos += `
+                            <tr>
+                                <td>${p.nombre || 'Producto'}</td>
+                                <td>${p.codigo || 'N/A'}</td>
+                                <td class="text-center">${cantidad}</td>
+                                <td class="text-right">${p.precio_formateado}</td>
+                                <td class="text-right">${p.subtotal_formateado}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    htmlProductos = '<tr><td colspan="5" class="text-center">No hay productos</td</tr>';
+                }
+                $('#modalDetalleProductos').html(htmlProductos);
+                
+                // ============================================
+                // TOTALES CORREGIDOS
+                // ============================================
+                var subtotal = datosVenta.subtotal_numero || 0;
+                var iva = datosVenta.iva_numero || 0;
+                var descuento = datosVenta.descuento_numero || 0;
+                var total = datosVenta.total_numero || 0;
+                
+                console.log('Subtotal:', subtotal, 'IVA:', iva, 'Descuento:', descuento, 'Total:', total);
+                
+                // Mostrar subtotal
+                $('#modalSubtotalProductos').text('$' + subtotal.toLocaleString('es-CO'));
+                $('#modalTotalVenta').text('$' + total.toLocaleString('es-CO'));
+                
+                // Ocultar todas las filas extras
+                $('#filaIVA, #filaDescuento, #filaOtrosCargos').hide();
+                
+                // Mostrar IVA si existe
+                if (iva > 0) {
+                    $('#modalIVA').text('$' + iva.toLocaleString('es-CO'));
+                    $('#filaIVA').show();
+                }
+                
+                // Mostrar Descuento si existe (CORREGIDO - ya no muestra el total)
+                if (descuento > 0) {
+                    $('#modalDescuento').text('-$' + descuento.toLocaleString('es-CO'));
+                    $('#filaDescuento').show();
+                }
+                
+                // Observaciones
+                if (datosVenta.observaciones) {
+                    $('#modalObservaciones').text(datosVenta.observaciones);
+                    $('#modalObservacionesContainer').show();
+                } else {
+                    $('#modalObservacionesContainer').hide();
+                }
+                
+                // Mostrar modal
+                $('#modalDetalleVenta').modal('show');
+                
+            } else {
+                toastr.error(response.message || 'Error al cargar detalle');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error AJAX:', error);
+            toastr.error('Error al cargar el detalle de la venta');
+        }
+    });
+}
+
+
     // =============================================
     // 4. COMPROBANTES
     // =============================================

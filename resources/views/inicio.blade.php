@@ -9,6 +9,7 @@
 @section('content')
 
     <style>
+      <style>
         /* Variables CSS para modo oscuro */
         :root {
             --dashboard-bg: #f4f6f9;
@@ -1204,9 +1205,9 @@
 
 @section('js')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-
-// ============================================
+ 
+<script>    
+    // ============================================
 // INICIALIZAR VARIABLES GLOBALES
 // ============================================
 window.dashboardInterval = window.dashboardInterval || null;
@@ -1226,6 +1227,18 @@ var escalaFactura = 0.8;
 // Variables para almacenar el contenido generado
 var contenidoTicketGenerado = '';
 var contenidoFacturaGenerado = '';
+
+// DATOS DE EMPRESA
+var datosEmpresa = {
+    nombre: 'SUPERMERCADO XYZ',
+    nit: '123456789-0',
+    telefono: '(601) 123-4567',
+    direccion: 'Calle 123 #45-67',
+    email: 'info@superxyz.com',
+    mensaje: '¡GRACIAS POR SU COMPRA!',
+    logo_url: null
+};
+window.datosEmpresa = datosEmpresa;
 
 // ============================================
 // FUNCIÓN PARA FORMATEAR NÚMEROS SIN DECIMALES
@@ -1252,7 +1265,6 @@ $(document).ready(function() {
         cargarDatosDashboard();
     });
     
-    // Inicializar DataTable
     if ($('#tablaVentas').length) {
         initDataTable();
     }
@@ -1515,32 +1527,20 @@ function initDataTable() {
         }
     });
     
-    // Eventos de filtros
-    $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() { 
-        if (tablaVentas) tablaVentas.ajax.reload(); 
-    });
-    
+    // FILTROS
+    $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() { tablaVentas.ajax.reload(); });
     $('#buscar_cliente, #buscar_factura').on('keyup', function() {
         clearTimeout(window.searchTimeout);
-        window.searchTimeout = setTimeout(function() { 
-            if (tablaVentas) tablaVentas.ajax.reload(); 
-        }, 500);
+        window.searchTimeout = setTimeout(function() { tablaVentas.ajax.reload(); }, 500);
     });
-    
-    $('#btnFiltrar').on('click', function() { 
-        if (tablaVentas) tablaVentas.ajax.reload(); 
-    });
-    
+    $('#btnFiltrar').on('click', function() { tablaVentas.ajax.reload(); });
     $('#btnLimpiarFiltros').on('click', function() {
         $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago, #buscar_cliente, #buscar_factura').val('');
-        if (tablaVentas) tablaVentas.ajax.reload();
+        tablaVentas.ajax.reload();
     });
     
-    // Reportes
-    $('#descargarReporte').on('click', function() { 
-        $('#modalReporte').modal('show'); 
-    });
-    
+    // REPORTE
+    $('#descargarReporte').on('click', function() { $('#modalReporte').modal('show'); });
     $('#btnGenerarReporte').on('click', function() {
         var params = new URLSearchParams({
             formato: $('#formatoReporte').val(),
@@ -1557,7 +1557,7 @@ function initDataTable() {
 }
 
 // ============================================
-// VER DETALLE DE VENTA
+// VER DETALLE DE VENTA (CORREGIDO)
 // ============================================
 function verDetalleVenta(id) {
     modalVentaId = id;
@@ -1573,22 +1573,26 @@ function verDetalleVenta(id) {
                 datosVendedor = response.data.vendedor;
                 detallesVenta = response.data.detalles;
                 
+                if (response.data.empresa) {
+                    datosEmpresa = response.data.empresa;
+                    window.datosEmpresa = datosEmpresa;
+                    console.log('✅ Datos empresa cargados:', datosEmpresa);
+                }
+                
                 $('#modalFactura').text(datosVenta.numero_factura || 'N/A');
                 $('#modalFecha').text(datosVenta.fecha || 'N/A');
                 $('#modalHora').text(datosVenta.hora || 'N/A');
                 
                 var estado = datosVenta.estado || 'pendiente';
-                var estadoTexto = '';
                 var badgeClass = '';
-                
                 switch(estado) {
-                    case 'completada': estadoTexto = 'Completada'; badgeClass = 'badge-success'; break;
-                    case 'pendiente': estadoTexto = 'Pendiente'; badgeClass = 'badge-warning'; break;
-                    case 'cancelada': estadoTexto = 'Cancelada'; badgeClass = 'badge-danger'; break;
-                    default: estadoTexto = estado.charAt(0).toUpperCase() + estado.slice(1); badgeClass = 'badge-secondary';
+                    case 'completada': badgeClass = 'badge-success'; break;
+                    case 'pendiente': badgeClass = 'badge-warning'; break;
+                    case 'cancelada': badgeClass = 'badge-danger'; break;
+                    default: badgeClass = 'badge-secondary';
                 }
+                $('#modalEstado').removeClass().addClass('badge ' + badgeClass).text(estado);
                 
-                $('#modalEstado').removeClass().addClass('badge ' + badgeClass).text(estadoTexto);
                 $('#modalCliente').text(datosCliente ? datosCliente.nombre : 'Cliente General');
                 $('#modalDocumento').text(datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A');
                 $('#modalMetodoPago').text(datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A');
@@ -1605,41 +1609,38 @@ function verDetalleVenta(id) {
                         subtotalProductos += subtotal;
                         
                         htmlProductos += '<tr>' +
-                            '<td>' + (p.nombre || 'Producto sin nombre') + '</td>' +
+                            '<td>' + (p.nombre || 'Producto') + '</td>' +
                             '<td>' + (p.codigo || 'N/A') + '</td>' +
-                            '<td class="text-center">' + cantidad.toFixed(0) + '</td>' +
-                            '<td class="text-right">$' + precioUnitario.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
-                            '<td class="text-right">$' + subtotal.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '</td>' +
+                            '<td class="text-center">' + cantidad + '</td>' +
+                            '<td class="text-right">$' + Math.round(precioUnitario).toLocaleString('es-CO') + '</td>' +
+                            '<td class="text-right">$' + Math.round(subtotal).toLocaleString('es-CO') + '</td>' +
                             '</tr>';
                     });
                 } else {
-                    htmlProductos = '<tr><td colspan="5" class="text-center text-muted">No hay productos registrados</td></tr>';
+                    htmlProductos = '<tr><td colspan="5" class="text-center">No hay productos</td></tr>';
                 }
                 
                 $('#modalDetalleProductos').html(htmlProductos);
                 
-                var totalVenta = parseFloat(datosVenta.total) || 0;
-                $('#modalSubtotalProductos').text('$' + subtotalProductos.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                var subtotal = datosVenta.subtotal_numero || 0;
+                var iva = datosVenta.iva_numero || 0;
+                var descuento = datosVenta.descuento_numero || 0;
+                var total = datosVenta.total_numero || 0;
                 
-                var diferencia = totalVenta - subtotalProductos;
+                $('#modalSubtotalProductos').text('$' + Math.round(subtotal).toLocaleString('es-CO'));
+                $('#modalTotalVenta').text('$' + Math.round(total).toLocaleString('es-CO'));
+                
                 $('#filaIVA, #filaDescuento, #filaOtrosCargos').hide();
                 
-                if (Math.abs(diferencia) > 0.01) {
-                    var ivaCalculado = subtotalProductos * 0.19;
-                    
-                    if (Math.abs(diferencia - ivaCalculado) < 1) {
-                        $('#modalIVA').text('$' + diferencia.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                        $('#filaIVA').show();
-                    } else if (diferencia < 0) {
-                        $('#modalDescuento').text('-$' + Math.abs(diferencia).toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                        $('#filaDescuento').show();
-                    } else {
-                        $('#modalOtrosCargos').text('$' + diferencia.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                        $('#filaOtrosCargos').show();
-                    }
+                if (iva > 0) {
+                    $('#modalIVA').text('$' + Math.round(iva).toLocaleString('es-CO'));
+                    $('#filaIVA').show();
                 }
                 
-                $('#modalTotalVenta').text('$' + totalVenta.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                if (descuento > 0) {
+                    $('#modalDescuento').text('-$' + Math.round(descuento).toLocaleString('es-CO'));
+                    $('#filaDescuento').show();
+                }
                 
                 var observaciones = datosVenta.observaciones || '';
                 if (observaciones && observaciones.trim() !== '') {
@@ -1649,29 +1650,21 @@ function verDetalleVenta(id) {
                     $('#modalObservacionesContainer').hide();
                 }
                 
-                var btnCancelar = $('#btnCancelarVentaModal');
-                if (estado !== 'cancelada' && estado !== 'completada') {
-                    btnCancelar.removeClass('d-none');
-                } else {
-                    btnCancelar.addClass('d-none');
-                }
-                
                 mostrarContenidoDetalle();
                 $('#modalDetalleVenta').modal('show');
             } else {
-                alert('Error: ' + (response.message || 'No se pudo cargar el detalle'));
+                toastr.error(response.message || 'Error al cargar detalle');
             }
         },
         error: function() {
-            alert('Error al cargar el detalle de la venta');
+            toastr.error('Error al cargar el detalle de la venta');
         }
     });
 }
 
 // ============================================
-// FUNCIONES DE VISTA PREVIA - TICKET 80mm
+// FUNCIONES DE VISTA PREVIA
 // ============================================
-
 function mostrarVistaPrevia(tipo) {
     prepararDatosVistaPrevia(tipo);
     
@@ -1709,7 +1702,6 @@ function mostrarVistaPreviaFactura() {
     $('#vistaPreviaFactura').show();
     aplicarEscalaFactura();
     
-    // Configurar contenedor para factura (scroll normal)
     $('.preview-container').css({
         'max-height': '70vh',
         'overflow-y': 'auto',
@@ -1723,303 +1715,224 @@ function mostrarVistaPreviaFactura() {
     });
 }
 
+// ============================================
+// PREPARAR DATOS VISTA PREVIA
+// ============================================
 function prepararDatosVistaPrevia(tipo) {
     if (!datosVenta) return;
     
-    var totalVenta = parseFloat(datosVenta.total) || 0;
-    var subtotalProductos = 0;
-    var totalProductosVendidos = 0;
+    var totalVenta = parseFloat(datosVenta.total_numero || datosVenta.total || 0);
+    var subtotalProductos = parseFloat(datosVenta.subtotal_numero || 0);
+    var iva = parseFloat(datosVenta.iva_numero || 0);
+    var descuento = parseFloat(datosVenta.descuento_numero || 0);
     
+    var totalProductosVendidos = 0;
     if (detallesVenta && detallesVenta.length > 0) {
         detallesVenta.forEach(function(p) {
-            var cantidad = parseFloat(p.cantidad) || 0;
-            var subtotal = parseFloat(p.subtotal) || 0;
-            subtotalProductos += subtotal;
-            totalProductosVendidos += cantidad;
+            totalProductosVendidos += parseInt(p.cantidad) || 0;
         });
     }
     
-    var diferencia = totalVenta - subtotalProductos;
-    var tieneIVA = false;
-    var tieneDescuento = false;
-    var valorIVA = 0;
-    var valorDescuento = 0;
+    var tieneIVA = iva > 0;
+    var tieneDescuento = descuento > 0;
+    var valorIVA = iva;
+    var valorDescuento = descuento;
     
-    if (Math.abs(diferencia) > 0.01) {
-        if (diferencia > 0) {
-            tieneIVA = true;
-            valorIVA = diferencia;
-        } else {
-            tieneDescuento = true;
-            valorDescuento = Math.abs(diferencia);
+    const empresa = window.datosEmpresa || {
+        nombre: 'SUPERMERCADO XYZ',
+        nit: '123456789-0',
+        telefono: '(601) 123-4567',
+        direccion: 'Calle 123 #45-67',
+        email: 'info@superxyz.com',
+        mensaje: '¡GRACIAS POR SU COMPRA!',
+        logo_url: null
+    };
+    
+    let logoSrc = empresa.logo_url;
+    let logoTicketHTML = '';
+    let logoFacturaHTML = '';
+    
+    if (logoSrc && logoSrc !== 'null' && logoSrc !== '') {
+        if (logoSrc.includes('/storage/storage/')) {
+            logoSrc = logoSrc.replace('/storage/storage/', '/storage/');
         }
+        logoTicketHTML = `<img src="${logoSrc}" alt="Logo" style="max-height: 40px; margin-bottom: 5px;">`;
+        logoFacturaHTML = `<div style="text-align: center; margin-bottom: 20px;"><img src="${logoSrc}" alt="Logo" style="max-height: 100px;"></div>`;
     }
     
     if (tipo === 'ticket') {
-        // ============================================
-        // TICKET 80mm - 302px EXACTOS
-        // ============================================
         contenidoTicketGenerado = `
-            <div style="width: 302px; max-width: 302px; min-width: 302px; margin: 0 auto; background: white; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box;">
-                <div style="width: 100%; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.2; padding: 10px; box-sizing: border-box;">
-                    
-                    <!-- HEADER -->
-                    <div style="text-align: center; padding-bottom: 8px; border-bottom: 1px dashed #000; margin-bottom: 8px;">
-                        <h4 style="margin: 0; font-size: 14px; font-weight: bold;">SUPERMERCADO XYZ</h4>
-                        <p style="margin: 2px 0; font-size: 10px;">NIT: 123456789-0</p>
-                        <p style="margin: 2px 0; font-size: 9px;">Dirección: Calle 123 #45-67</p>
-                        <p style="margin: 2px 0; font-size: 9px;">Tel: (601) 123-4567</p>
-                        <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                        <p style="margin: 2px 0;"><strong>FACTURA:</strong> ${datosVenta.numero_factura || 'N/A'}</p>
-                        
-                        <!-- FECHA Y HORA EN LA MISMA LÍNEA -->
-                        <p style="margin: 2px 0; display: flex; justify-content: center; gap: 10px;">
-                            <span><strong>FECHA:</strong> ${datosVenta.fecha || 'N/A'}</span>
-                            <span><strong>HORA:</strong> ${datosVenta.hora || 'N/A'}</span>
-                        </p>
+            <div style="width: 302px; margin: 0 auto; background: white; font-family: 'Courier New', monospace;">
+                <div style="padding: 10px;">
+                    <div style="text-align: center; border-bottom: 1px dashed #000; padding-bottom: 8px;">
+                        ${logoTicketHTML}
+                        <h4 style="margin: 0;">${empresa.nombre}</h4>
+                        <p style="margin: 2px 0; font-size: 10px;">NIT: ${empresa.nit}</p>
+                        <p style="margin: 2px 0; font-size: 9px;">${empresa.direccion}</p>
+                        <p style="margin: 2px 0; font-size: 9px;">Tel: ${empresa.telefono}</p>
+                        <hr style="margin: 5px 0;">
+                        <p><strong>FACTURA: ${datosVenta.numero_factura || 'N/A'}</strong></p>
+                        <p>FECHA: ${datosVenta.fecha || 'N/A'} HORA: ${datosVenta.hora || 'N/A'}</p>
                     </div>
                     
-                    <!-- CLIENTE -->
                     <div style="margin: 6px 0;">
-                        <p style="margin: 2px 0;"><strong>CLIENTE:</strong> ${datosCliente ? datosCliente.nombre : 'Cliente General'}</p>
-                        <p style="margin: 2px 0;"><strong>DOC:</strong> ${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</p>
-                        <p style="margin: 2px 0;"><strong>VENDEDOR:</strong> ${datosVendedor ? datosVendedor.nombre : 'N/A'}</p>
+                        <p><strong>CLIENTE:</strong> ${datosCliente ? datosCliente.nombre : 'Cliente General'}</p>
+                        <p><strong>VENDEDOR:</strong> ${datosVendedor ? datosVendedor.nombre : 'N/A'}</p>
                     </div>
                     
-                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
+                    <hr style="margin: 5px 0;">
                     
-                    <!-- ENCABEZADOS DE COLUMNAS -->
-                    <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #000; font-weight: bold; font-size: 11px; margin-bottom: 4px;">
-                        <div style="width: 35%;">DESCRIPCIÓN</div>
-                        <div style="width: 15%; text-align: center;">CANT.</div>
-                        <div style="width: 20%; text-align: right;">V.UNIT</div>
-                        <div style="width: 30%; text-align: right;">VR.TOTAL</div>
+                    <div style="display: flex; justify-content: space-between; font-weight: bold; border-bottom: 1px solid #000; padding: 4px 0;">
+                        <div style="width: 40%;">PRODUCTO</div>
+                        <div style="width: 15%; text-align: center;">CANT</div>
+                        <div style="width: 20%; text-align: right;">P.UNIT</div>
+                        <div style="width: 25%; text-align: right;">TOTAL</div>
                     </div>
                     
-                    <div style="margin: 8px 0;">
-        `;
+                    <div style="margin: 8px 0;">`;
         
-        // PRODUCTOS
         if (detallesVenta && detallesVenta.length > 0) {
             detallesVenta.forEach(function(p) {
-                var cantidad = parseFloat(p.cantidad) || 0;
-                var precioUnitario = parseFloat(p.precio_unitario) || 0;
-                var subtotal = parseFloat(p.subtotal) || 0;
-                var nombreProducto = p.nombre || 'Producto';
-                
-                if (nombreProducto.length > 20) {
-                    nombreProducto = nombreProducto.substring(0, 17) + '...';
-                }
-                
+                var nombre = p.nombre || 'Producto';
+                if (nombre.length > 20) nombre = nombre.substring(0, 17) + '...';
                 contenidoTicketGenerado += `
                     <div style="display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px dotted #ccc;">
-                        <div style="width: 35%; font-size: 11px;">${nombreProducto}</div>
-                        <div style="width: 15%; text-align: center; font-size: 11px;">${cantidad}</div>
-                        <div style="width: 20%; text-align: right; font-size: 11px;">$${formatSinDecimales(precioUnitario)}</div>
-                        <div style="width: 30%; text-align: right; font-size: 11px; font-weight: bold;">$${formatSinDecimales(subtotal)}</div>
-                    </div>
-                `;
+                        <div style="width: 40%;">${nombre}</div>
+                        <div style="width: 15%; text-align: center;">${p.cantidad}</div>
+                        <div style="width: 20%; text-align: right;">$${Math.round(p.precio_unitario).toLocaleString('es-CO')}</div>
+                        <div style="width: 25%; text-align: right;">$${Math.round(p.subtotal).toLocaleString('es-CO')}</div>
+                    </div>`;
             });
-        } else {
-            contenidoTicketGenerado += `<div style="text-align: center; padding: 10px; font-size: 11px;">No hay productos registrados</div>`;
         }
         
         contenidoTicketGenerado += `
                     </div>
                     
-                    <hr style="border-top: 1px dashed #000; margin: 5px 0;">
-                    
-                    <!-- TOTAL PRODUCTOS -->
-                    <div style="margin-bottom: 5px;">
-                        <p style="margin: 2px 0; font-size: 11px; font-weight: bold;">TOTAL PRODUCTOS: ${totalProductosVendidos} unidades</p>
+                    <div style="text-align: right;">
+                        <p>TOTAL PRODUCTOS: ${totalProductosVendidos} und</p>
+                        <p>Subtotal: $${Math.round(subtotalProductos).toLocaleString('es-CO')}</p>
+                        ${tieneIVA ? `<p>IVA (19%): $${Math.round(valorIVA).toLocaleString('es-CO')}</p>` : ''}
+                        ${tieneDescuento ? `<p>Descuento: -$${Math.round(valorDescuento).toLocaleString('es-CO')}</p>` : ''}
+                        <p style="font-weight: bold; border-top: 1px dashed #000; padding-top: 3px;">TOTAL: $${Math.round(totalVenta).toLocaleString('es-CO')}</p>
+                        <p><strong>PAGO:</strong> ${datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A'}</p>
                     </div>
                     
-                    <div style="text-align: right; margin-top: 8px;">
-                        <p style="margin: 3px 0; font-size: 11px;">Subtotal: $${formatSinDecimales(subtotalProductos)}</p>
-        `;
-        
-        if (tieneIVA) {
-            contenidoTicketGenerado += `<p style="margin: 3px 0; font-size: 11px;">IVA (19%): $${formatSinDecimales(valorIVA)}</p>`;
-        }
-        
-        if (tieneDescuento) {
-            contenidoTicketGenerado += `<p style="margin: 3px 0; font-size: 11px;">Descuento: -$${formatSinDecimales(valorDescuento)}</p>`;
-        }
-        
-        contenidoTicketGenerado += `
-                        <p style="margin: 5px 0; font-weight: bold; font-size: 13px; border-top: 1px dashed #000; padding-top: 3px;">TOTAL: $${formatSinDecimales(totalVenta)}</p>
-                        <p style="margin: 3px 0; font-size: 11px;"><strong>PAGO:</strong> ${datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A'}</p>
+                    <div style="text-align: center; border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px;">
+                        <p><strong>${empresa.mensaje}</strong></p>
+                        <p>${new Date().toLocaleDateString('es-CO')}</p>
                     </div>
-                    
-                    <!-- FOOTER -->
-                    <div style="border-top: 1px dashed #000; padding-top: 8px; margin-top: 8px; text-align: center;">
-                        <p style="margin: 2px 0; font-size: 10px; font-weight: bold;">¡GRACIAS POR SU COMPRA!</p>
-                        <p style="margin: 2px 0; font-size: 9px;">Conserve este ticket para cambios</p>
-                        <p style="margin: 2px 0; font-size: 9px;">${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO', {hour: '2-digit', minute:'2-digit'})}</p>
-                    </div>
-                    
                 </div>
-            </div>
-        `;
+            </div>`;
         
         $('#ticketPreview').html(contenidoTicketGenerado);
-        
-    } else {
-        // ============================================
-        // FACTURA - Formato A4
-        // ============================================
-        contenidoFacturaGenerado = `
-            <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background: white;">
-                
-                <!-- HEADER FACTURA -->
-                <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
-                    <h1 style="margin: 0;">FACTURA DE VENTA</h1>
-                    <h3 style="margin: 5px 0;">SUPERMERCADO XYZ</h3>
-                    <p style="margin: 2px 0;">NIT: 123456789-0</p>
-                    <p style="margin: 2px 0;">Dirección: Calle 123 #45-67, Bogotá D.C.</p>
-                    <p style="margin: 2px 0;">Tel: (601) 123-4567 | Email: info@superxyz.com</p>
-                </div>
-                
-                <!-- INFORMACIÓN FACTURA Y CLIENTE -->
-                <div style="display: flex; margin-bottom: 20px;">
-                    <div style="flex: 1; padding-right: 15px;">
-                        <h4>INFORMACIÓN DE FACTURA</h4>
-                        <table style="width: 100%;">
-                            <tr><td><strong>No. Factura:</strong></td><td>${datosVenta.numero_factura || 'N/A'}</td></tr>
-                            <tr><td><strong>Fecha:</strong></td><td>${datosVenta.fecha || 'N/A'}</td></tr>
-                            <tr><td><strong>Hora:</strong></td><td>${datosVenta.hora || 'N/A'}</td></tr>
-                            <tr><td><strong>Estado:</strong></td><td>${datosVenta.estado ? datosVenta.estado.charAt(0).toUpperCase() + datosVenta.estado.slice(1) : 'N/A'}</td></tr>
-                        </table>
-                    </div>
-                    <div style="flex: 1; padding-left: 15px;">
-                        <h4>INFORMACIÓN DEL CLIENTE</h4>
-                        <table style="width: 100%;">
-                            <tr><td><strong>Nombre:</strong></td><td>${datosCliente ? datosCliente.nombre : 'Cliente General'}</td></tr>
-                            <tr><td><strong>Documento:</strong></td><td>${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</td></tr>
-                            <tr><td><strong>Método de Pago:</strong></td><td>${datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A'}</td></tr>
-                            <tr><td><strong>Vendedor:</strong></td><td>${datosVendedor ? datosVendedor.nombre : 'N/A'}</td></tr>
-                        </table>
-                    </div>
-                </div>
-                
-               
-               <!-- TOTAL DE PRODUCTOS VENDIDOS -->
-                <div style="margin-bottom: 15px; padding: 10px; background-color: #f8f9fa; border-left: 4px solid #27292a;">
-                    <h5 style="margin: 0; color: #1c1c1d;">
-                        <i class="fas fa-boxes" style="margin-right: 8px;"></i>
-                        TOTAL DE PRODUCTOS VENDIDOS: <strong>${totalProductosVendidos} unidades</strong>
-                    </h5>
-                </div>
-                
-                <!-- TABLA DE PRODUCTOS -->
-                <h4>DETALLE DE PRODUCTOS</h4>
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-                    <thead>
-                        <tr>
-                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">DESCRIPCIÓN</th>
-                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">CÓDIGO</th>
-                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: center;">CANTIDAD</th>
-                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">PRECIO UNITARIO</th>
-                            <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">SUBTOTAL</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        if (detallesVenta && detallesVenta.length > 0) {
-            detallesVenta.forEach(function(p) {
-                var cantidad = parseFloat(p.cantidad) || 0;
-                var precioUnitario = parseFloat(p.precio_unitario) || 0;
-                var subtotal = parseFloat(p.subtotal) || 0;
-                
-                contenidoFacturaGenerado += `
-                    <tr>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.nombre || 'Producto sin nombre'}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.codigo || 'N/A'}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: center;">${cantidad}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${precioUnitario.toLocaleString('es-CO')}</td>
-                        <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${subtotal.toLocaleString('es-CO')}</td>
-                    </tr>
-                `;
-            });
-        } else {
-            contenidoFacturaGenerado += `<tr><td colspan="5" style="padding: 20px; text-align: center;">No hay productos registrados</td></tr>`;
-        }
-        
-        contenidoFacturaGenerado += `
-                    </tbody>
-                </table>
-                
-                <!-- TOTALES -->
-                <div style="margin-top: 20px; border-top: 2px solid #000; padding-top: 10px;">
-                    <div style="display: flex;">
-                        <div style="flex: 2;"></div>
-                        <div style="flex: 1;">
-                            <table style="width: 100%;">
-                                <tr><td><strong>Subtotal:</strong></td><td style="text-align: right;">$${subtotalProductos.toLocaleString('es-CO')}</td></tr>
-        `;
-        
-        if (tieneIVA) {
-            contenidoFacturaGenerado += `<tr><td>IVA (19%):</td><td style="text-align: right;">$${valorIVA.toLocaleString('es-CO')}</td></tr>`;
-        }
-        
-        if (tieneDescuento) {
-            contenidoFacturaGenerado += `<tr><td>Descuento:</td><td style="text-align: right;">-$${valorDescuento.toLocaleString('es-CO')}</td></tr>`;
-        }
-        
-        contenidoFacturaGenerado += `
-                                <tr style="border-top: 1px solid #000;">
-                                    <td><strong>TOTAL:</strong></td>
-                                    <td style="text-align: right;"><strong>$${totalVenta.toLocaleString('es-CO')}</strong></td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-        `;
-        
-        if (datosVenta.observaciones) {
-            contenidoFacturaGenerado += `
-                <div style="margin-top: 30px;">
-                    <h5>Observaciones:</h5>
-                    <div style="border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">
-                        ${datosVenta.observaciones}
-                    </div>
-                </div>
-            `;
-        }
-
-            
-        contenidoFacturaGenerado += `
-                <!-- FIRMAS -->
-                <div style="margin-top: 50px; display: flex;">
-                    <div style="flex: 1; text-align: center;">
-                        <hr style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">
-                        <p>Firma del Cliente</p>
-                    </div>
-                    <div style="flex: 1; text-align: center;">
-                        <hr style="border-top: 1px solid #000; width: 80%; margin: 0 auto;">
-                        <p>Firma del Vendedor</p>
-                    </div>
-                </div>
-                
-                <!-- PIE DE PÁGINA -->
-                <div style="text-align: center; margin-top: 30px; font-size: 12px; color: #666;">
-                    <p>Documento generado el: ${new Date().toLocaleDateString('es-CO')} ${new Date().toLocaleTimeString('es-CO')}</p>
-                    <p>Este documento es válido como factura de venta según Resolución DIAN 12345</p>
-                </div>
-                
-            </div>
-        `;
-        
-        $('#facturaPreview').html(contenidoFacturaGenerado);
+        return;
     }
+    
+    // FACTURA
+    contenidoFacturaGenerado = `
+    <div style="font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: white; border: none;">
+        ${logoFacturaHTML}
+        
+        <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 20px;">
+            <h1 style="margin: 0;">FACTURA DE VENTA<br>${empresa.nombre}</h1>
+            <div style="margin-top: 8px; font-size: 12px;">
+                NIT: ${empresa.nit} | Dirección: ${empresa.direccion} | Tel: ${empresa.telefono}
+                ${empresa.email ? `<br>Email: ${empresa.email}` : ''}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 20px; border: 1px solid #000; padding: 12px; background: #fef9e6;">
+            <div style="flex: 1;">
+                <h3 style="background: #000; color: white; padding: 4px 8px; font-size: 12px; display: inline-block; margin-bottom: 10px;">INFORMACIÓN DE FACTURA</h3>
+                <div><strong>No. Factura:</strong> ${datosVenta.numero_factura || 'N/A'}</div>
+                <div><strong>Fecha:</strong> ${datosVenta.fecha || 'N/A'}</div>
+                <div><strong>Hora:</strong> ${datosVenta.hora || 'N/A'}</div>
+                <div><strong>Estado:</strong> ${datosVenta.estado || 'Completada'}</div>
+            </div>
+            <div style="flex: 1;">
+                <h3 style="background: #000; color: white; padding: 4px 8px; font-size: 12px; display: inline-block; margin-bottom: 10px;">INFORMACIÓN DEL CLIENTE</h3>
+                <div><strong>Nombre:</strong> ${datosCliente ? datosCliente.nombre : 'Cliente General'}</div>
+                <div><strong>Documento:</strong> ${datosCliente ? (datosCliente.cedula || 'N/A') : 'N/A'}</div>
+                <div><strong>Método de Pago:</strong> ${datosVenta.metodo_pago ? datosVenta.metodo_pago.charAt(0).toUpperCase() + datosVenta.metodo_pago.slice(1) : 'N/A'}</div>
+                <div><strong>Vendedor:</strong> ${datosVendedor ? datosVendedor.nombre : 'N/A'}</div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 15px; padding: 8px 12px; background: #f8f9fa; border-left: 4px solid #000;">
+            <strong>TOTAL DE PRODUCTOS VENDIDOS:</strong> ${totalProductosVendidos} unidades
+        </div>
+
+        <h4>DETALLE DE PRODUCTOS</h4>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr>
+                    <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">DESCRIPCIÓN</th>
+                    <th style="border-bottom: 2px solid #000; padding: 8px; text-align: left;">CÓDIGO</th>
+                    <th style="border-bottom: 2px solid #000; padding: 8px; text-align: center;">CANTIDAD</th>
+                    <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">PRECIO UNITARIO</th>
+                    <th style="border-bottom: 2px solid #000; padding: 8px; text-align: right;">SUBTOTAL</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${detallesVenta && detallesVenta.length > 0 ? detallesVenta.map(p => `
+                <tr>
+                    <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.nombre || 'Producto'}</td>
+                    <td style="border-bottom: 1px solid #ddd; padding: 8px;">${p.codigo || 'N/A'}</td>
+                    <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: center;">${p.cantidad}</td>
+                    <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${Math.round(p.precio_unitario).toLocaleString('es-CO')}</td>
+                    <td style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">$${Math.round(p.subtotal).toLocaleString('es-CO')}</td>
+                </tr>
+                `).join('') : '<tr><td colspan="5" style="text-align: center;">No hay productos</td></tr>'}
+            </tbody>
+        </table>
+
+        <div style="margin-top: 20px; border-top: 2px solid #000; padding-top: 10px;">
+            <div style="display: flex; justify-content: flex-end;">
+                <div style="width: 300px;">
+                    <table style="width: 100%;">
+                        <tr><td><strong>Subtotal:</strong></td><td style="text-align: right;">$${Math.round(subtotalProductos).toLocaleString('es-CO')}</td></tr>
+                        ${tieneIVA ? `<tr><td><strong>IVA (19%):</strong></td><td style="text-align: right;">$${Math.round(valorIVA).toLocaleString('es-CO')}</td></tr>` : ''}
+                        ${tieneDescuento ? `<tr><td><strong>Descuento:</strong></td><td style="text-align: right;">-$${Math.round(valorDescuento).toLocaleString('es-CO')}</td></tr>` : ''}
+                        <tr style="border-top: 1px solid #000;"><td><strong>TOTAL:</strong></td><td style="text-align: right;"><strong>$${Math.round(totalVenta).toLocaleString('es-CO')}</strong></td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+     // Ajusta los márgenes para que todo quepa en una página
+<div style="page-break-inside: avoid; page-break-before: avoid; break-inside: avoid; margin-top: 20px;">
+    
+    <!-- MENSAJE PERSONALIZADO - más compacto -->
+    <div style="text-align: center; padding: 8px; background: #f9f9f9;">
+        <p style="margin: 0; font-size: 13px;"><strong>${empresa.mensaje}</strong></p>
+    </div>
+
+    <!-- FIRMAS - más compactas -->
+    <div style="margin-top: 25px; display: flex;">
+        <div style="flex: 1; text-align: center;">
+            <hr style="border-top: 1px solid #000; width: 70%; margin: 0 auto;">
+            <p style="margin-top: 5px; font-size: 12px;">Firma del Cliente</p>
+        </div>
+        <div style="flex: 1; text-align: center;">
+            <hr style="border-top: 1px solid #000; width: 70%; margin: 0 auto;">
+            <p style="margin-top: 5px; font-size: 12px;">Firma del Vendedor</p>
+        </div>
+    </div>
+
+    <!-- PIE DE PÁGINA - más compacto -->
+    <div style="text-align: center; margin-top: 20px; font-size: 11px; padding-bottom: 5px;">
+        <p style="margin: 3px 0;">Documento generado el: ${new Date().toLocaleDateString('es-CO')}</p>
+        <p style="margin: 3px 0;">Este documento es válido como factura de venta</p>
+    </div>    
+   </div>
+</div>`;
+    
+    $('#facturaPreview').html(contenidoFacturaGenerado);
 }
 
 // ============================================
 // ESCALAS Y ZOOM
 // ============================================
-
 function aplicarEscalaTicket() {
     $('#ticketPreview').css({
         'transform': 'scale(' + escalaTicket + ')',
@@ -2056,27 +1969,14 @@ function ajustarFactura(accion) {
 // ============================================
 // IMPRESIÓN
 // ============================================
-
 function imprimirTicket() {
     var currentScale = escalaTicket;
     $('#ticketPreview').css('transform', 'scale(1)');
     
-    var printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Ticket de Venta</title>
-            <style>
-                @page { size: 80mm auto; margin: 0; }
-                body { margin: 0; padding: 0; font-family: 'Courier New', monospace; background: white; width: 80mm; }
-                .ticket-print { width: 80mm; margin: 0 auto; padding: 10px; box-sizing: border-box; }
-            </style>
-        </head>
-        <body>
-            <div class="ticket-print">${contenidoTicketGenerado}</div>
-        </body>
-        </html>
-    `;
+    var printContent = `<!DOCTYPE html><html><head><title>Ticket de Venta</title>
+        <style>@page { size: 80mm auto; margin: 0; } body { margin: 0; padding: 0; font-family: 'Courier New', monospace; background: white; width: 80mm; }
+        .ticket-print { width: 80mm; margin: 0 auto; padding: 10px; box-sizing: border-box; }</style></head>
+        <body><div class="ticket-print">${contenidoTicketGenerado}</div></body></html>`;
     
     var iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
@@ -2105,22 +2005,10 @@ function imprimirFactura() {
     var currentScale = escalaFactura;
     $('#facturaPreview').css('transform', 'scale(0.8)');
     
-    var printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Factura de Venta</title>
-            <style>
-                @page { size: A4; margin: 0; }
-                body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: white; }
-                .factura-print { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20px; box-sizing: border-box; }
-            </style>
-        </head>
-        <body>
-            <div class="factura-print">${contenidoFacturaGenerado}</div>
-        </body>
-        </html>
-    `;
+    var printContent = `<!DOCTYPE html><html><head><title>Factura de Venta</title>
+        <style>@page { size: A4; margin: 0; } body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: white; }
+        .factura-print { width: 210mm; min-height: 297mm; margin: 0 auto; padding: 20px; box-sizing: border-box; }</style></head>
+        <body><div class="factura-print">${contenidoFacturaGenerado}</div></body></html>`;
     
     var iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
@@ -2148,7 +2036,6 @@ function imprimirFactura() {
 // ============================================
 // CONTROL DE VISTAS
 // ============================================
-
 function mostrarContenidoDetalle() {
     ocultarTodosContenidos();
     $('#contenidoDetalle').show();
@@ -2175,10 +2062,6 @@ function volverAlDetalle() {
 function ocultarTodosContenidos() {
     $('#vistaPreviaTicket, #vistaPreviaFactura, #contenidoDetalle').hide();
 }
-
-// ============================================
-// CANCELAR VENTA
-// ============================================
 
 function cancelarVenta(id) {
     id = id || modalVentaId;
@@ -2208,11 +2091,8 @@ function cancelarVenta(id) {
     }
 }
 
-// ============================================
-// DATATABLE
-// ============================================
-
-jQuery(document).ready(function($) {
+// Inicializar DataTable cuando el documento esté listo
+$(document).ready(function() {
     tablaVentas = $('#tablaVentas').DataTable({
         processing: true,
         serverSide: true,
@@ -2230,29 +2110,19 @@ jQuery(document).ready(function($) {
             }
         },
         columns: [
-            { data: "numero_factura", name: "ventas.numero_factura", defaultContent: "N/A" },
-            { 
-                data: "fecha_venta", 
-                name: "ventas.fecha_venta",
-                render: function(data, type, row) {
-                    if (type === 'display') return row.fecha_formateada + '<br><small class="text-muted">' + row.hora_formateada + '</small>';
-                    return data;
-                }
-            },
+            { data: "numero_factura", name: "ventas.numero_factura" },
+            { data: "fecha_venta", name: "ventas.fecha_venta", render: function(data, type, row) {
+                if (type === 'display') return row.fecha_formateada + '<br><small>' + row.hora_formateada + '</small>';
+                return data;
+            }},
             { data: "cliente_nombre", name: "cliente_nombre" },
             { data: "vendedor_nombre", name: "vendedor_nombre" },
             { data: "total_productos", name: "total_productos", className: "text-center" },
-            { 
-                data: "total", 
-                name: "ventas.total", 
-                className: "text-right",
-                render: function(data) { return '<span data-total="' + data + '">' + data + '</span>'; }
-            },
+            { data: "total", name: "ventas.total", className: "text-right" },
             { data: "estado", name: "ventas.estado" },
             { data: "metodo_pago", name: "ventas.metodo_pago" },
             { data: "acciones", name: "acciones", orderable: false, searchable: false }
         ],
-        order: [[1, 'desc']],
         language: {
             emptyTable: "No hay productos registrados.",
             info: "Mostrando _START_ a _END_ de _TOTAL_ Entradas",
@@ -2265,30 +2135,9 @@ jQuery(document).ready(function($) {
             zeroRecords: "Sin resultados encontrados",
             paginate: { first: "Primero", last: "Ultimo", next: "Siguiente", previous: "Anterior" }
         },
-        pageLength: 10,
-        drawCallback: function(settings) {
-            var api = this.api();
-            var total = 0;
-            api.rows({page: 'current'}).every(function() {
-                var data = this.data();
-                var valorTotal = 0;
-                if (data.total) {
-                    if (typeof data.total === 'string') {
-                        var valorLimpio = data.total.replace(/[\$\.]/g, '').replace(',', '.');
-                        valorTotal = parseFloat(valorLimpio);
-                    } else {
-                        valorTotal = parseFloat(data.total);
-                    }
-                }
-                if (!isNaN(valorTotal)) total += valorTotal;
-            });
-            if ($('#totalGeneral').length) {
-                $('#totalGeneral').text('$' + total.toLocaleString('es-CO', { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
-            }
-        }
+        pageLength: 10
     });
     
-    // FILTROS
     $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago').on('change', function() { tablaVentas.ajax.reload(); });
     $('#buscar_cliente, #buscar_factura').on('keyup', function() {
         clearTimeout(window.searchTimeout);
@@ -2299,8 +2148,6 @@ jQuery(document).ready(function($) {
         $('#fecha_desde, #fecha_hasta, #estado_venta, #metodo_pago, #buscar_cliente, #buscar_factura').val('');
         tablaVentas.ajax.reload();
     });
-    
-    // REPORTE
     $('#descargarReporte').on('click', function() { $('#modalReporte').modal('show'); });
     $('#btnGenerarReporte').on('click', function() {
         var params = new URLSearchParams({
@@ -2316,6 +2163,5 @@ jQuery(document).ready(function($) {
         $('#modalReporte').modal('hide');
     });
 });
-
-    </script>
+</script>
 @stop
