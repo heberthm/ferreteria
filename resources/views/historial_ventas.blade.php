@@ -156,7 +156,7 @@
         max-height: none !important; /* Eliminar límite de altura */
         overflow: visible !important; /* Eliminar scroll */
         page-break-inside: auto; /* Permitir salto de página si es necesario */
-    }
+    } 
     
     /* Estilos para factura - SIN RECUADRO EXTERNO */
    .factura-preview, .factura-print {
